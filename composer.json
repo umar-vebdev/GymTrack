@@ -12,6 +12,7 @@
         "laravel/tinker": "^3.0"
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.12",
         "laravel/pail": "^1.2.5",
@@ -38,6 +39,7 @@
     "scripts": {
         "lint": "pint --test",
         "analyse": "phpstan analyse --memory-limit=2G",
+        "deps": "deptrac analyze",
         "lint:fix": "pint",
         "setup": [
             "composer install",

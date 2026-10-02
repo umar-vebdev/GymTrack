@@ -1,0 +1,50 @@
+deptrac:
+  paths:
+    - ./app/Modules
+    - ./app/Shared
+
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          value: app/Modules/.*/Domain/.*
+    - name: Application
+      collectors:
+        - type: directory
+          value: app/Modules/.*/Application/.*
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: app/Modules/.*/Infrastructure/.*
+    - name: Presentation
+      collectors:
+        - type: directory
+          value: app/Modules/.*/Presentation/.*
+    - name: Contracts
+      collectors:
+        - type: directory
+          value: app/Modules/.*/Contracts/.*
+    - name: Shared
+      collectors:
+        - type: directory
+          value: app/Shared/.*
+
+  ruleset:
+    Domain:
+      - Shared
+    Contracts:
+      - Shared
+    Application:
+      - Domain
+      - Contracts
+      - Shared
+    Infrastructure:
+      - Application
+      - Domain
+      - Contracts
+      - Shared
+    Presentation:
+      - Application
+      - Domain
+      - Contracts
+      - Shared
