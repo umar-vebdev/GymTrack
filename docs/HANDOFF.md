@@ -9,19 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-06 Мультиарендность (Изоляция данных)
+- Задача: T1-07 Сценарий "Создание компании"
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Завершена задача **T1-05 Базовые сущности и репозитории Companies**. Добавлены миграции `companies`, `gyms`. Доменные классы `Company`, `Gym`. Eloquent-модели и репозитории.
-- Написан тест `CompanyRepositoryTest`.
+- Завершена задача **T1-06 Мультиарендность (Изоляция данных)**. Создан интерфейс и синглтон `CurrentCompany` в Shared Kernel. Создан `CompanyScope` и трейт `BelongsToCompany`. `BelongsToCompany` добавлен в `GymModel`.
+- Также восстановлены файлы, случайно отменённые IDE (User.php, routes/api.php, IdentityServiceProvider.php).
 
 ## Точный следующий шаг
 
-1. Начать T1-06: Настроить `CompanyScope` (Global Scope) для фильтрации запросов по компании.
-2. Создать контракт (или интерфейс) `CurrentCompany` и реализовать его, чтобы брать `company_id` из текущего пользователя (или хидера).
-3. Создать трейт `BelongsToCompany` для Eloquent-моделей.
+1. Начать T1-07: Создать UseCase `RegisterCompany` в `App\Modules\Companies\Application`. Этот UseCase должен: принимать `user_id` и данные компании, создавать компанию в БД, делать владельца первым админом (если нужно), создавать первый зал (филиал по умолчанию).
+2. Создать `RegisterCompanyController` для `POST /api/v1/business/companies`.
+3. Защитить маршрут через Sanctum-middleware, и при вызове UseCase передавать ID текущего пользователя.
+4. Написать Feature-тест `RegisterCompanyTest`.
 
 ## Окружение и команды
 

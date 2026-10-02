@@ -11,7 +11,7 @@ arch('domain layer does not depend on laravel')
     ]);
 
 arch('shared domain layer does not depend on laravel')
-    ->expect('App\Shared')
+    ->expect('App\Shared\Domain')
     ->not->toUse([
         'Illuminate',
     ]);
