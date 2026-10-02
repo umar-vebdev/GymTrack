@@ -36,7 +36,7 @@
 ## Этап 1 — Business (Identity, Companies, CRM)
 
 4. **E1-D Clients (CRM)**: карточка клиента зала, ручное создание, поиск, связывание
-   - [ ] **T1-11** Инфраструктура модуля Clients
+   - [x] **T1-11** Инфраструктура модуля Clients
      - Цель: таблица `clients`, сущность `Client`, репозиторий.
      - Шаги:
        1. Миграция: `id`, `company_id`, `user_id` (nullable), `name`, `phone`, `timestamps`. Уникальный индекс `[company_id, phone]`.

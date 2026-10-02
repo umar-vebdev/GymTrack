@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Audit;
@@ -15,8 +16,7 @@ final class FakeAuditableEvent implements AuditableEvent
     public function __construct(
         private readonly int $userId,
         private readonly int $companyId
-    ) {
-    }
+    ) {}
 
     /** @phpstan-ignore return.unusedType */
     public function userId(): ?int
@@ -46,6 +46,7 @@ final class FakeAuditableEvent implements AuditableEvent
 
     /**
      * @return array<string, mixed>|null
+     *
      * @phpstan-ignore return.unusedType
      */
     public function payload(): ?array

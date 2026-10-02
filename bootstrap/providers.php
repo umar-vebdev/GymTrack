@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Audit\AuditServiceProvider;
+use App\Modules\Clients\ClientsServiceProvider;
 use App\Modules\Companies\CompaniesServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -12,4 +13,5 @@ return [
     IdentityServiceProvider::class,
     CompaniesServiceProvider::class,
     AuditServiceProvider::class,
+    ClientsServiceProvider::class,
 ];

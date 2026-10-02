@@ -9,21 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T1-11 Инфраструктура модуля Clients
+- Задача: T1-12 Создание карточки клиента (Business API)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Детализирован эпик **E1-D Clients (CRM)** (задачи T1-11 – T1-15 добавлены в `TASKS.md`). Этот эпик отвечает за карточки клиентов, их создание администратором зала и связывание с реальными пользователями-клиентами.
+- Завершена задача **T1-11 Инфраструктура модуля Clients**. Создан модуль `Clients`, миграция `clients` с композитным индексом `company_id, phone`, доменная модель `Client` и реализация `EloquentClientRepository`. 
+- Модуль зарегистрирован через `ClientsServiceProvider`.
 
 ## Точный следующий шаг
 
-1. Начать T1-11: Создать модуль `Clients`.
-2. Написать миграцию для таблицы `clients` (поля `id`, `company_id`, `user_id` (nullable), `name`, `phone`, `timestamps`, уникальный индекс `company_id, phone`).
-3. Создать доменную модель `Client` и интерфейс `ClientRepositoryInterface`.
-4. Создать `ClientModel` (Eloquent) с трейтом `BelongsToCompany` и реализацию `EloquentClientRepository`.
-5. Зарегистрировать модуль в `ClientsServiceProvider` и добавить в `bootstrap/providers.php`.
-6. Написать юнит-тест `ClientRepositoryTest`.
+1. Начать T1-12: Создать UseCase `App\Modules\Clients\Application\CreateClient` (должен принимать `company_id`, `name`, `phone` и сохранять через репозиторий). Учесть валидацию, что телефон может дублироваться в разных компаниях, но не внутри одной.
+2. Создать контроллер `CreateClientController` (POST `/api/v1/business/clients`).
+3. Создать `CreateClientRequest` (валидация).
+4. Настроить маршруты в `ClientsServiceProvider` (с middleware `auth:sanctum` и простановкой `company_id` в `CurrentCompany` или брать из реквеста. Так как мы пока не сделали полноценный выбор активной компании, для простоты берём первую компанию пользователя или передаем её ID).
+5. Написать Feature-тест `CreateClientTest`.
 
 ## Окружение и команды
 
