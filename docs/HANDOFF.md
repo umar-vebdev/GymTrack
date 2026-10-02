@@ -9,21 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T1-02 Регистрация пользователя
+- Задача: T1-03 Подтверждение телефона (заглушка SMS)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Настроена таблица `users` и модель `User` (добавлены `phone`, `is_phone_verified`).
-- Создан доменный слой для пользователей (`App\Modules\Identity\Domain\User` и `UserRepositoryInterface`).
-- Реализован `EloquentUserRepository` в слое Infrastructure и привязан в `IdentityServiceProvider` (T1-01 выполнена).
+- Реализован UseCase `RegisterUser` и контроллер `RegisterUserController` для регистрации. Данные проверяются через `RegisterUserRequest` (FormRequest). Пароль хэшируется на уровне доменного сценария, юзер сохраняется в БД (T1-02 выполнена).
 
 ## Точный следующий шаг
 
-1. Начать T1-02: Создать класс-сценарий (UseCase) `RegisterUser` в слое Application. Он должен принимать DTO/данные, проверять уникальность (или полагаться на БД/Request), хэшировать пароль (`Hash::make`) и сохранять пользователя через `UserRepositoryInterface`.
-2. Настроить API-контроллер `RegisterUserController` (`POST /api/v1/auth/register`), который использует `FormRequest` для валидации (`phone`, `email`, `password`) и вызывает UseCase.
-3. Добавить маршрут в `routes/api.php` или `Identity/Presentation/routes.php`.
-4. Написать Feature-тест регистрации (`tests/Feature/Identity/RegisterUserTest.php`), проверяющий статусы ответа и сохранение в БД.
+1. Начать T1-03: Создать интерфейс `SmsGateway` в `App\Modules\Identity\Application\Contracts` и его заглушку `LogSmsGateway` в слое `Infrastructure`, которая просто пишет OTP код в Laravel Log.
+2. Привязать `SmsGateway` к `LogSmsGateway` в сервис-провайдере.
+3. Создать UseCase `SendPhoneVerificationOtp` (генерирует 4-6 значный код, кладёт в `Cache::put("otp:{$phone}", ...)` и отправляет через шлюз).
+4. Создать UseCase `VerifyPhone` (сверяет код из кэша, если совпал — вызывает `$user->markPhoneAsVerified()`, сохраняет юзера).
+5. Создать 2 контроллера (`SendOtpController`, `VerifyPhoneController`) с валидацией через FormRequest и маршрутами в `routes/api.php`.
+6. Написать Feature-тесты.
 
 ## Окружение и команды
 
