@@ -6,13 +6,16 @@ namespace App\Modules\Companies\Application;
 
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Companies\Domain\Role;
+use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 final class RegisterCompany
 {
     public function __construct(
         private readonly CompanyRepositoryInterface $companies,
-        private readonly GymRepositoryInterface $gyms
+        private readonly GymRepositoryInterface $gyms,
+        private readonly StaffMemberRepositoryInterface $staff
     ) {}
 
     /**
@@ -24,6 +27,12 @@ final class RegisterCompany
             $companyId = $this->companies->create(
                 ownerId: $ownerId,
                 name: $companyName
+            );
+
+            $this->staff->create(
+                userId: $ownerId,
+                companyId: $companyId,
+                role: Role::OWNER
             );
 
             $gymId = $this->gyms->create(

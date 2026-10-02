@@ -9,20 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T1-09 Инфраструктура модуля Audit
+- Задача: T1-10 Интеграция Audit через доменные события
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Изучены Бизнес-ТЗ (§10) и Техн. ТЗ (§3.6, §3.7). 
-- Детализирован эпик **E1-C Audit** (неизменяемый журнал действий). Задачи T1-09 и T1-10 добавлены в `TASKS.md`.
+- Восстановлен файл `RegisterCompany.php` (изменение было потеряно IDE).
+- Завершена задача **T1-09 Инфраструктура модуля Audit**. Создана миграция для `audit_entries`, модель `AuditEntryModel`, доменная сущность `AuditEntry` и репозиторий.
+- Модуль Audit зарегистрирован в Laravel через `AuditServiceProvider`.
 
 ## Точный следующий шаг
 
-1. Начать T1-09: Создать миграцию `create_audit_entries_table` в папке миграций нового модуля `Audit`. Поля: `id` (ULID/UUID или просто bigInt), `user_id`, `company_id`, `action` (string), `entity_type`, `entity_id`, `payload` (jsonb), `ip_address`, `created_at`.
-2. Создать класс сущности `AuditEntry` и `AuditRepositoryInterface` в `App\Modules\Audit\Domain`.
-3. Создать реализацию репозитория и Eloquent-модель (в ней отключить `$timestamps` и включить только `CREATED_AT`).
-4. Написать юнит-тест проверки сохранения записи.
+1. Начать T1-10: Создать интерфейс `App\Shared\Domain\AuditableEvent` (должен обязывать события возвращать данные для лога: action, entityType, entityId, payload).
+2. Создать класс `App\Modules\Audit\Application\Listeners\AuditEventListener`.
+3. Настроить в `AuditServiceProvider` регистрацию этого слушателя на события, реализующие `AuditableEvent` (например, через `Event::listen(AuditableEvent::class, AuditEventListener::class)`).
+4. Создать тестовое событие в `tests/Unit/Audit` и проверить, что Event Dispatcher ловит его и пишет лог.
 
 ## Окружение и команды
 
@@ -38,4 +39,3 @@
 
 - Платежей нет, только `PaymentMark`.
 - Новая функция = новый модуль или расширение через Contracts и события.
-- Модуль Audit зависит только от событий. Он не имеет прямых связей с другими модулями (кроме Shared).
