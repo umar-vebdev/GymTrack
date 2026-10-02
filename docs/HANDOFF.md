@@ -9,18 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T0-05 Laravel Pint (стиль кода)
+- Задача: T0-06 Larastan (статический анализ)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Создан каркас слоёв для модуля `Identity` и папка `Shared`. Подключен `IdentityServiceProvider`. Обновлен `README.md` (T0-04 выполнена).
+- Настроен Laravel Pint с требованием `declare(strict_types=1)` и добавлены скрипты `lint` в `composer.json` (T0-05 выполнена).
 
 ## Точный следующий шаг
 
-1. Создать конфигурацию `pint.json` с требованием `declare(strict_types=1)`.
-2. Добавить команду `"lint": "pint --test"` в `composer.json` в раздел `scripts`.
-3. Запустить `composer lint`, если будут ошибки — исправить их (или запустить `pint` для автоисправления).
+1. Установить `larastan/larastan` через composer (dev).
+2. Создать `phpstan.neon` и настроить уровень 8.
+3. Добавить команду `"analyse": "phpstan analyse"` в `composer.json`.
+4. Запустить `composer analyse` и исправить возможные ошибки.
 
 ## Окружение и команды
 

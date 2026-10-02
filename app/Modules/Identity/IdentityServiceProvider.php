@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Modules\Identity;
@@ -15,10 +16,10 @@ final class IdentityServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Загрузка маршрутов, миграций, фабрик модуля
-        $this->loadMigrationsFrom(__DIR__ . '/Infrastructure/Migrations');
-        
-        if (file_exists(__DIR__ . '/Presentation/routes.php')) {
-            $this->loadRoutesFrom(__DIR__ . '/Presentation/routes.php');
+        $this->loadMigrationsFrom(__DIR__.'/Infrastructure/Migrations');
+
+        if (file_exists(__DIR__.'/Presentation/routes.php')) {
+            $this->loadRoutesFrom(__DIR__.'/Presentation/routes.php');
         }
     }
 }

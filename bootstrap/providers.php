@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Modules\Identity\IdentityServiceProvider;
 use App\Providers\AppServiceProvider;
 
 return [
     AppServiceProvider::class,
-    App\Modules\Identity\IdentityServiceProvider::class,
+    IdentityServiceProvider::class,
 ];

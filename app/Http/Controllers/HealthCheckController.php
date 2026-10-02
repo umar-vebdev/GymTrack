@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
@@ -20,12 +21,14 @@ final class HealthCheckController extends Controller
         try {
             DB::connection()->getPdo();
             $status['database'] = 'ok';
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         try {
             Redis::connection()->ping();
             $status['redis'] = 'ok';
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $httpStatus = ($status['database'] === 'ok' && $status['redis'] === 'ok') ? 200 : 503;
 
