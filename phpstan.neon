@@ -17,5 +17,6 @@ parameters:
         # Ignore some default Laravel bindings that PHPStan struggles with initially
     
     excludePaths:
+        - tests/Feature/ArchitectureTest.php
         - tests/Feature/ExampleTest.php
         - tests/Unit/ExampleTest.php

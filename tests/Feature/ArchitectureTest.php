@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-test('domain layer does not depend on laravel')
+arch('domain layer does not depend on laravel')
     ->expect('App\Modules\*\Domain')
     ->not->toUse([
         'Illuminate',
@@ -9,7 +10,7 @@ test('domain layer does not depend on laravel')
         'App\Models',
     ]);
 
-test('shared domain layer does not depend on laravel')
+arch('shared domain layer does not depend on laravel')
     ->expect('App\Shared')
     ->not->toUse([
         'Illuminate',
