@@ -39,6 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
                     $code = 'NOT_FOUND';
                     $status = 404;
                     $message = 'Запрашиваемый ресурс не найден.';
+                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    $code = 'UNAUTHORIZED';
+                    $status = 401;
+                    $message = 'Необходима авторизация.';
                 } elseif ($e instanceof InvalidArgumentException || $e instanceof DomainException) {
                     $code = 'BAD_REQUEST';
                     $status = 400;
