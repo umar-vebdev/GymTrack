@@ -54,7 +54,7 @@
      - Готово когда: Feature-тест успешной регистрации проходит
      - Заметки:
 
-   - [ ] **T1-03** Подтверждение телефона (заглушка SMS)
+   - [x] **T1-03** Подтверждение телефона (заглушка SMS)
      - Цель: отправка OTP и его проверка
      - ТЗ: Бизнес §4.1
      - Файлы: `SmsGateway` (Contracts), `LogSmsGateway` (Infrastructure), `VerifyPhone` (UseCase), контроллеры `/api/v1/auth/send-otp` и `/api/v1/auth/verify-phone`
