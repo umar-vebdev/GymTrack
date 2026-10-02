@@ -37,24 +37,13 @@
 - [x] T0-07 Pest и первый тест
 - [x] T0-08 Deptrac и архитектурные тесты
 - [x] T0-09 Shared Kernel: Money
+- [x] T0-10 Shared Kernel: CompanyId, Clock, базовое доменное событие
 
 ---
 
 ## Этап 0 — Каркас проекта
 
-- [~] **T0-10** Shared Kernel: CompanyId, Clock, базовое доменное событие
-  - Цель: общие базовые типы
-  - ТЗ: Техн. §3.6, §5
-  - Файлы: `app/Shared/Domain/CompanyId.php`, `Clock.php` (интерфейс), `SystemClock.php`, `DomainEvent.php`, unit-тесты
-  - Шаги:
-    1. `CompanyId` — Value Object.
-    2. Интерфейс `Clock` и реализация `SystemClock` (нужны, чтобы тестировать время).
-    3. Базовый класс или интерфейс `DomainEvent`.
-    4. Привязать `Clock` к `SystemClock` в контейнере.
-  - Готово когда: `composer test`, `composer analyse`, `composer deps` зелёные
-  - Заметки:
-
-- [ ] **T0-11** Единый формат ошибок API и префикс версии
+- [~] **T0-11** Единый формат ошибок API и префикс версии
   - Цель: все ответы и ошибки соответствуют Техническому ТЗ
   - ТЗ: Техн. §7.1, §7.2
   - Файлы: обработчик исключений, `routes/api.php`, тесты
