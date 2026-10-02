@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -39,7 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     $code = 'NOT_FOUND';
                     $status = 404;
                     $message = 'Запрашиваемый ресурс не найден.';
-                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                } elseif ($e instanceof AuthenticationException) {
                     $code = 'UNAUTHORIZED';
                     $status = 401;
                     $message = 'Необходима авторизация.';
