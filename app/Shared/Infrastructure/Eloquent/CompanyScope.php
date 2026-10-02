@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Eloquent;
@@ -19,7 +20,7 @@ final class CompanyScope implements Scope
         $currentCompany = app(CurrentCompanyInterface::class);
 
         if ($currentCompany->hasId()) {
-            $builder->where($model->getTable() . '.company_id', $currentCompany->id());
+            $builder->where($model->getTable().'.company_id', $currentCompany->id());
         }
     }
 }

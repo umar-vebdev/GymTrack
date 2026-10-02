@@ -35,6 +35,11 @@ final class RegisterCompanyTest extends TestCase
             'name' => 'GymTrack LLC',
         ]);
 
+        $this->assertDatabaseHas('staff_members', [
+            'user_id' => $user->id,
+            'role' => 'owner',
+        ]);
+
         $this->assertDatabaseHas('gyms', [
             'name' => 'Main Branch',
             'address' => 'Dushanbe, 10th st.',

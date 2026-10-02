@@ -6,8 +6,10 @@ namespace App\Modules\Companies;
 
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Companies\Infrastructure\EloquentCompanyRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymRepository;
+use App\Modules\Companies\Infrastructure\EloquentStaffMemberRepository;
 use Illuminate\Support\ServiceProvider;
 
 final class CompaniesServiceProvider extends ServiceProvider
@@ -21,6 +23,10 @@ final class CompaniesServiceProvider extends ServiceProvider
         $this->app->bind(
             GymRepositoryInterface::class,
             EloquentGymRepository::class
+        );
+        $this->app->bind(
+            StaffMemberRepositoryInterface::class,
+            EloquentStaffMemberRepository::class
         );
     }
 
