@@ -9,19 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T0-06 Larastan (статический анализ)
+- Задача: T0-07 Pest и первый тест
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Настроен Laravel Pint с требованием `declare(strict_types=1)` и добавлены скрипты `lint` в `composer.json` (T0-05 выполнена).
+- Установлен Larastan, создан `phpstan.neon` (уровень 8), исправлены ошибки типов в конфигурациях Laravel. Скрипт `composer analyse` успешно проходит проверку (T0-06 выполнена).
 
 ## Точный следующий шаг
 
-1. Установить `larastan/larastan` через composer (dev).
-2. Создать `phpstan.neon` и настроить уровень 8.
-3. Добавить команду `"analyse": "phpstan analyse"` в `composer.json`.
-4. Запустить `composer analyse` и исправить возможные ошибки.
+1. Установить фреймворк `Pest` (если его нет) через `composer require pestphp/pest pestphp/pest-plugin-laravel --dev` (или `php artisan pest:install`).
+2. В `phpunit.xml` настроить тестовую БД на использование PostgreSQL (в идеале — отдельная БД или in-memory sqlite для тестов, но по ТЗ — того же типа, что и боевая, так что PostgreSQL).
+3. Добавить команду `"test": "pest"` в `composer.json`.
+4. Запустить тесты, чтобы убедиться, что `HealthCheckTest` (который был написан для PHPUnit, но совместим с Pest) проходит.
 
 ## Окружение и команды
 

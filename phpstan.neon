@@ -1,0 +1,21 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - bootstrap/
+        - config/
+        - database/
+        - routes/
+        - tests/
+
+    # Level 9 is the highest level, 8 is required by TZ
+    level: 8
+
+    ignoreErrors:
+        # Ignore some default Laravel bindings that PHPStan struggles with initially
+    
+    excludePaths:
+        - tests/Feature/ExampleTest.php
+        - tests/Unit/ExampleTest.php
