@@ -9,21 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-05 Базовые сущности и репозитории Companies
+- Задача: T1-06 Мультиарендность (Изоляция данных)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Завершён эпик **E1-A Identity** (Регистрация, OTP, Вход, Токены).
-- Изучены Бизнес-ТЗ (§4.2) и Техн. ТЗ (§3.6, §5.6). Детализирован эпик **E1-B Companies** (задачи T1-05 .. T1-08).
+- Завершена задача **T1-05 Базовые сущности и репозитории Companies**. Добавлены миграции `companies`, `gyms`. Доменные классы `Company`, `Gym`. Eloquent-модели и репозитории.
+- Написан тест `CompanyRepositoryTest`.
 
 ## Точный следующий шаг
 
-1. Начать T1-05: Создать миграции таблиц `companies` (id, owner_id [references users], name, created_at, updated_at) и `gyms` (id, company_id, name, address).
-2. Создать доменные классы `Company` и `Gym` в `App\Modules\Companies\Domain`.
-3. Создать интерфейсы `CompanyRepositoryInterface` и `GymRepositoryInterface`.
-4. Создать Eloquent-модели и реализации репозиториев в `Infrastructure`.
-5. Написать модульный тест `CompanyRepositoryTest`, убедиться что компания и залы сохраняются.
+1. Начать T1-06: Настроить `CompanyScope` (Global Scope) для фильтрации запросов по компании.
+2. Создать контракт (или интерфейс) `CurrentCompany` и реализовать его, чтобы брать `company_id` из текущего пользователя (или хидера).
+3. Создать трейт `BelongsToCompany` для Eloquent-моделей.
 
 ## Окружение и команды
 
