@@ -31,23 +31,13 @@
 - [x] T0-01 Инициализация проекта Laravel и репозитория
 - [x] T0-02 Docker Compose для локальной разработки
 - [x] T0-03 Подключение БД и Redis, эндпоинт health-check
+- [x] T0-04 Каркас директорий модулей и Shared
 
 ---
 
 ## Этап 0 — Каркас проекта
 
-- [~] **T0-04** Каркас директорий модулей и Shared
-  - Цель: структура `app/Modules` и `app/Shared` по Техническому ТЗ
-  - ТЗ: Техн. §3.2, §3.3
-  - Файлы: `app/Shared/*`, `app/Modules/Identity/*` (шаблон модуля), `bootstrap/providers.php`
-  - Шаги:
-    1. Создать папки слоёв для модуля Identity: Contracts, Domain, Application, Infrastructure, Presentation.
-    2. Создать `IdentityServiceProvider` и зарегистрировать его в `bootstrap/providers.php`.
-    3. Описать шаблон модуля в `README.md`, чтобы остальные модули создавались так же.
-  - Готово когда: приложение запускается, провайдер модуля загружается без ошибок
-  - Заметки:
-
-- [ ] **T0-05** Laravel Pint (стиль кода)
+- [~] **T0-05** Laravel Pint (стиль кода)
   - Цель: автоматическая проверка стиля PSR-12
   - ТЗ: Техн. §2, §11
   - Файлы: `pint.json`, `composer.json` (скрипт `lint`)
