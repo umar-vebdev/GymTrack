@@ -9,20 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T1-01 Модель и репозиторий User
+- Задача: T1-02 Регистрация пользователя
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Изучены Бизнес-ТЗ и Техническое ТЗ для модуля `Identity`. Эпик `E1-A Identity` детализирован на 4 подзадачи в `TASKS.md` (T1-01 – T1-04). Начинается работа над этапом 1.
+- Настроена таблица `users` и модель `User` (добавлены `phone`, `is_phone_verified`).
+- Создан доменный слой для пользователей (`App\Modules\Identity\Domain\User` и `UserRepositoryInterface`).
+- Реализован `EloquentUserRepository` в слое Infrastructure и привязан в `IdentityServiceProvider` (T1-01 выполнена).
 
 ## Точный следующий шаг
 
-1. Начать T1-01: обновить существующую миграцию `users` (добавить `phone`, `is_phone_verified`, сделать `email` nullable, если телефон важнее).
-2. Создать доменную сущность `User` в `App\Modules\Identity\Domain` (Id, телефон, email, хэш пароля).
-3. Создать интерфейс `UserRepositoryInterface` в слое `Domain`.
-4. В слое `Infrastructure` создать `EloquentUserRepository`, использующий стандартную модель Laravel `App\Models\User`. Привязать интерфейс к реализации в `IdentityServiceProvider`.
-5. Написать модульный/интеграционный тест.
+1. Начать T1-02: Создать класс-сценарий (UseCase) `RegisterUser` в слое Application. Он должен принимать DTO/данные, проверять уникальность (или полагаться на БД/Request), хэшировать пароль (`Hash::make`) и сохранять пользователя через `UserRepositoryInterface`.
+2. Настроить API-контроллер `RegisterUserController` (`POST /api/v1/auth/register`), который использует `FormRequest` для валидации (`phone`, `email`, `password`) и вызывает UseCase.
+3. Добавить маршрут в `routes/api.php` или `Identity/Presentation/routes.php`.
+4. Написать Feature-тест регистрации (`tests/Feature/Identity/RegisterUserTest.php`), проверяющий статусы ответа и сохранение в БД.
 
 ## Окружение и команды
 

@@ -33,7 +33,7 @@
 ## Этап 1 — Business (Identity, Companies, CRM)
 
 1. **E1-A Identity**: регистрация, вход, подтверждение телефона (заглушка SMS-шлюза), токены
-   - [ ] **T1-01** Модель и репозиторий User
+   - [x] **T1-01** Модель и репозиторий User
      - Цель: базовая сущность пользователя и миграция БД
      - ТЗ: Бизнес §4.1, Техн. §3.3
      - Файлы: `database/migrations/*_create_users_table.php`, `App\Modules\Identity\Domain\User`, `UserRepositoryInterface`, `App\Modules\Identity\Infrastructure\EloquentUserRepository`
