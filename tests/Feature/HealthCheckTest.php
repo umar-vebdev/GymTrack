@@ -10,7 +10,7 @@ final class HealthCheckTest extends TestCase
 {
     public function test_health_check_returns_ok_status(): void
     {
-        $response = $this->get('/api/health');
+        $response = $this->get('/api/v1/health');
 
         $response->assertStatus(200);
         $response->assertJson([
