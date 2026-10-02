@@ -9,19 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T0-07 Pest и первый тест
+- Задача: T0-08 Deptrac и архитектурные тесты
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Установлен Larastan, создан `phpstan.neon` (уровень 8), исправлены ошибки типов в конфигурациях Laravel. Скрипт `composer analyse` успешно проходит проверку (T0-06 выполнена).
+- Установлен Pest, создана тестовая БД PostgreSQL (`gymtrack_testing`), `phpunit.xml` настроен на использование БД. Тесты успешно проходят с транзакциями `RefreshDatabase` (T0-07 выполнена).
 
 ## Точный следующий шаг
 
-1. Установить фреймворк `Pest` (если его нет) через `composer require pestphp/pest pestphp/pest-plugin-laravel --dev` (или `php artisan pest:install`).
-2. В `phpunit.xml` настроить тестовую БД на использование PostgreSQL (в идеале — отдельная БД или in-memory sqlite для тестов, но по ТЗ — того же типа, что и боевая, так что PostgreSQL).
-3. Добавить команду `"test": "pest"` в `composer.json`.
-4. Запустить тесты, чтобы убедиться, что `HealthCheckTest` (который был написан для PHPUnit, но совместим с Pest) проходит.
+1. Установить `qossmic/deptrac` через composer (dev).
+2. Создать `deptrac.yaml` с правилами: 
+   - Модули зависят только от `Contracts` других модулей.
+   - Слой `Domain` не зависит от `Illuminate\*` (и других фреймворков).
+3. Написать архитектурный тест Pest в `tests/Feature/ArchitectureTest.php` для проверки, что `App\Modules\*\Domain` не использует `Illuminate`.
+4. Добавить скрипт `"deps": "deptrac analyze"` в `composer.json` и убедиться, что он проходит.
 
 ## Окружение и команды
 
