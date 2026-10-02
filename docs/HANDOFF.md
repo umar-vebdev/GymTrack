@@ -9,20 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-07 Сценарий "Создание компании"
+- Задача: T1-08 Сотрудники и роли (RBAC)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Завершена задача **T1-06 Мультиарендность (Изоляция данных)**. Создан интерфейс и синглтон `CurrentCompany` в Shared Kernel. Создан `CompanyScope` и трейт `BelongsToCompany`. `BelongsToCompany` добавлен в `GymModel`.
-- Также восстановлены файлы, случайно отменённые IDE (User.php, routes/api.php, IdentityServiceProvider.php).
+- Завершена задача **T1-07 Сценарий "Создание компании"**. Создан UseCase `RegisterCompany`, который автоматически создаёт компанию и первый зал (Gym) в транзакции. 
+- Настроен защищённый `auth:sanctum` эндпоинт `POST /api/v1/business/companies` и написаны интеграционные тесты.
 
 ## Точный следующий шаг
 
-1. Начать T1-07: Создать UseCase `RegisterCompany` в `App\Modules\Companies\Application`. Этот UseCase должен: принимать `user_id` и данные компании, создавать компанию в БД, делать владельца первым админом (если нужно), создавать первый зал (филиал по умолчанию).
-2. Создать `RegisterCompanyController` для `POST /api/v1/business/companies`.
-3. Защитить маршрут через Sanctum-middleware, и при вызове UseCase передавать ID текущего пользователя.
-4. Написать Feature-тест `RegisterCompanyTest`.
+1. Начать T1-08: Создать миграцию для таблицы `staff_members` (user_id, company_id, role).
+2. Создать доменную сущность `StaffMember` и Enum `Role` (Owner, Admin).
+3. При создании компании (в `RegisterCompany` UseCase) автоматически добавлять создателя как `Owner` в `staff_members`.
+4. Настроить механизм RBAC (например, кастомный Middleware или Policy) для проверки ролей.
 
 ## Окружение и команды
 
