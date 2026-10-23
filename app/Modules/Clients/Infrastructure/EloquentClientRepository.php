@@ -51,6 +51,16 @@ final class EloquentClientRepository implements ClientRepositoryInterface
         return ['items' => array_values($items), 'total' => $total];
     }
 
+    public function delete(int $id): void
+    {
+        ClientModel::withoutGlobalScopes()->whereKey($id)->delete();
+    }
+
+    public function assignUser(int $id, int $userId): void
+    {
+        ClientModel::withoutGlobalScopes()->whereKey($id)->update(['user_id' => $userId]);
+    }
+
     public function existsByPhone(int $companyId, string $phone): bool
     {
         return ClientModel::withoutGlobalScopes()

@@ -15,6 +15,10 @@ interface ClientRepositoryInterface
      */
     public function search(int $companyId, ?string $search, int $page, int $perPage): array;
 
+    public function delete(int $id): void;
+
+    public function assignUser(int $id, int $userId): void;
+
     public function existsByPhone(int $companyId, string $phone): bool;
 
     /**

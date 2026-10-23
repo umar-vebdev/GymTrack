@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Clients\Presentation\CreateClientController;
+use App\Modules\Clients\Presentation\MergeClientsController;
 use App\Modules\Clients\Presentation\SearchClientsController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,4 +12,5 @@ Route::prefix('api/v1/business')
     ->group(function () {
         Route::get('/clients', SearchClientsController::class);
         Route::post('/clients', CreateClientController::class);
+        Route::post('/clients/merge', MergeClientsController::class);
     });
