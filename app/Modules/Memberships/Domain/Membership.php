@@ -6,6 +6,9 @@ namespace App\Modules\Memberships\Domain;
 
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Exceptions\NoVisitsLeft;
+use App\Modules\Memberships\Domain\MembershipKind;
+use App\Modules\Memberships\Domain\MembershipRules;
+use App\Modules\Memberships\Domain\MembershipStatus;
 use App\Modules\Memberships\Domain\Strategies\ConsumptionStrategy;
 use App\Modules\Memberships\Domain\Strategies\ConsumptionStrategyResolver;
 use DateTimeImmutable;
