@@ -23,6 +23,14 @@ final class EloquentClientRepository implements ClientRepositoryInterface
         ) : null;
     }
 
+    public function existsByPhone(int $companyId, string $phone): bool
+    {
+        return ClientModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('phone', $phone)
+            ->exists();
+    }
+
     public function create(int $companyId, string $name, string $phone, ?int $userId = null): int
     {
         $model = ClientModel::create([

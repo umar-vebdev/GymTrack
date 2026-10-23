@@ -8,5 +8,7 @@ interface ClientRepositoryInterface
 {
     public function findById(int $id): ?Client;
 
+    public function existsByPhone(int $companyId, string $phone): bool;
+
     public function create(int $companyId, string $name, string $phone, ?int $userId = null): int;
 }

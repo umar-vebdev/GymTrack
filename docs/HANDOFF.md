@@ -9,21 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-12 Создание карточки клиента (Business API)
+- Задача: T1-13 Механизм связывания с пользователем
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Завершена задача **T1-11 Инфраструктура модуля Clients**. Создан модуль `Clients`, миграция `clients` с композитным индексом `company_id, phone`, доменная модель `Client` и реализация `EloquentClientRepository`. 
-- Модуль зарегистрирован через `ClientsServiceProvider`.
+- Завершена **T1-12**: `CreateClient` (UseCase), `CreateClientController`, `CreateClientRequest`, маршрут `POST /api/v1/business/clients`, `existsByPhone` в репозитории, контракт `Companies/Contracts/StaffCompanyResolverInterface` (+ `EloquentStaffCompanyResolver`).
+- Дубликат телефона в компании → 409 `CLIENT_PHONE_EXISTS`; не сотрудник → 403.
+- Отдельным коммитом исправлен стиль `app/Models/User.php` (Pint).
 
 ## Точный следующий шаг
 
-1. Начать T1-12: Создать UseCase `App\Modules\Clients\Application\CreateClient` (должен принимать `company_id`, `name`, `phone` и сохранять через репозиторий). Учесть валидацию, что телефон может дублироваться в разных компаниях, но не внутри одной.
-2. Создать контроллер `CreateClientController` (POST `/api/v1/business/clients`).
-3. Создать `CreateClientRequest` (валидация).
-4. Настроить маршруты в `ClientsServiceProvider` (с middleware `auth:sanctum` и простановкой `company_id` в `CurrentCompany` или брать из реквеста. Так как мы пока не сделали полноценный выбор активной компании, для простоты берём первую компанию пользователя или передаем её ID).
-5. Написать Feature-тест `CreateClientTest`.
+1. T1-13: контракт `Identity/Contracts/UserQueryInterface` (поиск пользователя по телефону), инжектить в `CreateClient` (заполнять `user_id`; `ClientRepositoryInterface::create` уже принимает `userId`).
+2. Событие `UserRegistered` в Identity + Listener `LinkUserToClients` в Clients.
+3. Тесты двустороннего связывания.
 
 ## Окружение и команды
 
@@ -33,7 +32,7 @@
 | Стиль | `composer lint` |
 | Статический анализ | `composer analyse` |
 | Границы модулей | `composer deps` |
-| Тесты | `composer test` |
+| Тесты | `docker compose exec -T app composer test` (на хосте нет pgsql) |
 
 ## Важные факты, которые легко забыть
 
