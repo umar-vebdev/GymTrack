@@ -9,18 +9,19 @@
 
 ## Текущая задача
 
-- Задача: раскрытие эпика E1-E (Memberships) в мелкие задачи
-- Статус: список задач T1-16…T1-28 записан в `TASKS.md` как ЧЕРНОВИК, ждёт подтверждения разработчика (AGENTS.md 4.3). После подтверждения начать с T1-16.
+- Задача: T1-17 Инфраструктура типов абонементов (миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider`)
+- Статус: не начата
+- **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- Закрыт эпик E1-D (Clients). **T1-15**: `MergeClients`, `POST /api/v1/business/clients/merge`, только владелец (`StaffCompanyResolverInterface::isOwner`), чужая компания → 404 `CLIENT_NOT_FOUND`.
-- T1-12…T1-14: создание, поиск, связывание клиентов.
+- **T1-16**: `Memberships/Domain`: `MembershipKind`, `StartMode`, `MembershipRules` (VO с инвариантами), `InvalidMembershipRules` + unit-тест (19 кейсов).
+- Закрыт эпик E1-D; E1-E раскрыт и подтверждён.
 
 ## Точный следующий шаг
 
-1. Перечитать Бизнес-ТЗ 4.3 и Тех. ТЗ 3.8, 4.4, 5.2, 9.1, 6; раскрыть E1-E в задачи T1-16… (тип абонемента, правила, выдача, заморозка, отмена/возврат только владельцем, стратегии списания), показать список разработчику.
-2. Идеи на будущее: аудит слияния клиентов (через `AuditableEvent`).
+1. T1-17: миграция `membership_types` (id, company_id, name, kind, start_mode, price_minor, currency, visits_count, duration_days, validity_days, daily_limit, time_from_minute, time_to_minute, freeze_max_days, freeze_max_times, is_active, timestamps; CHECK цена >= 0), сущность `MembershipType` (id, companyId, name, `Money` price, `MembershipRules`, isActive), `MembershipTypeRepositoryInterface`, Eloquent-реализация (`BelongsToCompany`), `MembershipsServiceProvider` + `bootstrap/providers.php`.
+2. Тест репозитория (создать и прочитать тип). Сверить валюту: пока хранить код валюты в строке типа, значение по умолчанию TJS (компания валюту не хранит — решить через `[ASSUMPTION]` в DECISIONS).
 
 ## Окружение и команды
 
