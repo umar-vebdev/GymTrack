@@ -58,7 +58,9 @@
      - Цель: `GET /api/v1/business/membership-types` (сотрудники компании, фильтр `only_active`), `PATCH /api/v1/business/membership-types/{id}/active` (только владелец компании).
      - Готово когда: Feature-тест проверяет доступ ролей, фильтрацию и изоляцию тенантов.
 
-   - [ ] **T1-20** Домен абонемента клиента: `Membership` (богатая сущность, ТЗ 5.2) + `MembershipStatus` (State: pending | active | frozen | expired | cancelled), метод `consumeVisit()`, `expireIfDue()`; исключения `NoVisitsLeft`, `MembershipNotUsable`. Без БД, unit-тесты.
+   - [x] **T1-20** Домен абонемента клиента
+     - Цель: богатая сущность `Membership` (чистый PHP) + `MembershipStatus` (pending, active, frozen, expired, cancelled), методы `consumeVisit()`, `freeze()`, `unfreeze()`, `expireIfDue()`, `cancel()`.
+     - Готово когда: Unit-тесты проверяют списание, истечение по сроку, активацию при первом визите, заморозку с продлением срока и отмену.
 
    - [ ] **T1-21** Стратегии списания (Strategy, ТЗ 4.4): `ConsumptionStrategy` — по посещениям (−1 занятие), по сроку/безлимит (фиксирует день, не списывает занятие; несколько отметок за день = один день, критерий приёмки 4). Подключаются в `Membership`. Unit-тесты.
 

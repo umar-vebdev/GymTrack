@@ -9,22 +9,21 @@
 
 ## Текущая задача
 
-- Задача: T1-20 Домен абонемента клиента: `Membership` + `MembershipStatus`
+- Задача: T1-21 Стратегии списания (Strategy): `ConsumptionStrategy`
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-19**: `ListMembershipTypes`, `SetMembershipTypeActive`, `GET /api/v1/business/membership-types`, `PATCH /api/v1/business/membership-types/{id}/active`.
-- T1-18: создание типа абонемента; T1-17: инфраструктура типов; T1-16: домен правил.
+- **T1-20**: доменная сущность `Membership`, `MembershipStatus`, исключения `MembershipNotUsable`, `NoVisitsLeft`, unit-тесты жизненного цикла (списание, активация по первому визиту, заморозка/разморозка, отмена).
+- T1-19: список типов и переключение активности.
 
 ## Точный следующий шаг
 
-1. T1-20: Создать сущность `Membership` (богатая доменная модель, чистый PHP) в `Memberships/Domain/Membership.php`.
-   - `MembershipStatus` (enum: PENDING, ACTIVE, FROZEN, EXPIRED, CANCELLED).
-   - Методы `consumeVisit(DateTimeImmutable $at)`, `freeze()`, `unfreeze()`, `expireIfDue(DateTimeImmutable $now)`.
-   - Исключения `NoVisitsLeft`, `MembershipNotUsable`.
-   - Unit-тесты на поведение сущности без БД.
+1. T1-21: Стратегии списания (паттерн Strategy, ТЗ 4.4):
+   - Интерфейс `ConsumptionStrategy` в `Memberships/Domain`.
+   - Реализации: `VisitsBasedStrategy` (списывает 1 занятие, при 0 меняет статус на Expired), `DurationBasedStrategy` / `UnlimitedStrategy` (проверяет дату окончания, визит не уменьшает остаток; повторные отметки за один день — один день).
+   - Интеграция стратегий в метод списания абонемента или фабрику списания. Unit-тесты на каждую стратегию.
 
 ## Окружение и команды
 
