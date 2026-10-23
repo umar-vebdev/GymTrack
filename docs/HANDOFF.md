@@ -9,18 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-14 Поиск и список клиентов
+- Задача: T1-15 Объединение дубликатов (Merge)
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- **T1-13**: контракт `Identity/Contracts/UserQueryInterface` (+ `EloquentUserQuery`), событие `Identity/Contracts/PhoneVerified` (диспатчится в `VerifyPhone`), Listener `Clients/Application/Listeners/LinkUserToClients`, `CreateClient` проставляет `user_id` для подтверждённого телефона. Решение D-002.
-- T1-12: эндпоинт `POST /api/v1/business/clients` (готово ранее).
+- **T1-14**: `SearchClients`, `SearchClientsController`, `GET /api/v1/business/clients` (поиск + пагинация), `ClientRepositoryInterface::search`.
+- T1-13: связывание по `PhoneVerified` (D-002); T1-12: создание клиента.
 
 ## Точный следующий шаг
 
-1. T1-14: UseCase `SearchClients` (фильтр `search` по имени/телефону, с пагинацией), `SearchClientsController`, `GET /api/v1/business/clients` в `Clients/Presentation/routes.php`; компания — через `StaffCompanyResolverInterface`.
-2. Feature-тест: поиск по части телефона + изоляция компаний.
+1. T1-15: UseCase `MergeClients` (`source_id`, `target_id`; обе карточки из ОДНОЙ компании, иначе 404/403; source удаляется), `POST /api/v1/business/clients/merge`. Данные, привязанные к карточкам (абонементы и т. д.), появятся позже — пока переносить нечего; зафиксировать это в заметках. Валидация: source != target.
+2. Feature-тест: успешное слияние, чужая компания, source == target.
+3. После T1-15 этап E1-D закрыт: раскрыть эпик E1-E (Memberships) в задачи и показать разработчику на подтверждение.
 
 ## Окружение и команды
 

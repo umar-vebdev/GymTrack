@@ -23,6 +23,34 @@ final class EloquentClientRepository implements ClientRepositoryInterface
         ) : null;
     }
 
+    public function search(int $companyId, ?string $search, int $page, int $perPage): array
+    {
+        $query = ClientModel::withoutGlobalScopes()->where('company_id', $companyId);
+
+        if ($search !== null) {
+            $like = '%'.addcslashes($search, '\\%_').'%';
+            $query->where(function ($q) use ($like): void {
+                $q->where('name', 'ilike', $like)->orWhere('phone', 'like', $like);
+            });
+        }
+
+        $total = $query->count();
+
+        $items = $query->orderBy('name')->orderBy('id')
+            ->forPage($page, $perPage)
+            ->get()
+            ->map(static fn (ClientModel $m): Client => new Client(
+                id: $m->id,
+                companyId: $m->company_id,
+                userId: $m->user_id,
+                name: $m->name,
+                phone: $m->phone
+            ))
+            ->all();
+
+        return ['items' => array_values($items), 'total' => $total];
+    }
+
     public function existsByPhone(int $companyId, string $phone): bool
     {
         return ClientModel::withoutGlobalScopes()

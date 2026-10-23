@@ -8,6 +8,13 @@ interface ClientRepositoryInterface
 {
     public function findById(int $id): ?Client;
 
+    /**
+     * Список клиентов компании с необязательным поиском по имени или части телефона.
+     *
+     * @return array{items: list<Client>, total: int}
+     */
+    public function search(int $companyId, ?string $search, int $page, int $perPage): array;
+
     public function existsByPhone(int $companyId, string $phone): bool;
 
     /**
