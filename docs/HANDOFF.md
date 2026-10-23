@@ -9,20 +9,22 @@
 
 ## Текущая задача
 
-- Задача: T1-19 Список типов и активация/деактивация
+- Задача: T1-20 Домен абонемента клиента: `Membership` + `MembershipStatus`
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-18**: `CreateMembershipType` + `CreateMembershipTypeCommand`, `POST /api/v1/business/membership-types` (только владелец; 422 для невалидных правил).
-- T1-17: инфраструктура типов; T1-16: домен правил.
+- **T1-19**: `ListMembershipTypes`, `SetMembershipTypeActive`, `GET /api/v1/business/membership-types`, `PATCH /api/v1/business/membership-types/{id}/active`.
+- T1-18: создание типа абонемента; T1-17: инфраструктура типов; T1-16: домен правил.
 
 ## Точный следующий шаг
 
-1. T1-19: в `MembershipTypeRepositoryInterface` добавить `listByCompany(int $companyId, bool $onlyActive)` и `setActive(int $id, bool $active)`; UseCase `ListMembershipTypes` и `SetMembershipTypeActive` (проверять, что тип принадлежит компании, иначе `MembershipTypeNotFound` → 404).
-2. `GET /api/v1/business/membership-types` (владелец и администратор, фильтр `active`), `PATCH /api/v1/business/membership-types/{id}/active` (только владелец, тело `{ "is_active": bool }`).
-3. Feature-тест: список, деактивация владельцем, 403 администратору, изоляция компаний (чужой тип → 404).
+1. T1-20: Создать сущность `Membership` (богатая доменная модель, чистый PHP) в `Memberships/Domain/Membership.php`.
+   - `MembershipStatus` (enum: PENDING, ACTIVE, FROZEN, EXPIRED, CANCELLED).
+   - Методы `consumeVisit(DateTimeImmutable $at)`, `freeze()`, `unfreeze()`, `expireIfDue(DateTimeImmutable $now)`.
+   - Исключения `NoVisitsLeft`, `MembershipNotUsable`.
+   - Unit-тесты на поведение сущности без БД.
 
 ## Окружение и команды
 

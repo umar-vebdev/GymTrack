@@ -54,7 +54,9 @@
      - Готово когда: Feature-тест (успех, 403 для администратора, 422 для невалидных правил).
      - Заметки: входной DTO `CreateMembershipTypeCommand` (слишком много аргументов для метода). API принимает окно времени как `time_from`/`time_to` (`HH:MM`), в БД — минуты. Форма данных — 422 `VALIDATION_FAILED` (FormRequest), нарушение бизнес-правил — 422 `INVALID_MEMBERSHIP_RULES`. Проверка роли пока в контроллере (как в Clients); при появлении Policy для Memberships вынести.
 
-   - [ ] **T1-19** Список типов и активация/деактивация: `GET /membership-types` (владелец и администратор), `PATCH /membership-types/{id}/active` (только владелец). Изоляция компаний покрыта тестом.
+   - [x] **T1-19** Список типов и активация/деактивация
+     - Цель: `GET /api/v1/business/membership-types` (сотрудники компании, фильтр `only_active`), `PATCH /api/v1/business/membership-types/{id}/active` (только владелец компании).
+     - Готово когда: Feature-тест проверяет доступ ролей, фильтрацию и изоляцию тенантов.
 
    - [ ] **T1-20** Домен абонемента клиента: `Membership` (богатая сущность, ТЗ 5.2) + `MembershipStatus` (State: pending | active | frozen | expired | cancelled), метод `consumeVisit()`, `expireIfDue()`; исключения `NoVisitsLeft`, `MembershipNotUsable`. Без БД, unit-тесты.
 

@@ -14,4 +14,11 @@ interface MembershipTypeRepositoryInterface
      * Создаёт активный тип абонемента и возвращает его ID.
      */
     public function create(int $companyId, string $name, Money $price, MembershipRules $rules): int;
+
+    /**
+     * @return list<MembershipType>
+     */
+    public function listByCompany(int $companyId, ?bool $onlyActive = null): array;
+
+    public function setActive(int $id, bool $isActive): void;
 }

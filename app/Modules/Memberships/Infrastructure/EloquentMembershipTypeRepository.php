@@ -44,6 +44,29 @@ final class EloquentMembershipTypeRepository implements MembershipTypeRepository
         return $model->id;
     }
 
+    public function listByCompany(int $companyId, ?bool $onlyActive = null): array
+    {
+        $query = MembershipTypeModel::withoutGlobalScopes()
+            ->where('company_id', $companyId);
+
+        if ($onlyActive !== null) {
+            $query->where('is_active', $onlyActive);
+        }
+
+        $models = $query->orderBy('name')->orderBy('id')->get();
+
+        $items = $models->map(fn (MembershipTypeModel $m): MembershipType => $this->toEntity($m))->all();
+
+        return array_values($items);
+    }
+
+    public function setActive(int $id, bool $isActive): void
+    {
+        MembershipTypeModel::withoutGlobalScopes()
+            ->whereKey($id)
+            ->update(['is_active' => $isActive]);
+    }
+
     private function toEntity(MembershipTypeModel $m): MembershipType
     {
         return new MembershipType(
