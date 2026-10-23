@@ -36,7 +36,40 @@
 
 ## Этап 1 — Business (Identity, Companies, CRM)
 
-5. [ ] **E1-E Memberships**: типы абонементов, правила, выдача, заморозка, отмена и возврат (только владелец), статусы
+5. **E1-E Memberships**: типы абонементов, правила, выдача, заморозка, отмена и возврат (только владелец), статусы
+   > Черновик раскрытия эпика — ждёт подтверждения разработчика. Ссылки: Бизнес-ТЗ 4.3, 12 (п. 1, 4); Тех. ТЗ 3.6–3.8, 4.4, 5.2, 6, 9.4.
+
+   - [ ] **T1-16** Домен: перечисления и правила типа абонемента
+     - Цель: чистый PHP, без БД: `MembershipKind` (visits | duration | unlimited | single), `StartMode` (on_sale | first_visit), `MembershipRules` (Value Object с инвариантами: для `visits` нужен `visitsCount`, для `duration`/`unlimited` — `durationDays`, лимит входов в день ≥ 1, окно времени суток, лимиты заморозки).
+     - Файлы: `Domain/MembershipKind.php`, `Domain/StartMode.php`, `Domain/MembershipRules.php`, unit-тест.
+     - Готово когда: unit-тест проверяет, что невалидные комбинации бросают доменное исключение.
+
+   - [ ] **T1-17** Инфраструктура типов: миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider` (+ регистрация в `bootstrap/providers.php`). Цена — `Money` (минимальные единицы + валюта).
+     - Готово когда: тест репозитория создаёт и читает тип.
+
+   - [ ] **T1-18** Создание типа: UseCase `CreateMembershipType`, `POST /api/v1/business/membership-types`, только владелец (через контракт `StaffCompanyResolverInterface`).
+     - Готово когда: Feature-тест (успех, 403 для администратора, 422 для невалидных правил).
+
+   - [ ] **T1-19** Список типов и активация/деактивация: `GET /membership-types` (владелец и администратор), `PATCH /membership-types/{id}/active` (только владелец). Изоляция компаний покрыта тестом.
+
+   - [ ] **T1-20** Домен абонемента клиента: `Membership` (богатая сущность, ТЗ 5.2) + `MembershipStatus` (State: pending | active | frozen | expired | cancelled), метод `consumeVisit()`, `expireIfDue()`; исключения `NoVisitsLeft`, `MembershipNotUsable`. Без БД, unit-тесты.
+
+   - [ ] **T1-21** Стратегии списания (Strategy, ТЗ 4.4): `ConsumptionStrategy` — по посещениям (−1 занятие), по сроку/безлимит (фиксирует день, не списывает занятие; несколько отметок за день = один день, критерий приёмки 4). Подключаются в `Membership`. Unit-тесты.
+
+   - [ ] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
+
+   - [ ] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
+
+   - [ ] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
+
+   - [ ] **T1-25** Заморозка/разморозка: `FreezePolicy` (макс. дней и раз), методы сущности, UseCase + эндпоинты `POST /memberships/{id}/freeze|unfreeze`. Срок абонемента продлевается на дни заморозки.
+
+   - [ ] **T1-26** Отмена и возврат: UseCase `CancelMembership` (только владелец, обязательная причина, событие `MembershipCancelled` → Audit), `POST /memberships/{id}/cancel`.
+
+   - [ ] **T1-27** Список абонементов клиента (`GET /clients/{id}/memberships`) и ежедневная команда завершения истёкших абонементов (планировщик, идемпотентна, компания передаётся явно — ТЗ 9.4).
+
+   - [ ] **T1-28** Список абонементов, заканчивающихся в ближайшие 7 дней (Бизнес-ТЗ 4.4): `GET /memberships/expiring`.
+
 6. [ ] **E1-F Sales**: товары, касса, `PaymentMark`, ручная выдача абонемента
 7. [ ] **E1-G Billing**: тарифы платформы, пробный период 14 дней, режим «только чтение» после окончания
 8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность
