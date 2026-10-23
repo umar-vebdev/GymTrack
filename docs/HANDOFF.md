@@ -9,20 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-18 Создание типа абонемента (UseCase `CreateMembershipType` + `POST /api/v1/business/membership-types`, только владелец)
+- Задача: T1-19 Список типов и активация/деактивация
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-17**: миграция `membership_types`, `MembershipType`, `MembershipTypeRepositoryInterface` + Eloquent-реализация, `MembershipsServiceProvider` (зарегистрирован в `bootstrap/providers.php`). Допущение D-003 (валюта TJS по умолчанию).
-- T1-16: домен правил абонемента.
+- **T1-18**: `CreateMembershipType` + `CreateMembershipTypeCommand`, `POST /api/v1/business/membership-types` (только владелец; 422 для невалидных правил).
+- T1-17: инфраструктура типов; T1-16: домен правил.
 
 ## Точный следующий шаг
 
-1. T1-18: `Memberships/Application/CreateMembershipType` (company_id, name, price_minor, currency=TJS по умолчанию, поля правил → `MembershipRules::create`), `CreateMembershipTypeRequest`, `CreateMembershipTypeController`, `Presentation/routes.php` (`POST /api/v1/business/membership-types`, `auth:sanctum`).
-2. Права: компания и роль через `Companies/Contracts/StaffCompanyResolverInterface` (`companyIdForUser`, `isOwner`); не владелец → 403 `FORBIDDEN`. `InvalidMembershipRules` → 422 `INVALID_MEMBERSHIP_RULES` (ловить в контроллере).
-3. Feature-тест: успех, 403 для администратора, 422 для невалидных правил, 401.
+1. T1-19: в `MembershipTypeRepositoryInterface` добавить `listByCompany(int $companyId, bool $onlyActive)` и `setActive(int $id, bool $active)`; UseCase `ListMembershipTypes` и `SetMembershipTypeActive` (проверять, что тип принадлежит компании, иначе `MembershipTypeNotFound` → 404).
+2. `GET /api/v1/business/membership-types` (владелец и администратор, фильтр `active`), `PATCH /api/v1/business/membership-types/{id}/active` (только владелец, тело `{ "is_active": bool }`).
+3. Feature-тест: список, деактивация владельцем, 403 администратору, изоляция компаний (чужой тип → 404).
 
 ## Окружение и команды
 

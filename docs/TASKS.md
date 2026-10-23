@@ -50,8 +50,9 @@
      - Готово когда: тест репозитория создаёт и читает тип.
      - Заметки: валюту типа передаёт вызывающий код (`Money`); значение по умолчанию TJS выбирается в UseCase T1-18 — D-003. Репозиторий пока только `findById` и `create`; `setActive` и список добавятся в T1-19.
 
-   - [ ] **T1-18** Создание типа: UseCase `CreateMembershipType`, `POST /api/v1/business/membership-types`, только владелец (через контракт `StaffCompanyResolverInterface`).
+   - [x] **T1-18** Создание типа: UseCase `CreateMembershipType`, `POST /api/v1/business/membership-types`, только владелец (через контракт `StaffCompanyResolverInterface`).
      - Готово когда: Feature-тест (успех, 403 для администратора, 422 для невалидных правил).
+     - Заметки: входной DTO `CreateMembershipTypeCommand` (слишком много аргументов для метода). API принимает окно времени как `time_from`/`time_to` (`HH:MM`), в БД — минуты. Форма данных — 422 `VALIDATION_FAILED` (FormRequest), нарушение бизнес-правил — 422 `INVALID_MEMBERSHIP_RULES`. Проверка роли пока в контроллере (как в Clients); при появлении Policy для Memberships вынести.
 
    - [ ] **T1-19** Список типов и активация/деактивация: `GET /membership-types` (владелец и администратор), `PATCH /membership-types/{id}/active` (только владелец). Изоляция компаний покрыта тестом.
 
