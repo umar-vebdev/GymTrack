@@ -46,8 +46,9 @@
      - Готово когда: unit-тест проверяет, что невалидные комбинации бросают доменное исключение.
      - Заметки: окно времени хранится в минутах от полуночи (from < to, без перехода через полночь); заморозка: дни и разы задаются вместе; `single` → только `on_sale`, без заморозки. Исключение `InvalidMembershipRules` (DomainException).
 
-   - [ ] **T1-17** Инфраструктура типов: миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider` (+ регистрация в `bootstrap/providers.php`). Цена — `Money` (минимальные единицы + валюта).
+   - [x] **T1-17** Инфраструктура типов: миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider` (+ регистрация в `bootstrap/providers.php`). Цена — `Money` (минимальные единицы + валюта).
      - Готово когда: тест репозитория создаёт и читает тип.
+     - Заметки: валюту типа передаёт вызывающий код (`Money`); значение по умолчанию TJS выбирается в UseCase T1-18 — D-003. Репозиторий пока только `findById` и `create`; `setActive` и список добавятся в T1-19.
 
    - [ ] **T1-18** Создание типа: UseCase `CreateMembershipType`, `POST /api/v1/business/membership-types`, только владелец (через контракт `StaffCompanyResolverInterface`).
      - Готово когда: Feature-тест (успех, 403 для администратора, 422 для невалидных правил).

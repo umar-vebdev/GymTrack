@@ -9,19 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-17 Инфраструктура типов абонементов (миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider`)
+- Задача: T1-18 Создание типа абонемента (UseCase `CreateMembershipType` + `POST /api/v1/business/membership-types`, только владелец)
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-16**: `Memberships/Domain`: `MembershipKind`, `StartMode`, `MembershipRules` (VO с инвариантами), `InvalidMembershipRules` + unit-тест (19 кейсов).
-- Закрыт эпик E1-D; E1-E раскрыт и подтверждён.
+- **T1-17**: миграция `membership_types`, `MembershipType`, `MembershipTypeRepositoryInterface` + Eloquent-реализация, `MembershipsServiceProvider` (зарегистрирован в `bootstrap/providers.php`). Допущение D-003 (валюта TJS по умолчанию).
+- T1-16: домен правил абонемента.
 
 ## Точный следующий шаг
 
-1. T1-17: миграция `membership_types` (id, company_id, name, kind, start_mode, price_minor, currency, visits_count, duration_days, validity_days, daily_limit, time_from_minute, time_to_minute, freeze_max_days, freeze_max_times, is_active, timestamps; CHECK цена >= 0), сущность `MembershipType` (id, companyId, name, `Money` price, `MembershipRules`, isActive), `MembershipTypeRepositoryInterface`, Eloquent-реализация (`BelongsToCompany`), `MembershipsServiceProvider` + `bootstrap/providers.php`.
-2. Тест репозитория (создать и прочитать тип). Сверить валюту: пока хранить код валюты в строке типа, значение по умолчанию TJS (компания валюту не хранит — решить через `[ASSUMPTION]` в DECISIONS).
+1. T1-18: `Memberships/Application/CreateMembershipType` (company_id, name, price_minor, currency=TJS по умолчанию, поля правил → `MembershipRules::create`), `CreateMembershipTypeRequest`, `CreateMembershipTypeController`, `Presentation/routes.php` (`POST /api/v1/business/membership-types`, `auth:sanctum`).
+2. Права: компания и роль через `Companies/Contracts/StaffCompanyResolverInterface` (`companyIdForUser`, `isOwner`); не владелец → 403 `FORBIDDEN`. `InvalidMembershipRules` → 422 `INVALID_MEMBERSHIP_RULES` (ловить в контроллере).
+3. Feature-тест: успех, 403 для администратора, 422 для невалидных правил, 401.
 
 ## Окружение и команды
 
