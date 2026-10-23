@@ -164,10 +164,11 @@ final class MembershipTest extends TestCase
             endsAt: new DateTimeImmutable('2026-10-01 23:59:59')
         );
 
-        $membership->cancel();
+        $membership->cancel('Переезд клиента');
         $this->assertSame(MembershipStatus::Cancelled, $membership->status());
+        $this->assertSame('Переезд клиента', $membership->cancellationReason());
 
         $this->expectException(DomainException::class);
-        $membership->cancel();
+        $membership->cancel('Повторная отмена');
     }
 }

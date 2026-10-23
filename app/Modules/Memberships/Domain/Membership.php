@@ -29,7 +29,8 @@ final class Membership
         private ?DateTimeImmutable $endsAt,
         private int $freezeDaysUsed = 0,
         private int $freezeTimesUsed = 0,
-        private ?DateTimeImmutable $frozenAt = null
+        private ?DateTimeImmutable $frozenAt = null,
+        private ?string $cancellationReason = null
     ) {}
 
     public function id(): int
@@ -92,6 +93,11 @@ final class Membership
         return $this->frozenAt;
     }
 
+    public function cancellationReason(): ?string
+    {
+        return $this->cancellationReason;
+    }
+
     /**
      * Списание посещения или фиксация визита с помощью стратегии списания.
      *
@@ -117,21 +123,24 @@ final class Membership
 
     public function decrementRemainingVisits(): void
     {
-        if ($this->remainingVisits !== null && $this->remainingVisits > 0) {
-            $this->remainingVisits--;
+        if ($this->remainingVisits === null || $this->remainingVisits <= 0) {
+            throw NoVisitsLeft::forMembership($this->id);
+        }
 
-            if ($this->remainingVisits === 0) {
-                $this->status = MembershipStatus::Expired;
-            }
+        $this->remainingVisits--;
+
+        if ($this->remainingVisits === 0) {
+            $this->status = MembershipStatus::Expired;
         }
     }
 
     /**
-     * Проверка срока действия и автоматический перевод в статус Expired при необходимости.
+     * Проверка срока действия и автоматический перевод в статус Expired при наступлении даты окончания.
+     * Замороженные (Frozen) и уже отменённые (Cancelled) абонементы не истекают автоматически.
      */
     public function expireIfDue(DateTimeImmutable $now): void
     {
-        if ($this->status === MembershipStatus::Expired || $this->status === MembershipStatus::Cancelled) {
+        if ($this->status !== MembershipStatus::Active && $this->status !== MembershipStatus::Pending) {
             return;
         }
 
@@ -171,7 +180,12 @@ final class Membership
             throw new DomainException('Абонемент не находится в состоянии заморозки.');
         }
 
-        $daysFrozen = max(1, (int) ceil(($now->getTimestamp() - $this->frozenAt->getTimestamp()) / 86400));
+        if ($now < $this->frozenAt) {
+            throw new DomainException('Дата разморозки не может быть раньше даты заморозки.');
+        }
+
+        $seconds = $now->getTimestamp() - $this->frozenAt->getTimestamp();
+        $daysFrozen = max(1, (int) ceil($seconds / 86400));
 
         // Контроль общего лимита дней заморозки
         $remainingAllowedDays = $this->rules->freezeMaxDays - $this->freezeDaysUsed;
@@ -188,15 +202,21 @@ final class Membership
     }
 
     /**
-     * Аннулирование абонемента владельцем.
+     * Аннулирование абонемента владельцем (с обязательной фиксацией причины).
      */
-    public function cancel(): void
+    public function cancel(string $reason): void
     {
         if ($this->status === MembershipStatus::Cancelled) {
             throw new DomainException('Абонемент уже отменён.');
         }
 
+        $trimmedReason = trim($reason);
+        if ($trimmedReason === '') {
+            throw new DomainException('Причина отмены обязательна.');
+        }
+
         $this->status = MembershipStatus::Cancelled;
+        $this->cancellationReason = $trimmedReason;
     }
 
     private function activateOnFirstVisit(DateTimeImmutable $at): void
