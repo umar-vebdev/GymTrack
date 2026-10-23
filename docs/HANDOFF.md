@@ -9,20 +9,18 @@
 
 ## Текущая задача
 
-- Задача: T1-13 Механизм связывания с пользователем
+- Задача: T1-14 Поиск и список клиентов
 - Статус: не начата
 
 ## Последняя сессия: что сделано
 
-- Завершена **T1-12**: `CreateClient` (UseCase), `CreateClientController`, `CreateClientRequest`, маршрут `POST /api/v1/business/clients`, `existsByPhone` в репозитории, контракт `Companies/Contracts/StaffCompanyResolverInterface` (+ `EloquentStaffCompanyResolver`).
-- Дубликат телефона в компании → 409 `CLIENT_PHONE_EXISTS`; не сотрудник → 403.
-- Отдельным коммитом исправлен стиль `app/Models/User.php` (Pint).
+- **T1-13**: контракт `Identity/Contracts/UserQueryInterface` (+ `EloquentUserQuery`), событие `Identity/Contracts/PhoneVerified` (диспатчится в `VerifyPhone`), Listener `Clients/Application/Listeners/LinkUserToClients`, `CreateClient` проставляет `user_id` для подтверждённого телефона. Решение D-002.
+- T1-12: эндпоинт `POST /api/v1/business/clients` (готово ранее).
 
 ## Точный следующий шаг
 
-1. T1-13: контракт `Identity/Contracts/UserQueryInterface` (поиск пользователя по телефону), инжектить в `CreateClient` (заполнять `user_id`; `ClientRepositoryInterface::create` уже принимает `userId`).
-2. Событие `UserRegistered` в Identity + Listener `LinkUserToClients` в Clients.
-3. Тесты двустороннего связывания.
+1. T1-14: UseCase `SearchClients` (фильтр `search` по имени/телефону, с пагинацией), `SearchClientsController`, `GET /api/v1/business/clients` в `Clients/Presentation/routes.php`; компания — через `StaffCompanyResolverInterface`.
+2. Feature-тест: поиск по части телефона + изоляция компаний.
 
 ## Окружение и команды
 

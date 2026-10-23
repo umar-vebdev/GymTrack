@@ -6,11 +6,13 @@ namespace App\Modules\Clients\Application;
 
 use App\Modules\Clients\Domain\ClientPhoneAlreadyExists;
 use App\Modules\Clients\Domain\ClientRepositoryInterface;
+use App\Modules\Identity\Contracts\UserQueryInterface;
 
 final class CreateClient
 {
     public function __construct(
-        private readonly ClientRepositoryInterface $clients
+        private readonly ClientRepositoryInterface $clients,
+        private readonly UserQueryInterface $users
     ) {}
 
     /**
@@ -22,6 +24,11 @@ final class CreateClient
             throw ClientPhoneAlreadyExists::forPhone($phone);
         }
 
-        return $this->clients->create($companyId, $name, $phone);
+        return $this->clients->create(
+            $companyId,
+            $name,
+            $phone,
+            $this->users->findVerifiedUserIdByPhone($phone)
+        );
     }
 }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application;
 
+use App\Modules\Identity\Contracts\PhoneVerified;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 
 final class VerifyPhone
@@ -27,6 +29,7 @@ final class VerifyPhone
         if ($user) {
             $user->markPhoneAsVerified();
             $this->userRepository->update($user);
+            Event::dispatch(new PhoneVerified($user->id(), $phone));
         }
 
         Cache::forget("otp:{$phone}");

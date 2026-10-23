@@ -31,6 +31,14 @@ final class EloquentClientRepository implements ClientRepositoryInterface
             ->exists();
     }
 
+    public function linkUserByPhone(int $userId, string $phone): void
+    {
+        ClientModel::withoutGlobalScopes()
+            ->where('phone', $phone)
+            ->whereNull('user_id')
+            ->update(['user_id' => $userId]);
+    }
+
     public function create(int $companyId, string $name, string $phone, ?int $userId = null): int
     {
         $model = ClientModel::create([

@@ -6,7 +6,9 @@ namespace App\Modules\Identity;
 
 use App\Modules\Identity\Contracts\SmsGateway;
 use App\Modules\Identity\Contracts\TokenGenerator;
+use App\Modules\Identity\Contracts\UserQueryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
+use App\Modules\Identity\Infrastructure\EloquentUserQuery;
 use App\Modules\Identity\Infrastructure\EloquentUserRepository;
 use App\Modules\Identity\Infrastructure\LogSmsGateway;
 use App\Modules\Identity\Infrastructure\SanctumTokenGenerator;
@@ -19,6 +21,11 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->bind(
             UserRepositoryInterface::class,
             EloquentUserRepository::class
+        );
+
+        $this->app->bind(
+            UserQueryInterface::class,
+            EloquentUserQuery::class
         );
 
         $this->app->bind(
