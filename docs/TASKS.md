@@ -62,7 +62,9 @@
      - Цель: богатая сущность `Membership` (чистый PHP) + `MembershipStatus` (pending, active, frozen, expired, cancelled), методы `consumeVisit()`, `freeze()`, `unfreeze()`, `expireIfDue()`, `cancel()`.
      - Готово когда: Unit-тесты проверяют списание, истечение по сроку, активацию при первом визите, заморозку с продлением срока и отмену.
 
-   - [ ] **T1-21** Стратегии списания (Strategy, ТЗ 4.4): `ConsumptionStrategy` — по посещениям (−1 занятие), по сроку/безлимит (фиксирует день, не списывает занятие; несколько отметок за день = один день, критерий приёмки 4). Подключаются в `Membership`. Unit-тесты.
+   - [x] **T1-21** Стратегии списания (паттерн Strategy)
+     - Цель: `ConsumptionStrategy`, `VisitsConsumptionStrategy` (−1 занятие, `Expired` при 0), `TimeBasedConsumptionStrategy` (Duration, Unlimited, Single), фабрика `ConsumptionStrategyResolver`.
+     - Готово когда: Unit-тесты проверяют выбор стратегий и списание для визитов и временных тарифов.
 
    - [ ] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
 

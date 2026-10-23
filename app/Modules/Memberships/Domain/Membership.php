@@ -6,6 +6,8 @@ namespace App\Modules\Memberships\Domain;
 
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Exceptions\NoVisitsLeft;
+use App\Modules\Memberships\Domain\Strategies\ConsumptionStrategy;
+use App\Modules\Memberships\Domain\Strategies\ConsumptionStrategyResolver;
 use DateTimeImmutable;
 use DomainException;
 
@@ -91,12 +93,12 @@ final class Membership
     }
 
     /**
-     * Списание посещения или фиксация визита.
+     * Списание посещения или фиксация визита с помощью стратегии списания.
      *
      * @throws MembershipNotUsable
      * @throws NoVisitsLeft
      */
-    public function consumeVisit(DateTimeImmutable $at): void
+    public function consumeVisit(DateTimeImmutable $at, ?ConsumptionStrategy $strategy = null): void
     {
         $this->expireIfDue($at);
 
@@ -109,11 +111,13 @@ final class Membership
             $this->activateOnFirstVisit($at);
         }
 
-        if ($this->rules->kind === MembershipKind::Visits) {
-            if ($this->remainingVisits === null || $this->remainingVisits <= 0) {
-                throw NoVisitsLeft::forMembership($this->id);
-            }
+        $strategy ??= ConsumptionStrategyResolver::resolve($this->rules->kind);
+        $strategy->consume($this, $at);
+    }
 
+    public function decrementRemainingVisits(): void
+    {
+        if ($this->remainingVisits !== null && $this->remainingVisits > 0) {
             $this->remainingVisits--;
 
             if ($this->remainingVisits === 0) {
