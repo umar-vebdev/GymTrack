@@ -9,18 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-25b Заморозка/разморозка (HTTP API): эндпоинты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` + Feature-тесты
-- Статус: в работе (`[~]`)
+- Задача: T1-26 Отмена и возврат: UseCase `CancelMembership` (только владелец, обязательная причина, событие `MembershipCancelled` → Audit), `POST /memberships/{id}/cancel`
+- Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-25a** закрыта: добавлены `MembershipNotFound` и `MembershipFreezeNotAllowed`, обновлены `Membership::freeze()` / `unfreeze()`, созданы Use Cases `FreezeMembership` и `UnfreezeMembership` (транзакция + `findByIdForUpdate` + `Clock`).
+- **T1-25a, T1-25b** закрыты: доменные исключения `MembershipNotFound` и `MembershipFreezeNotAllowed`, Use Cases `FreezeMembership` и `UnfreezeMembership` (транзакция + `findByIdForUpdate` + `Clock`), привязка `Clock` → `SystemClock`, эндпоинты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` + Feature-тесты. Всего 123 теста зелёные.
 
 ## Точный следующий шаг
 
-1. T1-25b: привязать `Clock::class` к `SystemClock::class` в `AppServiceProvider`, создать `FreezeMembershipController` и `UnfreezeMembershipController`, зарегистрировать маршруты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` (доступ владельцу и администратору компании, 404 `MEMBERSHIP_NOT_FOUND` для чужой компании, 409 `MEMBERSHIP_FREEZE_NOT_ALLOWED` при нарушении правил заморозки), покрыть Feature-тестами.
-2. Запустить полный набор проверок, включая `docker compose exec -T app composer test`.
+1. T1-26: доменное исключение `MembershipCancelNotAllowed` (при повторной отмене в `Membership::cancel()`), событие `MembershipCancelled` (`AuditableEvent` с `company_id`, `user_id`, `action = MEMBERSHIP_CANCELLED`, `reason` в payload), Use Case `CancelMembership` (`findByIdForUpdate` в `DB::transaction`, проверка `companyId`, `cancel($reason)`, `save`, отправка события после транзакции).
+2. Эндпоинт `POST /api/v1/business/memberships/{id}/cancel` + `CancelMembershipRequest` (`reason`: required, string): доступ **только владельцу** компании (администратору → 403), чужая компания → 404 `MEMBERSHIP_NOT_FOUND`, уже отменён → 409 `MEMBERSHIP_ALREADY_CANCELLED`.
+3. Feature-тесты: отмена владельцем + запись в `audit_entries`, 403 для администратора, 422 без причины, 409 при повторной отмене, 404 для чужой компании.
 
 ## Окружение: важное про Docker
 
