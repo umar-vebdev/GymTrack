@@ -9,20 +9,23 @@
 
 ## Текущая задача
 
-- Задача: T1-22 Инфраструктура абонементов — `[~]`, код готов, **тесты не запускались** (Docker не был запущен)
+- Задача: T1-23 Выдача абонемента: UseCase `IssueMembership`, контракт `MembershipIssuerInterface`, событие `MembershipIssued`
+- Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- Убраны лишние same-namespace `use` в `Membership.php` (Pint падал после ручного коммита `ad0688a`).
-- T1-22 (WIP): миграция `memberships` (CHECK `remaining_visits >= 0`, soft delete), `MembershipModel`, `MembershipRepositoryInterface` (`findById`, `findByIdForUpdate`, `create`, `save`), `EloquentMembershipRepository`, регистрация в `MembershipsServiceProvider`, тест `tests/Unit/Memberships/MembershipRepositoryTest.php` (4 теста, не запускались).
+- **T1-22** закрыта: миграция `memberships`, `MembershipModel`, `MembershipRepositoryInterface` (`findById`, `findByIdForUpdate`, `create`, `save`), `EloquentMembershipRepository`; 4 теста зелёные, всего 102.
+- Убраны лишние same-namespace `use` в `Membership.php`.
 
 ## Точный следующий шаг
 
-1. Запустить Docker: `docker compose up -d`; затем `docker compose exec -T app composer test`.
-2. Если тесты T1-22 зелёные — поставить `[x]`, закоммитить `T1-22: ...`. Если красные — исправить (вероятные места: приведение дат в `save`, CHECK-ограничение).
-3. Дальше T1-23: `IssueMembership` + `MembershipIssuerInterface` + событие `MembershipIssued`.
-4. Заметка для T1-26: `Membership::cancel(string $reason)` уже требует причину и хранит `cancellationReason`.
+1. T1-23: `Memberships/Contracts/MembershipIssuerInterface::issue(companyId, clientId, typeId, DateTimeImmutable $at): int`; `Application/IssueMembership` (загрузить тип, проверить принадлежность компании и `isActive`, посчитать `status/starts_at/ends_at/remaining_visits`: `on_sale` → Active, `starts_at = $at`, `ends_at = $at + durationDays|validityDays` (single → конец дня); `first_visit` → Pending без дат; visits → `remaining_visits = visitsCount`), создать через `MembershipRepositoryInterface::create`, диспатчить `MembershipIssued` (реализует `AuditableEvent`, как в Audit). Проверку клиента (из той же компании) делать через контракт Clients — решить, нужен ли новый `Clients/Contracts/ClientLookupInterface` (вероятно да, ТЗ 3.5).
+2. Эндпоинта нет (ручная выдача — в E1-F). Тесты: unit/Feature на UseCase для каждого вида абонемента и режима старта.
+
+## Окружение: важное про Docker
+
+- Из песочницы агента сокет Docker не виден: команды `docker compose ...` запускать с обходом песочницы (нужно подтверждение разработчика).
 
 ## Окружение и команды
 
