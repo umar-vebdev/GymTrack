@@ -224,12 +224,6 @@ final class Membership
         $this->status = MembershipStatus::Active;
         $this->startsAt = $at;
 
-        if ($this->rules->durationDays !== null) {
-            $this->endsAt = $at->modify(sprintf('+%d days', $this->rules->durationDays));
-        } elseif ($this->rules->validityDays !== null) {
-            $this->endsAt = $at->modify(sprintf('+%d days', $this->rules->validityDays));
-        } elseif ($this->rules->kind === MembershipKind::Single) {
-            $this->endsAt = $at->setTime(23, 59, 59);
-        }
+        $this->endsAt = $this->rules->endsAtFor($at);
     }
 }

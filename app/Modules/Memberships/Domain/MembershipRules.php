@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships\Domain;
 
+use DateTimeImmutable;
+
 /**
  * Value Object (неизменяемый объект-значение) с правилами типа абонемента.
  * Все инварианты проверяются при создании: невалидное состояние невозможно (fail fast).
@@ -56,6 +58,19 @@ final class MembershipRules
             $kind, $startMode, $visitsCount, $durationDays, $validityDays,
             $dailyLimit, $timeFromMinute, $timeToMinute, $freezeMaxDays, $freezeMaxTimes
         );
+    }
+
+    /**
+     * Дата окончания абонемента, если срок начался в $start; null — срок не ограничен.
+     */
+    public function endsAtFor(DateTimeImmutable $start): ?DateTimeImmutable
+    {
+        return match (true) {
+            $this->durationDays !== null => $start->modify(sprintf('+%d days', $this->durationDays)),
+            $this->validityDays !== null => $start->modify(sprintf('+%d days', $this->validityDays)),
+            $this->kind === MembershipKind::Single => $start->setTime(23, 59, 59),
+            default => null,
+        };
     }
 
     private static function assertKindFields(

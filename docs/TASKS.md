@@ -69,7 +69,8 @@
    - [x] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
      - Заметки: правила (`MembershipRules`) читаются из типа абонемента через `MembershipTypeRepositoryInterface` (снимка правил в `memberships` нет; допустимо, пока типы нельзя редактировать — при появлении редактирования типов пересмотреть). `findByIdForUpdate` — только внутри транзакции.
 
-   - [ ] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
+   - [x] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
+     - Заметки: `IssueMembership` реализует контракт `MembershipIssuerInterface` (параметры: компания, клиент, тип, момент выдачи, сотрудник для аудита). Принадлежность клиента компании проверяется через новый контракт `Clients/Contracts/ClientLookupInterface`. Расчёт старта и срока — `MembershipFactory` + `MembershipRules::endsAtFor` (теперь им же пользуется `Membership` при активации по первому визиту). `on_sale` → Active, `first_visit` → Pending без дат. Конец дня для `single` считается в поясе переданного момента (перевод в пояс зала Asia/Dushanbe — задача на будущее). `ipAddress` в аудите пока null.
 
    - [ ] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
 

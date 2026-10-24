@@ -9,19 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-23 Выдача абонемента: UseCase `IssueMembership`, контракт `MembershipIssuerInterface`, событие `MembershipIssued`
+- Задача: T1-24 Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()`
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-22** закрыта: миграция `memberships`, `MembershipModel`, `MembershipRepositoryInterface` (`findById`, `findByIdForUpdate`, `create`, `save`), `EloquentMembershipRepository`; 4 теста зелёные, всего 102.
-- Убраны лишние same-namespace `use` в `Membership.php`.
+- **T1-22** закрыта (персистентность абонементов), **T1-23** закрыта: `IssueMembership` (реализует `Memberships/Contracts/MembershipIssuerInterface`), `MembershipFactory`/`IssuedTerms`, `MembershipRules::endsAtFor`, событие `MembershipIssued` (AuditableEvent → запись в аудит), исключения `MembershipTypeInactive`, `ClientNotAvailable`, контракт `Clients/Contracts/ClientLookupInterface`. Всего 112 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-23: `Memberships/Contracts/MembershipIssuerInterface::issue(companyId, clientId, typeId, DateTimeImmutable $at): int`; `Application/IssueMembership` (загрузить тип, проверить принадлежность компании и `isActive`, посчитать `status/starts_at/ends_at/remaining_visits`: `on_sale` → Active, `starts_at = $at`, `ends_at = $at + durationDays|validityDays` (single → конец дня); `first_visit` → Pending без дат; visits → `remaining_visits = visitsCount`), создать через `MembershipRepositoryInterface::create`, диспатчить `MembershipIssued` (реализует `AuditableEvent`, как в Audit). Проверку клиента (из той же компании) делать через контракт Clients — решить, нужен ли новый `Clients/Contracts/ClientLookupInterface` (вероятно да, ТЗ 3.5).
-2. Эндпоинта нет (ручная выдача — в E1-F). Тесты: unit/Feature на UseCase для каждого вида абонемента и режима старта.
+1. T1-24: `Memberships/Contracts/MembershipLookupInterface::findUsableForClient(int $companyId, int $clientId, DateTimeImmutable $at): ?MembershipSummary` (DTO в Contracts: id, typeId, status, remainingVisits, endsAt). Выбирать из usable (Active/Pending, не истёкшие по `endsAt`, для visits — остаток > 0) тот, что заканчивается раньше (ТЗ 4.3; без `endsAt` — в конце списка). Нужен метод репозитория `listUsableByClient(...)`. Реализация — запрос в Infrastructure; тесты на выбор «раньше заканчивается».
 
 ## Окружение: важное про Docker
 
