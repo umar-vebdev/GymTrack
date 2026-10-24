@@ -9,17 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-24 Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()`
+- Задача: T1-25 Заморозка/разморозка: UseCase + эндпоинты `POST /memberships/{id}/freeze|unfreeze`
 - Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-22** закрыта (персистентность абонементов), **T1-23** закрыта: `IssueMembership` (реализует `Memberships/Contracts/MembershipIssuerInterface`), `MembershipFactory`/`IssuedTerms`, `MembershipRules::endsAtFor`, событие `MembershipIssued` (AuditableEvent → запись в аудит), исключения `MembershipTypeInactive`, `ClientNotAvailable`, контракт `Clients/Contracts/ClientLookupInterface`. Всего 112 тестов зелёные.
+- **T1-22, T1-23, T1-24** закрыты. T1-24: контракт `MembershipLookupInterface` + DTO `MembershipSummary`, `FindUsableMembership`, `Membership::isUsableAt`, `MembershipRepositoryInterface::listOpenByClient`. Всего 118 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-24: `Memberships/Contracts/MembershipLookupInterface::findUsableForClient(int $companyId, int $clientId, DateTimeImmutable $at): ?MembershipSummary` (DTO в Contracts: id, typeId, status, remainingVisits, endsAt). Выбирать из usable (Active/Pending, не истёкшие по `endsAt`, для visits — остаток > 0) тот, что заканчивается раньше (ТЗ 4.3; без `endsAt` — в конце списка). Нужен метод репозитория `listUsableByClient(...)`. Реализация — запрос в Infrastructure; тесты на выбор «раньше заканчивается».
+1. T1-25: Use Cases `FreezeMembership` и `UnfreezeMembership` (загрузка через `findByIdForUpdate` внутри `DB::transaction`, проверка `companyId`, вызов `Membership::freeze($at)` / `unfreeze($at)`, `save`). Время — через `Shared\Domain\Clock`. Доменные `DomainException` из `Membership` нужно превратить в понятные коды ошибок (409, например `MEMBERSHIP_FREEZE_NOT_ALLOWED`) — лучше ввести специальные исключения вместо голых `DomainException` в `freeze`/`unfreeze`.
+2. Эндпоинты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` (владелец и администратор); чужая компания → 404 `MEMBERSHIP_NOT_FOUND`.
+3. Feature-тесты: успех, исчерпан лимит, чужая компания, роли.
 
 ## Окружение: важное про Docker
 

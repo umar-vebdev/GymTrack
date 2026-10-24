@@ -72,7 +72,8 @@
    - [x] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
      - Заметки: `IssueMembership` реализует контракт `MembershipIssuerInterface` (параметры: компания, клиент, тип, момент выдачи, сотрудник для аудита). Принадлежность клиента компании проверяется через новый контракт `Clients/Contracts/ClientLookupInterface`. Расчёт старта и срока — `MembershipFactory` + `MembershipRules::endsAtFor` (теперь им же пользуется `Membership` при активации по первому визиту). `on_sale` → Active, `first_visit` → Pending без дат. Конец дня для `single` считается в поясе переданного момента (перевод в пояс зала Asia/Dushanbe — задача на будущее). `ipAddress` в аудите пока null.
 
-   - [ ] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
+   - [x] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
+     - Заметки: `FindUsableMembership` реализует контракт `MembershipLookupInterface` (возвращает DTO `MembershipSummary`). Кандидаты — Active и Pending; подходящими считаются по `Membership::isUsableAt` (срок не истёк, для visits остаток > 0). Сортировка: раньше заканчивается → выше, без срока → в конец, при равенстве — меньший id. Проверки «лимит входов в день» и «окно времени суток» сюда НЕ входят — это `CheckInRule` в Visits (этап 2).
 
    - [ ] **T1-25** Заморозка/разморозка: `FreezePolicy` (макс. дней и раз), методы сущности, UseCase + эндпоинты `POST /memberships/{id}/freeze|unfreeze`. Срок абонемента продлевается на дни заморозки.
 

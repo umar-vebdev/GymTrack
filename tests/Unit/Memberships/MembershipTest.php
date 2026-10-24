@@ -171,4 +171,22 @@ final class MembershipTest extends TestCase
         $this->expectException(DomainException::class);
         $membership->cancel('Повторная отмена');
     }
+
+    public function test_is_usable_at_checks_status_expiry_and_visits(): void
+    {
+        $visits = MembershipRules::create(MembershipKind::Visits, StartMode::OnSale, visitsCount: 5);
+        $make = static fn (MembershipStatus $status, ?int $left, ?string $endsAt): Membership => new Membership(
+            1, 10, 100, 5, $visits, $status, $left,
+            new DateTimeImmutable('2026-10-01 00:00:00'),
+            $endsAt === null ? null : new DateTimeImmutable($endsAt)
+        );
+        $at = new DateTimeImmutable('2026-10-10 12:00:00');
+
+        $this->assertTrue($make(MembershipStatus::Active, 3, '2026-11-01 00:00:00')->isUsableAt($at));
+        $this->assertTrue($make(MembershipStatus::Active, 3, null)->isUsableAt($at));
+        $this->assertFalse($make(MembershipStatus::Active, 0, '2026-11-01 00:00:00')->isUsableAt($at));
+        $this->assertFalse($make(MembershipStatus::Active, 3, '2026-10-05 00:00:00')->isUsableAt($at));
+        $this->assertFalse($make(MembershipStatus::Frozen, 3, '2026-11-01 00:00:00')->isUsableAt($at));
+        $this->assertFalse($make(MembershipStatus::Cancelled, 3, null)->isUsableAt($at));
+    }
 }

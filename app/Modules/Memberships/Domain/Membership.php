@@ -121,6 +121,22 @@ final class Membership
         $strategy->consume($this, $at);
     }
 
+    /**
+     * Можно ли использовать абонемент в момент $at: подходящий статус, срок не истёк, остались занятия.
+     */
+    public function isUsableAt(DateTimeImmutable $at): bool
+    {
+        if (!$this->status->isUsable()) {
+            return false;
+        }
+
+        if ($this->endsAt !== null && $at > $this->endsAt) {
+            return false;
+        }
+
+        return $this->rules->kind !== MembershipKind::Visits || ($this->remainingVisits ?? 0) > 0;
+    }
+
     public function decrementRemainingVisits(): void
     {
         if ($this->remainingVisits === null || $this->remainingVisits <= 0) {
