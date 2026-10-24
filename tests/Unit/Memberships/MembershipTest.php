@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Memberships;
 
+use App\Modules\Memberships\Domain\Exceptions\MembershipFreezeNotAllowed;
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Membership;
 use App\Modules\Memberships\Domain\MembershipKind;
@@ -152,6 +153,35 @@ final class MembershipTest extends TestCase
         $this->assertSame(5, $membership->freezeDaysUsed());
         // EndsAt shifted by 5 days: 2026-10-31 + 5 days = 2026-11-05
         $this->assertSame('2026-11-05 10:00:00', $membership->endsAt()?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_freeze_rejects_when_limit_reached_or_not_active(): void
+    {
+        $rules = MembershipRules::create(
+            kind: MembershipKind::Duration,
+            startMode: StartMode::OnSale,
+            durationDays: 30,
+            freezeMaxDays: 7,
+            freezeMaxTimes: 1
+        );
+
+        $membership = new Membership(
+            id: 1,
+            companyId: 10,
+            clientId: 100,
+            typeId: 5,
+            rules: $rules,
+            status: MembershipStatus::Active,
+            remainingVisits: null,
+            startsAt: new DateTimeImmutable('2026-10-01 10:00:00'),
+            endsAt: new DateTimeImmutable('2026-10-31 10:00:00')
+        );
+
+        $membership->freeze(new DateTimeImmutable('2026-10-05 10:00:00'));
+        $membership->unfreeze(new DateTimeImmutable('2026-10-07 10:00:00'));
+
+        $this->expectException(MembershipFreezeNotAllowed::class);
+        $membership->freeze(new DateTimeImmutable('2026-10-10 10:00:00'));
     }
 
     public function test_cancel_sets_cancelled_status(): void

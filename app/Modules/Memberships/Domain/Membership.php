@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships\Domain;
 
+use App\Modules\Memberships\Domain\Exceptions\MembershipFreezeNotAllowed;
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Exceptions\NoVisitsLeft;
 use App\Modules\Memberships\Domain\Strategies\ConsumptionStrategy;
@@ -167,19 +168,23 @@ final class Membership
 
     /**
      * Заморозка абонемента.
+     *
+     * @throws MembershipFreezeNotAllowed
      */
     public function freeze(DateTimeImmutable $at): void
     {
+        $this->expireIfDue($at);
+
         if ($this->status !== MembershipStatus::Active) {
-            throw new DomainException(sprintf('Заморозить можно только активный абонемент (текущий статус: %s).', $this->status->value));
+            throw MembershipFreezeNotAllowed::notActive($this->status->value);
         }
 
         if ($this->rules->freezeMaxTimes <= 0 || $this->freezeTimesUsed >= $this->rules->freezeMaxTimes) {
-            throw new DomainException('Лимит количества заморозок исчерпан.');
+            throw MembershipFreezeNotAllowed::timesLimitReached();
         }
 
         if ($this->freezeDaysUsed >= $this->rules->freezeMaxDays) {
-            throw new DomainException('Лимит дней заморозки исчерпан.');
+            throw MembershipFreezeNotAllowed::daysLimitReached();
         }
 
         $this->status = MembershipStatus::Frozen;
@@ -189,15 +194,17 @@ final class Membership
 
     /**
      * Разморозка абонемента с продлением даты окончания на срок фактически использованной заморозки.
+     *
+     * @throws MembershipFreezeNotAllowed
      */
     public function unfreeze(DateTimeImmutable $now): void
     {
         if ($this->status !== MembershipStatus::Frozen || $this->frozenAt === null) {
-            throw new DomainException('Абонемент не находится в состоянии заморозки.');
+            throw MembershipFreezeNotAllowed::notFrozen();
         }
 
         if ($now < $this->frozenAt) {
-            throw new DomainException('Дата разморозки не может быть раньше даты заморозки.');
+            throw MembershipFreezeNotAllowed::unfreezeBeforeFreeze();
         }
 
         $seconds = $now->getTimestamp() - $this->frozenAt->getTimestamp();

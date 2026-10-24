@@ -75,7 +75,13 @@
    - [x] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
      - Заметки: `FindUsableMembership` реализует контракт `MembershipLookupInterface` (возвращает DTO `MembershipSummary`). Кандидаты — Active и Pending; подходящими считаются по `Membership::isUsableAt` (срок не истёк, для visits остаток > 0). Сортировка: раньше заканчивается → выше, без срока → в конец, при равенстве — меньший id. Проверки «лимит входов в день» и «окно времени суток» сюда НЕ входят — это `CheckInRule` в Visits (этап 2).
 
-   - [ ] **T1-25** Заморозка/разморозка: `FreezePolicy` (макс. дней и раз), методы сущности, UseCase + эндпоинты `POST /memberships/{id}/freeze|unfreeze`. Срок абонемента продлевается на дни заморозки.
+   - [x] **T1-25a** Заморозка/разморозка (Domain + Application): доменные исключения `MembershipNotFound` и `MembershipFreezeNotAllowed`, обновление `Membership::freeze()`/`unfreeze()`, сценарии `FreezeMembership` и `UnfreezeMembership` (блокировка строки в транзакции, проверка компании, время через `Clock`).
+     - Заметки: `Membership::freeze()` перед проверкой статуса вызывает `expireIfDue($at)`, чтобы не заморозить просроченный по дате абонемент. Оба UseCase используют `findByIdForUpdate` внутри `DB::transaction`.
+
+   - [~] **T1-25b** Заморозка/разморозка (HTTP API): привязка `Clock` → `SystemClock`, контроллеры и маршруты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` (доступ владельцу и администратору), Feature-тесты.
+     - Ссылки: Бизнес-ТЗ 2, 4.3; Тех. ТЗ 7.1, 7.2, 8.
+     - Файлы: `app/Providers/AppServiceProvider.php`, `Presentation/FreezeMembershipController.php`, `Presentation/UnfreezeMembershipController.php`, `Presentation/routes.php`, `tests/Feature/Memberships/FreezeAndUnfreezeMembershipTest.php`.
+     - Готово когда: Feature-тесты проверяют заморозку, разморозку с продлением срока, исчерпание лимитов (409), изоляцию компаний (404) и права ролей.
 
    - [ ] **T1-26** Отмена и возврат: UseCase `CancelMembership` (только владелец, обязательная причина, событие `MembershipCancelled` → Audit), `POST /memberships/{id}/cancel`.
 
