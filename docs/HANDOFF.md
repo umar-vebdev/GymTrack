@@ -9,23 +9,20 @@
 
 ## Текущая задача
 
-- Задача: T1-22 Инфраструктура абонементов: миграция `memberships`, `EloquentMembershipRepository`
-- Статус: не начата
+- Задача: T1-22 Инфраструктура абонементов — `[~]`, код готов, **тесты не запускались** (Docker не был запущен)
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-21**: реализован паттерн Strategy для списания абонементов: `ConsumptionStrategy`, `VisitsConsumptionStrategy`, `TimeBasedConsumptionStrategy`, `ConsumptionStrategyResolver`, метод `decrementRemainingVisits` в `Membership`. Unit-тесты.
-- T1-20: сущность `Membership`, `MembershipStatus`, исключения, тесты жизненного цикла.
+- Убраны лишние same-namespace `use` в `Membership.php` (Pint падал после ручного коммита `ad0688a`).
+- T1-22 (WIP): миграция `memberships` (CHECK `remaining_visits >= 0`, soft delete), `MembershipModel`, `MembershipRepositoryInterface` (`findById`, `findByIdForUpdate`, `create`, `save`), `EloquentMembershipRepository`, регистрация в `MembershipsServiceProvider`, тест `tests/Unit/Memberships/MembershipRepositoryTest.php` (4 теста, не запускались).
 
 ## Точный следующий шаг
 
-1. T1-22:
-   - Создать миграцию `memberships` (id, company_id, client_id, type_id, status, remaining_visits, starts_at, ends_at, freeze_days_used, freeze_times_used, frozen_at, soft deletes, timestamps; ограничение целостности CHECK `remaining_visits >= 0`).
-   - Создать модель `MembershipModel` (`BelongsToCompany`, soft delete).
-   - Создать `MembershipRepositoryInterface` (методы `findById(int $id): ?Membership`, `findByIdForUpdate(int $id): ?Membership`, `save(Membership $membership): void`, `create(...)`).
-   - Реализовать `EloquentMembershipRepository` и зарегистрировать в `MembershipsServiceProvider`.
-   - Написать интеграционный тест репозитория с проверкой сохранения и блокировки строки (`findByIdForUpdate`).
+1. Запустить Docker: `docker compose up -d`; затем `docker compose exec -T app composer test`.
+2. Если тесты T1-22 зелёные — поставить `[x]`, закоммитить `T1-22: ...`. Если красные — исправить (вероятные места: приведение дат в `save`, CHECK-ограничение).
+3. Дальше T1-23: `IssueMembership` + `MembershipIssuerInterface` + событие `MembershipIssued`.
+4. Заметка для T1-26: `Membership::cancel(string $reason)` уже требует причину и хранит `cancellationReason`.
 
 ## Окружение и команды
 

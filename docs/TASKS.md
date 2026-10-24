@@ -66,7 +66,9 @@
      - Цель: `ConsumptionStrategy`, `VisitsConsumptionStrategy` (−1 занятие, `Expired` при 0), `TimeBasedConsumptionStrategy` (Duration, Unlimited, Single), фабрика `ConsumptionStrategyResolver`.
      - Готово когда: Unit-тесты проверяют выбор стратегий и списание для визитов и временных тарифов.
 
-   - [ ] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
+   - [~] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
+     - Статус: код написан, lint/analyse/deps ✓, но **тесты НЕ запускались** (Docker был выключен). Закрыть `[x]` после зелёного `docker compose exec -T app composer test`.
+     - Заметки: правила (`MembershipRules`) читаются из типа абонемента через `MembershipTypeRepositoryInterface` (снимка правил в `memberships` нет; допустимо, пока типы нельзя редактировать — при появлении редактирования типов пересмотреть). `findByIdForUpdate` — только внутри транзакции.
 
    - [ ] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
 

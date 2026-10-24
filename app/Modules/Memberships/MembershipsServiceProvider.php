@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships;
 
+use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
 use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
+use App\Modules\Memberships\Infrastructure\EloquentMembershipRepository;
 use App\Modules\Memberships\Infrastructure\EloquentMembershipTypeRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,6 +14,10 @@ final class MembershipsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(
+            MembershipRepositoryInterface::class,
+            EloquentMembershipRepository::class
+        );
         $this->app->bind(
             MembershipTypeRepositoryInterface::class,
             EloquentMembershipTypeRepository::class
