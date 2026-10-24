@@ -13,3 +13,4 @@ final class MembershipNotFound extends DomainException
         return new self(sprintf('Абонемент #%d не найден.', $id));
     }
 }
+
