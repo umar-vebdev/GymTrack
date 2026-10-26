@@ -144,3 +144,4 @@ final class ListExpiringMembershipsTest extends TestCase
             ->assertJsonPath('error.code', 'FORBIDDEN');
     }
 }
+
