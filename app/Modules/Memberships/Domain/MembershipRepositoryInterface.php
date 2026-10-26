@@ -45,6 +45,13 @@ interface MembershipRepositoryInterface
     public function listCompanyIdsWithDueMemberships(DateTimeImmutable $at): array;
 
     /**
+     * Активные абонементы компании со сроком окончания в интервале [$from, $to], по возрастанию ends_at.
+     *
+     * @return list<Membership>
+     */
+    public function listExpiringBetween(int $companyId, DateTimeImmutable $from, DateTimeImmutable $to): array;
+
+    /**
      * Создаёт запись абонемента и возвращает его ID.
      */
     public function create(

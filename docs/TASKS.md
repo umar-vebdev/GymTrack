@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** 1 (Аутентификация, пользователи и компании)
+**Текущий этап:** 1 (Business: касса, продажи, подписка зала, аналитика)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -31,71 +31,15 @@
 - [x] **E1-B Companies**: компания, зал, сотрудники, роли, мультиарендность
 - [x] **E1-C Audit**: неизменяемый журнал, подписка на события
 - [x] **E1-D Clients (CRM)**: T1-11…T1-15 — создание, поиск, связывание по `PhoneVerified` (D-002), объединение дубликатов (только владелец; перенос данных абонементов/посещений добавить при появлении Memberships/Visits; аудит слияния — отдельной задачей)
+- [x] **E1-E Memberships**: T1-16…T1-28 — типы абонементов, правила (`MembershipRules`), богатая сущность `Membership`, стратегии списания, выдача (`IssueMembership`), контракт выбора (`FindUsableMembership`), заморозка/разморозка, отмена владельцем + аудит, список абонементов клиента, ежедневное завершение истёкших (`memberships:expire-due`), список истекающих в ближайшие 7 дней (`GET /memberships/expiring`)
 
 ---
 
-## Этап 1 — Business (Identity, Companies, CRM)
-
-5. **E1-E Memberships**: типы абонементов, правила, выдача, заморозка, отмена и возврат (только владелец), статусы
-   > Раскрытие эпика подтверждено разработчиком 2026-10-23.
-   > **ВАЖНО (требование разработчика): как только будет сделан раздел платежей и продаж (E1-F Sales, `PaymentMark`), вернуться и ДОПОЛНИТЬ этот блок Memberships** — привязка выдачи абонемента к отметке оплаты (одна транзакция), ручная выдача через кассу, возможное расширение отмены/возврата с учётом `PaymentMark`. Добавить соответствующие задачи в E1-E или в E1-F. Ссылки: Бизнес-ТЗ 4.3, 12 (п. 1, 4); Тех. ТЗ 3.6–3.8, 4.4, 5.2, 6, 9.4.
-
-   - [x] **T1-16** Домен: перечисления и правила типа абонемента
-     - Цель: чистый PHP, без БД: `MembershipKind` (visits | duration | unlimited | single), `StartMode` (on_sale | first_visit), `MembershipRules` (Value Object с инвариантами: для `visits` нужен `visitsCount`, для `duration`/`unlimited` — `durationDays`, лимит входов в день ≥ 1, окно времени суток, лимиты заморозки).
-     - Файлы: `Domain/MembershipKind.php`, `Domain/StartMode.php`, `Domain/MembershipRules.php`, unit-тест.
-     - Готово когда: unit-тест проверяет, что невалидные комбинации бросают доменное исключение.
-     - Заметки: окно времени хранится в минутах от полуночи (from < to, без перехода через полночь); заморозка: дни и разы задаются вместе; `single` → только `on_sale`, без заморозки. Исключение `InvalidMembershipRules` (DomainException).
-
-   - [x] **T1-17** Инфраструктура типов: миграция `membership_types`, сущность `MembershipType`, репозиторий, `MembershipsServiceProvider` (+ регистрация в `bootstrap/providers.php`). Цена — `Money` (минимальные единицы + валюта).
-     - Готово когда: тест репозитория создаёт и читает тип.
-     - Заметки: валюту типа передаёт вызывающий код (`Money`); значение по умолчанию TJS выбирается в UseCase T1-18 — D-003. Репозиторий пока только `findById` и `create`; `setActive` и список добавятся в T1-19.
-
-   - [x] **T1-18** Создание типа: UseCase `CreateMembershipType`, `POST /api/v1/business/membership-types`, только владелец (через контракт `StaffCompanyResolverInterface`).
-     - Готово когда: Feature-тест (успех, 403 для администратора, 422 для невалидных правил).
-     - Заметки: входной DTO `CreateMembershipTypeCommand` (слишком много аргументов для метода). API принимает окно времени как `time_from`/`time_to` (`HH:MM`), в БД — минуты. Форма данных — 422 `VALIDATION_FAILED` (FormRequest), нарушение бизнес-правил — 422 `INVALID_MEMBERSHIP_RULES`. Проверка роли пока в контроллере (как в Clients); при появлении Policy для Memberships вынести.
-
-   - [x] **T1-19** Список типов и активация/деактивация
-     - Цель: `GET /api/v1/business/membership-types` (сотрудники компании, фильтр `only_active`), `PATCH /api/v1/business/membership-types/{id}/active` (только владелец компании).
-     - Готово когда: Feature-тест проверяет доступ ролей, фильтрацию и изоляцию тенантов.
-
-   - [x] **T1-20** Домен абонемента клиента
-     - Цель: богатая сущность `Membership` (чистый PHP) + `MembershipStatus` (pending, active, frozen, expired, cancelled), методы `consumeVisit()`, `freeze()`, `unfreeze()`, `expireIfDue()`, `cancel()`.
-     - Готово когда: Unit-тесты проверяют списание, истечение по сроку, активацию при первом визите, заморозку с продлением срока и отмену.
-
-   - [x] **T1-21** Стратегии списания (паттерн Strategy)
-     - Цель: `ConsumptionStrategy`, `VisitsConsumptionStrategy` (−1 занятие, `Expired` при 0), `TimeBasedConsumptionStrategy` (Duration, Unlimited, Single), фабрика `ConsumptionStrategyResolver`.
-     - Готово когда: Unit-тесты проверяют выбор стратегий и списание для визитов и временных тарифов.
-
-   - [x] **T1-22** Инфраструктура абонементов: миграция `memberships` (client_id, type_id, company_id, status, remaining_visits, starts_at, ends_at, CHECK `remaining_visits >= 0`, soft delete), `EloquentMembershipRepository` с `lockForUpdate`-методом (ТЗ 9.1). Готово когда: тест репозитория.
-     - Заметки: правила (`MembershipRules`) читаются из типа абонемента через `MembershipTypeRepositoryInterface` (снимка правил в `memberships` нет; допустимо, пока типы нельзя редактировать — при появлении редактирования типов пересмотреть). `findByIdForUpdate` — только внутри транзакции.
-
-   - [x] **T1-23** Выдача: UseCase `IssueMembership` (Factory из типа: считает `ends_at` по `StartMode`), контракт `Memberships/Contracts/MembershipIssuerInterface` для Sales. Эндпоинта нет — ручная выдача с оплатой делается в E1-F. Событие `MembershipIssued` (AuditableEvent).
-     - Заметки: `IssueMembership` реализует контракт `MembershipIssuerInterface` (параметры: компания, клиент, тип, момент выдачи, сотрудник для аудита). Принадлежность клиента компании проверяется через новый контракт `Clients/Contracts/ClientLookupInterface`. Расчёт старта и срока — `MembershipFactory` + `MembershipRules::endsAtFor` (теперь им же пользуется `Membership` при активации по первому визиту). `on_sale` → Active, `first_visit` → Pending без дат. Конец дня для `single` считается в поясе переданного момента (перевод в пояс зала Asia/Dushanbe — задача на будущее). `ipAddress` в аудите пока null.
-
-   - [x] **T1-24** Выбор абонемента для списания: контракт `MembershipLookupInterface::findUsableForClient()` — из активных берётся тот, что заканчивается раньше (ТЗ 4.3). Нужен позже для Visits.
-     - Заметки: `FindUsableMembership` реализует контракт `MembershipLookupInterface` (возвращает DTO `MembershipSummary`). Кандидаты — Active и Pending; подходящими считаются по `Membership::isUsableAt` (срок не истёк, для visits остаток > 0). Сортировка: раньше заканчивается → выше, без срока → в конец, при равенстве — меньший id. Проверки «лимит входов в день» и «окно времени суток» сюда НЕ входят — это `CheckInRule` в Visits (этап 2).
-
-   - [x] **T1-25a** Заморозка/разморозка (Domain + Application): доменные исключения `MembershipNotFound` и `MembershipFreezeNotAllowed`, обновление `Membership::freeze()`/`unfreeze()`, сценарии `FreezeMembership` и `UnfreezeMembership` (блокировка строки в транзакции, проверка компании, время через `Clock`).
-     - Заметки: `Membership::freeze()` перед проверкой статуса вызывает `expireIfDue($at)`, чтобы не заморозить просроченный по дате абонемент. Оба UseCase используют `findByIdForUpdate` внутри `DB::transaction`.
-
-   - [x] **T1-25b** Заморозка/разморозка (HTTP API): привязка `Clock` → `SystemClock`, контроллеры и маршруты `POST /api/v1/business/memberships/{id}/freeze` и `/unfreeze` (доступ владельцу и администратору), Feature-тесты.
-     - Заметки: доступ открыт всем сотрудникам компании (владелец и администратор); чужой или несуществующий абонемент возвращает 404 `MEMBERSHIP_NOT_FOUND`, нарушение правил заморозки — 409 `MEMBERSHIP_FREEZE_NOT_ALLOWED`.
-
-   - [x] **T1-26a** Отмена абонемента (Domain + Application): исключение `MembershipAlreadyCancelled`, обновление `Membership::cancel()`, доменное событие `MembershipCancelled` (`AuditableEvent`), сценарий `CancelMembership` (транзакция + блокировка строки + отправка события).
-     - Заметки: событие `MembershipCancelled` отправляется после завершения `DB::transaction` (ТЗ 9.1), в `payload` сохраняются `client_id` и очищенная причина `reason`.
-
-   - [x] **T1-26b** Отмена абонемента (HTTP API): `CancelMembershipRequest`, `CancelMembershipController`, маршрут `POST /api/v1/business/memberships/{id}/cancel` (доступ только владельцу компании), Feature-тесты с проверкой записи в `audit_entries`.
-     - Заметки: только владелец (`StaffCompanyResolverInterface::isOwner`), обязательная причина (`reason`), при повторной отмене возвращается 409 `MEMBERSHIP_ALREADY_CANCELLED`.
-
-   - [x] **T1-27a** Список абонементов клиента: `MembershipRepositoryInterface::listByClient`, Use Case `ListClientMemberships` (проверка принадлежности клиента компании через `ClientLookupInterface`), `ListClientMembershipsController`, маршрут `GET /api/v1/business/clients/{id}/memberships` (доступ сотрудникам компании), Feature-тесты.
-     - Заметки: список отсортирован по `id` по убыванию (новые сверху); для клиента чужой компании или несуществующего клиента возвращается 404 `CLIENT_NOT_FOUND`.
-
-   - [x] **T1-27b** Ежедневное завершение истёкших абонементов: Use Case `ExpireDueMemberships` (компания передаётся явно, идемпотентен — ТЗ 9.4), консольная команда `memberships:expire-due` и расписание в `routes/console.php`, тесты.
-     - Заметки: команда `memberships:expire-due` принимает опциональный `--company=`, иначе получает список компаний с просроченными абонементами и вызывает `ExpireDueMemberships::execute($companyId)` для каждой явно. Замороженные (`frozen`) абонементы не истекают автоматически.
-
-   - [ ] **T1-28** Список абонементов, заканчивающихся в ближайшие 7 дней (Бизнес-ТЗ 4.4): `GET /memberships/expiring`.
+## Этап 1 — Business (Sales, Billing, Analytics)
 
 6. [ ] **E1-F Sales**: товары, касса, `PaymentMark`, ручная выдача абонемента
+   > **ВАЖНО (требование разработчика):** в рамках или сразу после `E1-F Sales` дополнить связь с `Memberships` — привязка выдачи абонемента к отметке оплаты (`PaymentMark`) в одной транзакции, ручная выдача через кассу, расширение отмены/возврата с учётом `PaymentMark`. Ссылки: Бизнес-ТЗ 3, 4.3, 4.4, 4.5; Тех. ТЗ 3.6–3.8, 6, 7.3, 8, 9.2.
+
 7. [ ] **E1-G Billing**: тарифы платформы, пробный период 14 дней, режим «только чтение» после окончания
 8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность
 

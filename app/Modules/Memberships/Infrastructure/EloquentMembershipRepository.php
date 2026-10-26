@@ -83,6 +83,21 @@ final class EloquentMembershipRepository implements MembershipRepositoryInterfac
         return array_map(static fn (int|string $id): int => (int) $id, $ids);
     }
 
+    public function listExpiringBetween(int $companyId, DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        $models = MembershipModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('status', MembershipStatus::Active->value)
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '>=', $from)
+            ->where('ends_at', '<=', $to)
+            ->orderBy('ends_at')
+            ->orderBy('id')
+            ->get();
+
+        return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
+    }
+
     public function create(
         int $companyId,
         int $clientId,
