@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Memberships;
 
+use App\Modules\Memberships\Domain\Exceptions\MembershipAlreadyCancelled;
 use App\Modules\Memberships\Domain\Exceptions\MembershipFreezeNotAllowed;
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Membership;
@@ -12,7 +13,6 @@ use App\Modules\Memberships\Domain\MembershipRules;
 use App\Modules\Memberships\Domain\MembershipStatus;
 use App\Modules\Memberships\Domain\StartMode;
 use DateTimeImmutable;
-use DomainException;
 use PHPUnit\Framework\TestCase;
 
 final class MembershipTest extends TestCase
@@ -198,7 +198,7 @@ final class MembershipTest extends TestCase
         $this->assertSame(MembershipStatus::Cancelled, $membership->status());
         $this->assertSame('Переезд клиента', $membership->cancellationReason());
 
-        $this->expectException(DomainException::class);
+        $this->expectException(MembershipAlreadyCancelled::class);
         $membership->cancel('Повторная отмена');
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships\Domain;
 
+use App\Modules\Memberships\Domain\Exceptions\MembershipAlreadyCancelled;
 use App\Modules\Memberships\Domain\Exceptions\MembershipFreezeNotAllowed;
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotUsable;
 use App\Modules\Memberships\Domain\Exceptions\NoVisitsLeft;
@@ -226,11 +227,13 @@ final class Membership
 
     /**
      * Аннулирование абонемента владельцем (с обязательной фиксацией причины).
+     *
+     * @throws MembershipAlreadyCancelled
      */
     public function cancel(string $reason): void
     {
         if ($this->status === MembershipStatus::Cancelled) {
-            throw new DomainException('Абонемент уже отменён.');
+            throw MembershipAlreadyCancelled::withId($this->id);
         }
 
         $trimmedReason = trim($reason);

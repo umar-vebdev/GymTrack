@@ -171,4 +171,3 @@ final class FreezeAndUnfreezeMembershipTest extends TestCase
             ->assertJsonPath('error.code', 'FORBIDDEN');
     }
 }
-

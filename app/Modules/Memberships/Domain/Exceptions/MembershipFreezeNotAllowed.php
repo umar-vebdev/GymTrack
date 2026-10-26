@@ -33,4 +33,3 @@ final class MembershipFreezeNotAllowed extends DomainException
         return new self('Дата разморозки не может быть раньше даты заморозки.');
     }
 }
-
