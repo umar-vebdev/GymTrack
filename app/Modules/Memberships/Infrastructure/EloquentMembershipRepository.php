@@ -32,6 +32,17 @@ final class EloquentMembershipRepository implements MembershipRepositoryInterfac
         return $model ? $this->toEntity($model) : null;
     }
 
+    public function listByClient(int $companyId, int $clientId): array
+    {
+        $models = MembershipModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('client_id', $clientId)
+            ->orderByDesc('id')
+            ->get();
+
+        return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
+    }
+
     public function listOpenByClient(int $companyId, int $clientId): array
     {
         $models = MembershipModel::withoutGlobalScopes()

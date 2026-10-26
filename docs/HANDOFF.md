@@ -9,19 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-27 Список абонементов клиента (`GET /clients/{id}/memberships`) и ежедневная команда завершения истёкших абонементов (планировщик, идемпотентна, компания передаётся явно — ТЗ 9.4)
-- Статус: не начата
+- Задача: T1-27b Ежедневное завершение истёкших абонементов (`ExpireDueMemberships`, команда `memberships:expire-due`, расписание)
+- Статус: в работе (`[~]`)
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-26a, T1-26b** закрыты: доменное исключение `MembershipAlreadyCancelled`, событие `MembershipCancelled` (`AuditableEvent`), сценарий `CancelMembership`, эндпоинт `POST /api/v1/business/memberships/{id}/cancel` (только владелец) и Feature-тесты. Всего 128 тестов зелёные.
+- **T1-27a** закрыта: список абонементов клиента в зале (`GET /api/v1/business/clients/{id}/memberships`) + Feature-тесты. Всего 131 тест зелёный.
 
 ## Точный следующий шаг
 
-1. Разбить **T1-27** по правилу размера задачи (4.1) на две подзадачи:
-   - **T1-27a**: Список абонементов клиента в зале (`MembershipRepositoryInterface::listByClient`, Use Case `ListClientMemberships`, эндпоинт `GET /api/v1/business/clients/{id}/memberships` + Feature-тесты).
-   - **T1-27b**: Завершение истёкших абонементов по расписанию (Use Case / метод репозитория для истечения абонементов по `companyId` и моменту `Clock::now()`, консольная команда и планировщик `routes/console.php`, идемпотентность + тесты).
+1. T1-27b: добавить в `MembershipRepositoryInterface` методы `listDueForExpiry(int $companyId, DateTimeImmutable $at): array` и `listCompanyIdsWithDueMemberships(DateTimeImmutable $at): array`, реализовать Use Case `ExpireDueMemberships` (принимает явно `int $companyId`, вызывает `Membership::expireIfDue($now)` и `save`, идемпотентен), создать консольную команду `ExpireDueMembershipsCommand` (`memberships:expire-due`, опция `--company=`), зарегистрировать в `MembershipsServiceProvider` и ежедневное расписание в `routes/console.php`, покрыть тестами.
 
 ## Окружение: важное про Docker
 

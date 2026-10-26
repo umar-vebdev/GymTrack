@@ -87,7 +87,13 @@
    - [x] **T1-26b** Отмена абонемента (HTTP API): `CancelMembershipRequest`, `CancelMembershipController`, маршрут `POST /api/v1/business/memberships/{id}/cancel` (доступ только владельцу компании), Feature-тесты с проверкой записи в `audit_entries`.
      - Заметки: только владелец (`StaffCompanyResolverInterface::isOwner`), обязательная причина (`reason`), при повторной отмене возвращается 409 `MEMBERSHIP_ALREADY_CANCELLED`.
 
-   - [ ] **T1-27** Список абонементов клиента (`GET /clients/{id}/memberships`) и ежедневная команда завершения истёкших абонементов (планировщик, идемпотентна, компания передаётся явно — ТЗ 9.4).
+   - [x] **T1-27a** Список абонементов клиента: `MembershipRepositoryInterface::listByClient`, Use Case `ListClientMemberships` (проверка принадлежности клиента компании через `ClientLookupInterface`), `ListClientMembershipsController`, маршрут `GET /api/v1/business/clients/{id}/memberships` (доступ сотрудникам компании), Feature-тесты.
+     - Заметки: список отсортирован по `id` по убыванию (новые сверху); для клиента чужой компании или несуществующего клиента возвращается 404 `CLIENT_NOT_FOUND`.
+
+   - [~] **T1-27b** Ежедневное завершение истёкших абонементов: Use Case `ExpireDueMemberships` (компания передаётся явно, идемпотентен — ТЗ 9.4), консольная команда `memberships:expire-due` и расписание в `routes/console.php`, тесты.
+     - Ссылки: Тех. ТЗ 9.4; Бизнес-ТЗ 4.3.
+     - Файлы: `Domain/MembershipRepositoryInterface.php`, `Infrastructure/EloquentMembershipRepository.php`, `Application/ExpireDueMemberships.php`, `Presentation/Console/ExpireDueMembershipsCommand.php`, `MembershipsServiceProvider.php`, `routes/console.php`, `tests/Feature/Memberships/ExpireDueMembershipsTest.php`.
+     - Готово когда: тесты проверяют перевод просроченных `active` абонементов в `expired`, идемпотентность при повторном запуске и сохранение `frozen`/`cancelled` без изменений.
 
    - [ ] **T1-28** Список абонементов, заканчивающихся в ближайшие 7 дней (Бизнес-ТЗ 4.4): `GET /memberships/expiring`.
 

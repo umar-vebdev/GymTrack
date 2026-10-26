@@ -17,6 +17,13 @@ interface MembershipRepositoryInterface
     public function findByIdForUpdate(int $id): ?Membership;
 
     /**
+     * Все абонементы клиента в зале (все статусы, от новых к старым).
+     *
+     * @return list<Membership>
+     */
+    public function listByClient(int $companyId, int $clientId): array;
+
+    /**
      * Абонементы клиента в статусах «активен» и «ожидает старта» (кандидаты на списание).
      *
      * @return list<Membership>
