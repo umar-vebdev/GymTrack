@@ -9,17 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-26b Отмена абонемента (HTTP API): `CancelMembershipRequest`, `CancelMembershipController`, `POST /api/v1/business/memberships/{id}/cancel` + Feature-тесты
-- Статус: в работе (`[~]`)
+- Задача: T1-27 Список абонементов клиента (`GET /clients/{id}/memberships`) и ежедневная команда завершения истёкших абонементов (планировщик, идемпотентна, компания передаётся явно — ТЗ 9.4)
+- Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-26a** закрыта: добавлены `MembershipAlreadyCancelled`, событие `MembershipCancelled` (`AuditableEvent`), сценарий `CancelMembership` (транзакция + `findByIdForUpdate` + отправка события после транзакции).
+- **T1-26a, T1-26b** закрыты: доменное исключение `MembershipAlreadyCancelled`, событие `MembershipCancelled` (`AuditableEvent`), сценарий `CancelMembership`, эндпоинт `POST /api/v1/business/memberships/{id}/cancel` (только владелец) и Feature-тесты. Всего 128 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-26b: создать `CancelMembershipRequest` (`reason`: required, string, max:500, trim), `CancelMembershipController` (проверка владельца через `StaffCompanyResolverInterface::isOwner`, 403 для администратора/постороннего, 404 `MEMBERSHIP_NOT_FOUND`, 409 `MEMBERSHIP_ALREADY_CANCELLED`), зарегистрировать маршрут `POST /api/v1/business/memberships/{id}/cancel`, написать `CancelMembershipTest`.
+1. Разбить **T1-27** по правилу размера задачи (4.1) на две подзадачи:
+   - **T1-27a**: Список абонементов клиента в зале (`MembershipRepositoryInterface::listByClient`, Use Case `ListClientMemberships`, эндпоинт `GET /api/v1/business/clients/{id}/memberships` + Feature-тесты).
+   - **T1-27b**: Завершение истёкших абонементов по расписанию (Use Case / метод репозитория для истечения абонементов по `companyId` и моменту `Clock::now()`, консольная команда и планировщик `routes/console.php`, идемпотентность + тесты).
 
 ## Окружение: важное про Docker
 

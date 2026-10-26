@@ -84,10 +84,8 @@
    - [x] **T1-26a** Отмена абонемента (Domain + Application): исключение `MembershipAlreadyCancelled`, обновление `Membership::cancel()`, доменное событие `MembershipCancelled` (`AuditableEvent`), сценарий `CancelMembership` (транзакция + блокировка строки + отправка события).
      - Заметки: событие `MembershipCancelled` отправляется после завершения `DB::transaction` (ТЗ 9.1), в `payload` сохраняются `client_id` и очищенная причина `reason`.
 
-   - [~] **T1-26b** Отмена абонемента (HTTP API): `CancelMembershipRequest`, `CancelMembershipController`, маршрут `POST /api/v1/business/memberships/{id}/cancel` (доступ только владельцу компании), Feature-тесты с проверкой записи в `audit_entries`.
-     - Ссылки: Бизнес-ТЗ 2, 4.3; Тех. ТЗ 7.1, 7.2, 8.
-     - Файлы: `Presentation/Requests/CancelMembershipRequest.php`, `Presentation/CancelMembershipController.php`, `Presentation/routes.php`, `tests/Feature/Memberships/CancelMembershipTest.php`.
-     - Готово когда: Feature-тесты проверяют отмену владельцем + аудит, 403 для администратора, 422 без причины, 409 при повторной отмене, 404 для чужой компании.
+   - [x] **T1-26b** Отмена абонемента (HTTP API): `CancelMembershipRequest`, `CancelMembershipController`, маршрут `POST /api/v1/business/memberships/{id}/cancel` (доступ только владельцу компании), Feature-тесты с проверкой записи в `audit_entries`.
+     - Заметки: только владелец (`StaffCompanyResolverInterface::isOwner`), обязательная причина (`reason`), при повторной отмене возвращается 409 `MEMBERSHIP_ALREADY_CANCELLED`.
 
    - [ ] **T1-27** Список абонементов клиента (`GET /clients/{id}/memberships`) и ежедневная команда завершения истёкших абонементов (планировщик, идемпотентна, компания передаётся явно — ТЗ 9.4).
 

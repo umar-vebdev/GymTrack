@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Memberships\Presentation\CancelMembershipController;
 use App\Modules\Memberships\Presentation\CreateMembershipTypeController;
 use App\Modules\Memberships\Presentation\FreezeMembershipController;
 use App\Modules\Memberships\Presentation\ListMembershipTypesController;
@@ -17,4 +18,5 @@ Route::prefix('api/v1/business')
         Route::patch('/membership-types/{id}/active', SetMembershipTypeActiveController::class);
         Route::post('/memberships/{id}/freeze', FreezeMembershipController::class);
         Route::post('/memberships/{id}/unfreeze', UnfreezeMembershipController::class);
+        Route::post('/memberships/{id}/cancel', CancelMembershipController::class);
     });
