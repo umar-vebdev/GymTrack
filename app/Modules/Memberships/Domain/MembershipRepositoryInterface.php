@@ -31,6 +31,20 @@ interface MembershipRepositoryInterface
     public function listOpenByClient(int $companyId, int $clientId): array;
 
     /**
+     * Открытые абонементы компании, у которых срок действия истёк к моменту $at.
+     *
+     * @return list<Membership>
+     */
+    public function listDueForExpiry(int $companyId, DateTimeImmutable $at): array;
+
+    /**
+     * Идентификаторы компаний, у которых есть просроченные открытые абонементы к моменту $at.
+     *
+     * @return list<int>
+     */
+    public function listCompanyIdsWithDueMemberships(DateTimeImmutable $at): array;
+
+    /**
      * Создаёт запись абонемента и возвращает его ID.
      */
     public function create(

@@ -9,17 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-27b Ежедневное завершение истёкших абонементов (`ExpireDueMemberships`, команда `memberships:expire-due`, расписание)
-- Статус: в работе (`[~]`)
+- Задача: T1-28 Список абонементов, заканчивающихся в ближайшие 7 дней (Бизнес-ТЗ 4.4): `GET /memberships/expiring`
+- Статус: не начата
 - **НАПОМИНАНИЕ (требование разработчика):** после реализации E1-F (Sales/платежи) дополнить блок Memberships (выдача вместе с `PaymentMark`, возвраты). Записано в `TASKS.md` в E1-E.
 
 ## Последняя сессия: что сделано
 
-- **T1-27a** закрыта: список абонементов клиента в зале (`GET /api/v1/business/clients/{id}/memberships`) + Feature-тесты. Всего 131 тест зелёный.
+- **T1-27a, T1-27b** закрыты: список абонементов клиента (`GET /api/v1/business/clients/{id}/memberships`), Use Case `ExpireDueMemberships` (с явной передачей `companyId` и идемпотентностью), консольная команда `memberships:expire-due` + ежедневный планировщик в `routes/console.php`. Всего 133 теста зелёные.
 
 ## Точный следующий шаг
 
-1. T1-27b: добавить в `MembershipRepositoryInterface` методы `listDueForExpiry(int $companyId, DateTimeImmutable $at): array` и `listCompanyIdsWithDueMemberships(DateTimeImmutable $at): array`, реализовать Use Case `ExpireDueMemberships` (принимает явно `int $companyId`, вызывает `Membership::expireIfDue($now)` и `save`, идемпотентен), создать консольную команду `ExpireDueMembershipsCommand` (`memberships:expire-due`, опция `--company=`), зарегистрировать в `MembershipsServiceProvider` и ежедневное расписание в `routes/console.php`, покрыть тестами.
+1. T1-28: метод репозитория `listExpiringBetween(int $companyId, DateTimeImmutable $from, DateTimeImmutable $to): array` (активные абонементы с `ends_at` в интервале `[$from, $to]`, отсортированные по `ends_at` по возрастанию), Use Case `ListExpiringMemberships` (по умолчанию 7 дней от `Clock::now()`), контроллер `ListExpiringMembershipsController` и маршрут `GET /api/v1/business/memberships/expiring` (доступ сотрудникам зала), Feature-тесты.
 
 ## Окружение: важное про Docker
 

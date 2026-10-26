@@ -55,6 +55,34 @@ final class EloquentMembershipRepository implements MembershipRepositoryInterfac
         return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
     }
 
+    public function listDueForExpiry(int $companyId, DateTimeImmutable $at): array
+    {
+        $models = MembershipModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->whereIn('status', [MembershipStatus::Active->value, MembershipStatus::Pending->value])
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<', $at)
+            ->orderBy('id')
+            ->get();
+
+        return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
+    }
+
+    public function listCompanyIdsWithDueMemberships(DateTimeImmutable $at): array
+    {
+        /** @var list<int|string> $ids */
+        $ids = MembershipModel::withoutGlobalScopes()
+            ->whereIn('status', [MembershipStatus::Active->value, MembershipStatus::Pending->value])
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<', $at)
+            ->distinct()
+            ->orderBy('company_id')
+            ->pluck('company_id')
+            ->all();
+
+        return array_map(static fn (int|string $id): int => (int) $id, $ids);
+    }
+
     public function create(
         int $companyId,
         int $clientId,

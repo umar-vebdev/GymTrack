@@ -12,6 +12,7 @@ use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
 use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
 use App\Modules\Memberships\Infrastructure\EloquentMembershipRepository;
 use App\Modules\Memberships\Infrastructure\EloquentMembershipTypeRepository;
+use App\Modules\Memberships\Presentation\Console\ExpireDueMembershipsCommand;
 use Illuminate\Support\ServiceProvider;
 
 final class MembershipsServiceProvider extends ServiceProvider
@@ -42,6 +43,12 @@ final class MembershipsServiceProvider extends ServiceProvider
 
         if (file_exists(__DIR__.'/Presentation/routes.php')) {
             $this->loadRoutesFrom(__DIR__.'/Presentation/routes.php');
+        }
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ExpireDueMembershipsCommand::class,
+            ]);
         }
     }
 }
