@@ -9,17 +9,19 @@
 
 ## Текущая задача
 
-- Задача: T1-34 История покупок клиента и список продаж зала (`GET /api/v1/business/clients/{id}/sales`, `GET /api/v1/business/sales`)
-- Статус: не начата (`[ ]`, следующая к выполнению после коммита T1-33)
-- **НАПОМИНАНИЕ (требование разработчика):** возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
+- Задача: T1-35a Контракт `MembershipCancellerInterface` и Use Case `RefundSale`
+- Статус: не начата (`[ ]`, следующая к выполнению после коммита T1-34)
+- **НАПОМИНАНИЕ (требование разработчика):** возврат продажи в `T1-35a`/`T1-35b` отменяет выданный абонемент через контракт.
 
 ## Последняя сессия: что сделано
 
-- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` (`UNIQUE (company_id, idempotency_key)` в `sales_sales`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`. Всего 151 тест зелёный.
+- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` и эндпоинт кассы `POST /api/v1/business/sales`.
+- **T1-34** закрыта: история покупок клиента (`GET /api/v1/business/clients/{id}/sales`) и список продаж зала (`GET /api/v1/business/sales`). Всего 153 теста зелёные.
 
 ## Точный следующий шаг
 
-1. T1-34: создать `ListCompanySales`, `ListClientSales`, `ListCompanySalesController`, `ListClientSalesController`, зарегистрировать `GET /api/v1/business/sales` и `GET /api/v1/business/clients/{id}/sales` в `app/Modules/Sales/Presentation/routes.php`, написать `tests/Feature/Sales/ListSalesTest.php`.
+1. T1-35a: создать `MembershipCancellerInterface` в `app/Modules/Memberships/Contracts`, реализовать его в `CancelMembership` и зарегистрировать в `MembershipsServiceProvider`; создать `SaleNotFound`, `SaleRefunded` и `RefundSale`.
+2. T1-35b: создать `RefundSaleRequest`, `RefundSaleController`, маршрут `POST /api/v1/business/sales/{id}/refund` и `tests/Feature/Sales/RefundSaleTest.php`.
 
 ## Окружение: важное про Docker
 
