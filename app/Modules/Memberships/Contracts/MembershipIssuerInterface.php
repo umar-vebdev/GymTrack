@@ -12,6 +12,11 @@ use DateTimeImmutable;
 interface MembershipIssuerInterface
 {
     /**
+     * Возвращает название и цену активного типа абонемента компании для включения в чек продажи.
+     */
+    public function quoteType(int $companyId, int $typeId): MembershipTypeQuote;
+
+    /**
      * Выдаёт абонемент типа $typeId клиенту $clientId и возвращает ID абонемента.
      *
      * @param  int|null  $issuedByUserId  сотрудник, оформивший выдачу (для аудита)

@@ -56,7 +56,8 @@
    - [x] **T1-31b** Инфраструктура продаж: миграция `sales_sales` и `sales_sale_items` (с `CHECK >= 0`, финансовые записи не удаляются — Тех. ТЗ 6.1), `SaleModel`, `SaleItemModel`, `SaleRepositoryInterface`, `EloquentSaleRepository` (+ привязка в `SalesServiceProvider`), тест репозитория.
      - Заметки: составные индексы `(company_id, created_at)` и `(company_id, client_id)` согласно Тех. ТЗ 6.3. Связь `SaleModel::items()` находится строго внутри модуля `Sales`.
 
-   - [ ] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
+   - [x] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
+     - Заметки: в `MembershipIssuerInterface` добавлен метод `quoteType(int $companyId, int $typeId): MembershipTypeQuote`, чтобы модуль `Sales` получал название и цену типа абонемента строго через `Contracts`. Вся операция выполняется в одной `DB::transaction`, событие `PaymentMarked` (`AuditableEvent`) отправляется после фиксации.
 
    - [ ] **T1-33** Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`: хранение ключа идемпотентности (Тех. ТЗ 7.3), контроллер, валидация, Feature-тесты (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, идемпотентность, нехватка остатка).
 

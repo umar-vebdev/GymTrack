@@ -9,17 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-32 Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции
+- Задача: T1-33 Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`
 - Статус: не начата
-- **НАПОМИНАНИЕ (требование разработчика):** выдача абонемента в `T1-32` идёт в одной транзакции с `PaymentMark`, возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
+- **НАПОМИНАНИЕ (требование разработчика):** возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
 
 ## Последняя сессия: что сделано
 
-- **T1-31a, T1-31b** закрыты: доменные классы `PaymentMethod`, `SaleStatus`, `PaymentMark`, `SaleItem`, `Sale`, миграция `sales_sales` и `sales_sale_items`, `EloquentSaleRepository` и тесты. Всего 145 тестов зелёные.
+- **T1-32** закрыта: сценарий кассы `RegisterSale` (единая транзакция продажи товаров под `lockForUpdate`, выдачи абонементов через `MembershipIssuerInterface`, сохранения `Sale` с `PaymentMark` и отправки аудируемого события `PaymentMarked`). Всего 147 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-32: узкий контракт `MembershipTypeLookupInterface` в `Memberships/Contracts` (чтобы модуль `Sales` мог узнать название, цену и активность типа абонемента для формирования позиции чека `SaleItem` и расчёта суммы `PaymentMark`, не нарушая границ модулей!), событие `PaymentMarked` (`AuditableEvent`), Use Case `RegisterSale` (в одной `DB::transaction`: проверка клиента через `ClientLookupInterface`, списание остатка товаров под `findByIdForUpdate`, вызов `MembershipIssuerInterface::issue()`, создание `Sale` с `PaymentMark`), интеграционные тесты.
+1. T1-33: реализовать поддержку заголовка `Idempotency-Key` (Тех. ТЗ 7.3) и HTTP-эндпоинт `POST /api/v1/business/sales` (`RegisterSaleRequest`, `RegisterSaleController`), покрыть Feature-тестами (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, повторный запрос с тем же `Idempotency-Key` не списывает остаток и не выдаёт абонемент дважды, нехватка остатка).
 
 ## Окружение: важное про Docker
 

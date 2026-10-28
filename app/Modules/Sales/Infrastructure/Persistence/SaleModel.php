@@ -58,4 +58,3 @@ final class SaleModel extends Model
         return $this->hasMany(SaleItemModel::class, 'sale_id')->orderBy('id');
     }
 }
-

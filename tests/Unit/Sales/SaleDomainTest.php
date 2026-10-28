@@ -119,4 +119,3 @@ final class SaleDomainTest extends TestCase
         );
     }
 }
-

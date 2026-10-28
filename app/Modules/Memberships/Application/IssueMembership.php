@@ -6,6 +6,7 @@ namespace App\Modules\Memberships\Application;
 
 use App\Modules\Clients\Contracts\ClientLookupInterface;
 use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
+use App\Modules\Memberships\Contracts\MembershipTypeQuote;
 use App\Modules\Memberships\Domain\Events\MembershipIssued;
 use App\Modules\Memberships\Domain\Exceptions\ClientNotAvailable;
 use App\Modules\Memberships\Domain\Exceptions\MembershipTypeInactive;
@@ -23,6 +24,29 @@ final class IssueMembership implements MembershipIssuerInterface
         private readonly MembershipRepositoryInterface $memberships,
         private readonly ClientLookupInterface $clients
     ) {}
+
+    /**
+     * @throws MembershipTypeNotFound
+     * @throws MembershipTypeInactive
+     */
+    public function quoteType(int $companyId, int $typeId): MembershipTypeQuote
+    {
+        $type = $this->types->findById($typeId);
+
+        if ($type === null || $type->companyId() !== $companyId) {
+            throw MembershipTypeNotFound::withId($typeId);
+        }
+
+        if (!$type->isActive()) {
+            throw MembershipTypeInactive::withId($typeId);
+        }
+
+        return new MembershipTypeQuote(
+            typeId: $type->id(),
+            name: $type->name(),
+            price: $type->price()
+        );
+    }
 
     /**
      * @throws MembershipTypeNotFound

@@ -35,4 +35,3 @@ interface SaleRepositoryInterface
 
     public function save(Sale $sale): void;
 }
-
