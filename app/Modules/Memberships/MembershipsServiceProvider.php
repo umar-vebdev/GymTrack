@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships;
 
+use App\Modules\Memberships\Application\CancelMembership;
 use App\Modules\Memberships\Application\FindUsableMembership;
 use App\Modules\Memberships\Application\IssueMembership;
+use App\Modules\Memberships\Contracts\MembershipCancellerInterface;
 use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
 use App\Modules\Memberships\Contracts\MembershipLookupInterface;
 use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
@@ -26,6 +28,10 @@ final class MembershipsServiceProvider extends ServiceProvider
         $this->app->bind(
             MembershipIssuerInterface::class,
             IssueMembership::class
+        );
+        $this->app->bind(
+            MembershipCancellerInterface::class,
+            CancelMembership::class
         );
         $this->app->bind(
             MembershipRepositoryInterface::class,

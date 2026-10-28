@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships\Application;
 
+use App\Modules\Memberships\Contracts\MembershipCancellerInterface;
 use App\Modules\Memberships\Domain\Events\MembershipCancelled;
 use App\Modules\Memberships\Domain\Exceptions\MembershipAlreadyCancelled;
 use App\Modules\Memberships\Domain\Exceptions\MembershipNotFound;
@@ -12,11 +13,24 @@ use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
-final class CancelMembership
+final class CancelMembership implements MembershipCancellerInterface
 {
     public function __construct(
         private readonly MembershipRepositoryInterface $memberships
     ) {}
+
+    public function cancel(
+        int $companyId,
+        int $membershipId,
+        string $reason,
+        ?int $cancelledByUserId = null
+    ): void {
+        try {
+            $this->execute($companyId, $membershipId, $reason, $cancelledByUserId);
+        } catch (MembershipAlreadyCancelled) {
+            // Если абонемент уже был отменён вручную ранее, повторная отмена при возврате чека идемпотентна.
+        }
+    }
 
     /**
      * @throws MembershipNotFound

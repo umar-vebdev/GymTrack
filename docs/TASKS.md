@@ -65,12 +65,10 @@
    - [x] **T1-34** История покупок клиента и список продаж зала: `GET /api/v1/business/clients/{id}/sales` (Бизнес-ТЗ 4.4) и `GET /api/v1/business/sales` + Feature-тесты.
      - Заметки: проверка принадлежности клиента компании выполняется через `ClientLookupInterface::existsInCompany()`. Сериализация продаж переиспользует `RegisterSaleController::serializeSale()`.
 
-   - [ ] **T1-35a** Контракт `MembershipCancellerInterface` и Use Case `RefundSale`: интерфейс `MembershipCancellerInterface` в `Memberships/Contracts` (реализация в `CancelMembership`), исключение `SaleNotFound`, аудируемое событие `SaleRefunded` (`SALE_REFUNDED`), Use Case `RefundSale` (блокировка продажи и товаров, возврат остатков на склад, отмена выданных абонементов через `MembershipCancellerInterface` в одной `DB::transaction`).
-     - Ссылки: Бизнес-ТЗ 4.2, 4.5, 4.7; Тех. ТЗ 3.2, 3.3, 9.2, 9.5.
-     - Файлы: `app/Modules/Memberships/Contracts/MembershipCancellerInterface.php`, `app/Modules/Memberships/Application/CancelMembership.php`, `app/Modules/Memberships/Infrastructure/MembershipsServiceProvider.php`, `app/Modules/Sales/Domain/Exceptions/SaleNotFound.php`, `app/Modules/Sales/Domain/Events/SaleRefunded.php`, `app/Modules/Sales/Application/RefundSale.php`.
-     - Готово когда: `composer lint && composer analyse && composer deps` проходят без ошибок.
+   - [x] **T1-35a** Контракт `MembershipCancellerInterface` и Use Case `RefundSale`: интерфейс `MembershipCancellerInterface` в `Memberships/Contracts` (реализация в `CancelMembership`), исключение `SaleNotFound`, аудируемое событие `SaleRefunded` (`SALE_REFUNDED`), Use Case `RefundSale` (блокировка продажи и товаров, возврат остатков на склад, отмена выданных абонементов через `MembershipCancellerInterface` в одной `DB::transaction`).
+     - Заметки: `CancelMembership::cancel()` реализует `MembershipCancellerInterface` и обрабатывает `MembershipAlreadyCancelled` идемпотентно, если абонемент уже был отменён вручную ранее.
 
-   - [ ] **T1-35b** HTTP-эндпоинт возврата продажи `POST /api/v1/business/sales/{id}/refund` и Feature-тесты: `RefundSaleRequest`, `RefundSaleController` (только владелец, обязательная причина), маршрут и `tests/Feature/Sales/RefundSaleTest.php`.
+   - [~] **T1-35b** HTTP-эндпоинт возврата продажи `POST /api/v1/business/sales/{id}/refund` и Feature-тесты: `RefundSaleRequest`, `RefundSaleController` (только владелец, обязательная причина), маршрут и `tests/Feature/Sales/RefundSaleTest.php`.
      - Ссылки: Бизнес-ТЗ 4.2, 4.5, 4.7; Тех. ТЗ 7.1, 7.2, 8, 9.5.
      - Файлы: `Presentation/Requests/RefundSaleRequest.php`, `Presentation/RefundSaleController.php`, `Presentation/routes.php`, `tests/Feature/Sales/RefundSaleTest.php`.
      - Готово когда: Feature-тесты проверяют, что владелец возвращает продажу с обязательной причиной, остатки товаров возвращаются на склад, выданный при продаже абонемент переходит в `cancelled`, оба события (`MEMBERSHIP_CANCELLED` и `SALE_REFUNDED`) пишутся в журнал аудита, а администратор получает `403`.

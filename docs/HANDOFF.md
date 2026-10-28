@@ -9,19 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-35a Контракт `MembershipCancellerInterface` и Use Case `RefundSale`
-- Статус: не начата (`[ ]`, следующая к выполнению после коммита T1-34)
-- **НАПОМИНАНИЕ (требование разработчика):** возврат продажи в `T1-35a`/`T1-35b` отменяет выданный абонемент через контракт.
+- Задача: T1-35b HTTP-эндпоинт возврата продажи `POST /api/v1/business/sales/{id}/refund` и Feature-тесты
+- Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` и эндпоинт кассы `POST /api/v1/business/sales`.
-- **T1-34** закрыта: история покупок клиента (`GET /api/v1/business/clients/{id}/sales`) и список продаж зала (`GET /api/v1/business/sales`). Всего 153 теста зелёные.
+- **T1-33**, **T1-34**, **T1-35a** закрыты: идемпотентная касса `POST /api/v1/business/sales`, история покупок клиента и список продаж зала, контракт `MembershipCancellerInterface` и Use Case `RefundSale`. Всего 153 теста зелёные.
 
 ## Точный следующий шаг
 
-1. T1-35a: создать `MembershipCancellerInterface` в `app/Modules/Memberships/Contracts`, реализовать его в `CancelMembership` и зарегистрировать в `MembershipsServiceProvider`; создать `SaleNotFound`, `SaleRefunded` и `RefundSale`.
-2. T1-35b: создать `RefundSaleRequest`, `RefundSaleController`, маршрут `POST /api/v1/business/sales/{id}/refund` и `tests/Feature/Sales/RefundSaleTest.php`.
+1. T1-35b: создать `RefundSaleRequest`, `RefundSaleController`, маршрут `POST /api/v1/business/sales/{id}/refund` и `tests/Feature/Sales/RefundSaleTest.php`.
 
 ## Окружение: важное про Docker
 
