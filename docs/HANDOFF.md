@@ -9,16 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-38b HTTP-эндпоинты тарифов и статуса подписки зала (`GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`) и Feature-тесты
+- Задача: T1-39a Сценарии активации подписки и ежедневного завершения просроченных подписок
 - Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-36**, **T1-37**, **T1-38a** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, событие `CompanyRegistered` и слушатель `StartTrialOnCompanyRegistered`, Use Cases `ListPlatformPlans` и `GetCompanySubscription`. Всего 158 тестов зелёные.
+- **T1-36**, **T1-37**, **T1-38a**, **T1-38b** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автоматический старт пробного периода при регистрации компании (`CompanyRegistered` → `StartTrialOnCompanyRegistered`), эндпоинты `GET /api/v1/business/billing/plans` и `GET /api/v1/business/billing/subscription`. Всего 160 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-38b: создать `ListPlatformPlansController`, `GetCompanySubscriptionController`, `app/Modules/Billing/Presentation/routes.php`, написать `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
+1. T1-39a: создать `PlanNotFound`, `SubscriptionActivated`, `ActivateCompanySubscription`, `ExpireDueSubscriptions`, `ExpireDueSubscriptionsCommand` (`billing:expire-due` + `routes/console.php`).
 
 ## Окружение: важное про Docker
 
