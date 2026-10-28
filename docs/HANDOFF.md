@@ -9,16 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-37 Домен и инфраструктура подписки компании (`Subscription`, `TrialPolicy`)
+- Задача: T1-38 Автоматический старт пробного периода при регистрации компании и просмотр статуса подписки
 - Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-36** закрыта: домен и инфраструктура тарифов платформы (`PlatformPlan`, `BillingPeriod`, `billing_plans`, `EloquentPlatformPlanRepository`, `BillingServiceProvider`). Всего 157 тестов зелёные.
+- **T1-36** и **T1-37** закрыты: домен и инфраструктура тарифов платформы (`PlatformPlan`, `billing_plans`) и подписки компании (`Subscription`, `TrialPolicy`, `billing_subscriptions`). Всего 158 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-37: создать `SubscriptionStatus`, `TrialPolicy`, `Subscription`, `SubscriptionRepositoryInterface`, миграцию `billing_subscriptions`, `SubscriptionModel`, `EloquentSubscriptionRepository`, привязать в `BillingServiceProvider`, написать `tests/Unit/Billing/SubscriptionRepositoryTest.php`.
+1. T1-38: создать `CompanyRegistered` в `Companies\Contracts\Events` и отправить из `RegisterCompany`, создать слушатель `StartTrialOnCompanyRegistered`, Use Cases `ListPlatformPlans` и `GetCompanySubscription`, контроллеры и маршруты `GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`, написать `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
 
 ## Окружение: важное про Docker
 
