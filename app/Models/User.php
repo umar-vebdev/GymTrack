@@ -15,6 +15,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'phone', 'is_phone_verified', 'password'])]
 #[Hidden(['password', 'remember_token'])]
+/**
+ * @property bool $is_platform_admin
+ */
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -34,6 +37,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'is_phone_verified' => 'boolean',
+            'is_platform_admin' => 'boolean',
         ];
     }
 }

@@ -56,11 +56,13 @@
    - [x] **T1-39a** Сценарии активации подписки и ежедневного завершения просроченных подписок: исключение `PlanNotFound`, аудируемое событие `SubscriptionActivated` (`SUBSCRIPTION_ACTIVATED`), Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions`, консольная команда `billing:expire-due` (+ регистрация в `BillingServiceProvider` и `routes/console.php`).
      - Заметки: `ExpireDueSubscriptions` поддерживает как пакетный обход всех просроченных подписок, так и явную передачу `$companyId` (Тех. ТЗ 9.4).
 
-   - [~] **T1-39b** HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`.
-     - Ссылки: Бизнес-ТЗ 1.1, 2, 4.1; Тех. ТЗ 7.1, 7.2, 8, 9.4.
-     - Файлы: `database/migrations/0001_01_01_000000_create_users_table.php`, `app/Models/User.php`, `app/Modules/Billing/Presentation/Requests/ActivateSubscriptionRequest.php`, `app/Modules/Billing/Presentation/ActivateCompanySubscriptionController.php`, `app/Modules/Billing/Presentation/routes.php`, `tests/Feature/Billing/ActivateAndExpireSubscriptionTest.php`.
-     - Готово когда: Feature-тесты проверяют активацию подписки админом платформы (с записью в аудит), отказ обычным пользователям (`403`) и ежедневную команду `billing:expire-due`.
-   - [ ] **T1-40** Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8): контракт `SubscriptionAccessInterface` и middleware `EnsureActiveCompanySubscription`, блокирующий мутирующие запросы (`POST`/`PUT`/`PATCH`/`DELETE`) к `/api/v1/business/*` (кроме чтения `GET` и создания компании) кодом `403 SUBSCRIPTION_EXPIRED`, Feature-тест по критерию приёмки 12.8.
+   - [x] **T1-39b** HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`.
+     - Заметки: для проверки глобальной роли «Админ платформы» добавлено булево поле `users.is_platform_admin` (не входит в `$fillable`, зафиксировано в `DECISIONS.md` как `D-004`).
+
+   - [~] **T1-40** Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8): контракт `SubscriptionAccessInterface` в `Billing\Contracts`, middleware `EnsureActiveCompanySubscription` в `Billing\Presentation\Middleware` (подключается к группе `api`), блокирующий изменяющие запросы (`POST`/`PUT`/`PATCH`/`DELETE`) к `/api/v1/business/*` (кроме чтения `GET` и создания компании `/api/v1/business/companies`), если у компании имеется просроченная подписка, кодом `403 SUBSCRIPTION_EXPIRED`, Feature-тест по критерию приёмки 12.8.
+     - Ссылки: Бизнес-ТЗ 4.1, 12.8; Тех. ТЗ 3.5, 7.1, 7.2, 8.
+     - Файлы: `app/Modules/Billing/Contracts/SubscriptionAccessInterface.php`, `app/Modules/Billing/Application/CheckSubscriptionAccess.php`, `app/Modules/Billing/Presentation/Middleware/EnsureActiveCompanySubscription.php`, `app/Modules/Billing/BillingServiceProvider.php`, `bootstrap/app.php`, `tests/Feature/Billing/ReadOnlyExpiredSubscriptionTest.php`.
+     - Готово когда: Feature-тест проверяет критерий приёмки 12.8 (при истёкшем пробном периоде без оплаты все `GET`-запросы в `/api/v1/business/*` работают и возвращают сохранённые данные, а любые `POST`/`PATCH`/`DELETE`-запросы блокируются кодом `403 SUBSCRIPTION_EXPIRED` до активации тарифа).
 
 8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность
 

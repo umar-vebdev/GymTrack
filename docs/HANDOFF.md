@@ -9,16 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-39b HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`
+- Задача: T1-40 Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8)
 - Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-36**…**T1-39a** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автостарт пробного периода при регистрации компании, эндпоинты просмотра планов и статуса подписки, Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions` + команда `billing:expire-due`. Всего 160 тестов зелёные.
+- **T1-36**…**T1-39b** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автостарт пробного периода при регистрации компании, эндпоинты просмотра планов и статуса подписки, активация подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и ежедневная команда `billing:expire-due`. Всего 162 теста зелёные.
 
 ## Точный следующий шаг
 
-1. T1-39b: добавить флаг `is_platform_admin` (`boolean`, default `false`) для роли «Админ платформы» (Бизнес-ТЗ 2; Тех. ТЗ 7.1 `/api/v1/platform/...`), создать `ActivateSubscriptionRequest` и `ActivateCompanySubscriptionController`, зарегистрировать маршрут `POST /api/v1/platform/companies/{id}/subscription/activate`, написать `tests/Feature/Billing/ActivateAndExpireSubscriptionTest.php`.
+1. T1-40: создать `SubscriptionAccessInterface`, `CheckSubscriptionAccess`, middleware `EnsureActiveCompanySubscription` (подключить в `bootstrap/app.php`), написать `tests/Feature/Billing/ReadOnlyExpiredSubscriptionTest.php`.
 
 ## Окружение: важное про Docker
 
