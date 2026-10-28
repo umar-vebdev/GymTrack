@@ -32,4 +32,3 @@ final class RefundSaleRequest extends FormRequest
         ];
     }
 }
-

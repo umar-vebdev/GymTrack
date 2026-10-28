@@ -21,4 +21,3 @@ final class ListCompanySales
         return $this->sales->listByCompany($companyId);
     }
 }
-

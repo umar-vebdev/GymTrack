@@ -81,4 +81,3 @@ final class SaleRefunded implements AuditableEvent, DomainEvent
         return null;
     }
 }
-

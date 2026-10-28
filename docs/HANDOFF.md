@@ -4,25 +4,21 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-10-28
-**Этап:** 1 — Business (переход к E1-G Billing)
+**Этап:** 1 — Business (E1-G Billing)
 **Ветка:** main
 
 ## Текущая задача
 
-- Эпик **E1-F Sales** полностью завершён (`T1-29`…`T1-35b`).
-- Следующий эпик: **E1-G Billing** (`T1-36`…`T1-40`, ожидает подтверждения списка задач разработчиком).
+- Задача: T1-37 Домен и инфраструктура подписки компании (`Subscription`, `TrialPolicy`)
+- Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` и HTTP-эндпоинт кассы `POST /api/v1/business/sales`.
-- **T1-34** закрыта: история покупок клиента (`GET /api/v1/business/clients/{id}/sales`) и список продаж зала (`GET /api/v1/business/sales`).
-- **T1-35a** и **T1-35b** закрыты: контракт `MembershipCancellerInterface`, Use Case `RefundSale`, событие `SaleRefunded` и эндпоинт `POST /api/v1/business/sales/{id}/refund` (возврат остатков товаров + отмена выданного абонемента в одной транзакции + запись в журнал аудита).
-- Всего 155 тестов (550 проверок) зелёные.
+- **T1-36** закрыта: домен и инфраструктура тарифов платформы (`PlatformPlan`, `BillingPeriod`, `billing_plans`, `EloquentPlatformPlanRepository`, `BillingServiceProvider`). Всего 157 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. Получить подтверждение разработчика по декомпозиции эпика **E1-G Billing** (`T1-36`…`T1-40` в `docs/TASKS.md`).
-2. Начать с **T1-36** (домен и инфраструктура тарифов платформы `PlatformPlan`).
+1. T1-37: создать `SubscriptionStatus`, `TrialPolicy`, `Subscription`, `SubscriptionRepositoryInterface`, миграцию `billing_subscriptions`, `SubscriptionModel`, `EloquentSubscriptionRepository`, привязать в `BillingServiceProvider`, написать `tests/Unit/Billing/SubscriptionRepositoryTest.php`.
 
 ## Окружение: важное про Docker
 

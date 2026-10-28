@@ -51,4 +51,3 @@ final class ListClientSalesController extends Controller
         ]);
     }
 }
-

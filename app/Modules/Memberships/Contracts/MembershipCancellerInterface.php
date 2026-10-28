@@ -16,4 +16,3 @@ interface MembershipCancellerInterface
         ?int $cancelledByUserId = null
     ): void;
 }
-

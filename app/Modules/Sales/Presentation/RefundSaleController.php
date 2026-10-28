@@ -52,4 +52,3 @@ final class RefundSaleController extends Controller
         ]);
     }
 }
-

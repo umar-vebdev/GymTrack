@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Audit\AuditServiceProvider;
+use App\Modules\Billing\BillingServiceProvider;
 use App\Modules\Clients\ClientsServiceProvider;
 use App\Modules\Companies\CompaniesServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
@@ -18,4 +19,5 @@ return [
     ClientsServiceProvider::class,
     MembershipsServiceProvider::class,
     SalesServiceProvider::class,
+    BillingServiceProvider::class,
 ];

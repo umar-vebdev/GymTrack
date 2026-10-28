@@ -30,4 +30,3 @@ final class ListClientSales
         return $this->sales->listByClient($companyId, $clientId);
     }
 }
-

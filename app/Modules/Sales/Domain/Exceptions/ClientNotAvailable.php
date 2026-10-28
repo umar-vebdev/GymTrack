@@ -13,4 +13,3 @@ final class ClientNotAvailable extends DomainException
         return new self("Клиент #{$id} не найден в этой компании.");
     }
 }
-

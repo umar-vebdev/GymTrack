@@ -13,4 +13,3 @@ final class SaleNotFound extends DomainException
         return new self("Продажа #{$id} не найдена.");
     }
 }
-
