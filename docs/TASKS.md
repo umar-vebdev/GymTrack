@@ -37,8 +37,24 @@
 
 ## Этап 1 — Business (Sales, Billing, Analytics)
 
-6. [ ] **E1-F Sales**: товары, касса, `PaymentMark`, ручная выдача абонемента
-   > **ВАЖНО (требование разработчика):** в рамках или сразу после `E1-F Sales` дополнить связь с `Memberships` — привязка выдачи абонемента к отметке оплаты (`PaymentMark`) в одной транзакции, ручная выдача через кассу, расширение отмены/возврата с учётом `PaymentMark`. Ссылки: Бизнес-ТЗ 3, 4.3, 4.4, 4.5; Тех. ТЗ 3.6–3.8, 6, 7.3, 8, 9.2.
+6. **E1-F Sales**: товары, касса, `PaymentMark`, ручная выдача абонемента
+   > Раскрытие эпика подтверждено разработчиком 2026-10-28.
+   > **ВАЖНО (требование разработчика):** выдача абонемента выполняется в одной транзакции с отметкой оплаты (`PaymentMark`), а возврат продажи владельцем отменяет выданный абонемент и возвращает остаток товаров с записью в `Audit`. Ссылки: Бизнес-ТЗ 3, 4.3, 4.4, 4.5; Тех. ТЗ 3.6–3.8, 6, 7.3, 8, 9.2.
+
+   - [x] **T1-29** Домен и инфраструктура товаров (`Product`): сущность `Product` (название, цена `Money`, опциональный остаток `stock_quantity` с `CHECK >= 0`, активность `is_active`, методы изменения остатка и активности), миграция `sales_products`, `ProductRepositoryInterface`, `EloquentProductRepository`, `SalesServiceProvider` (+ регистрация в `bootstrap/providers.php`), тест репозитория.
+     - Заметки: таблица `sales_products` (префикс модуля по Тех. ТЗ 6.1), ограничения целостности `CHECK (price_minor >= 0)` и `CHECK (stock_quantity IS NULL OR stock_quantity >= 0)`. `stock_quantity = null` означает, что учёт остатков не ведётся.
+
+   - [ ] **T1-30** Управление товарами (Use Cases + HTTP API): создание товара (`POST /api/v1/business/products`, только владелец), список (`GET /api/v1/business/products`, фильтр `only_active`, доступ сотрудникам), обновление активности/остатка (`PATCH /api/v1/business/products/{id}`, только владелец) + Feature-тесты.
+
+   - [ ] **T1-31** Домен и инфраструктура продаж и отметок оплаты (`Sale`, `SaleItem`, `PaymentMark`, `PaymentMethod`): таблицы `sales_sales` и `sales_sale_items` (позиция: товар или тип абонемента + `issued_membership_id`), `SaleRepositoryInterface` + `EloquentSaleRepository`, тест репозитория.
+
+   - [ ] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
+
+   - [ ] **T1-33** Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`: хранение ключа идемпотентности (Тех. ТЗ 7.3), контроллер, валидация, Feature-тесты (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, идемпотентность, нехватка остатка).
+
+   - [ ] **T1-34** История покупок клиента и список продаж зала: `GET /api/v1/business/clients/{id}/sales` (Бизнес-ТЗ 4.4) и `GET /api/v1/business/sales` + Feature-тесты.
+
+   - [ ] **T1-35** Отмена/возврат продажи владельцем со связкой с `Memberships`: контракт `MembershipCancellerInterface` в `Memberships/Contracts`, Use Case `RefundSale` и эндпоинт `POST /api/v1/business/sales/{id}/refund` (только владелец, обязательная причина, возврат остатка товаров и отмена выданного абонемента в одной транзакции, событие `SaleRefunded` → `Audit`) + Feature-тесты.
 
 7. [ ] **E1-G Billing**: тарифы платформы, пробный период 14 дней, режим «только чтение» после окончания
 8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность

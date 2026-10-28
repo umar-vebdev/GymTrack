@@ -28,4 +28,3 @@ final class ListExpiringMemberships
         return $this->memberships->listExpiringBetween($companyId, $from, $to);
     }
 }
-
