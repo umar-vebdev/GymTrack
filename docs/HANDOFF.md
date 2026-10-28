@@ -9,17 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-33 Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`
-- Статус: не начата
+- Задача: T1-34 История покупок клиента и список продаж зала (`GET /api/v1/business/clients/{id}/sales`, `GET /api/v1/business/sales`)
+- Статус: не начата (`[ ]`, следующая к выполнению после коммита T1-33)
 - **НАПОМИНАНИЕ (требование разработчика):** возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
 
 ## Последняя сессия: что сделано
 
-- **T1-32** закрыта: сценарий кассы `RegisterSale` (единая транзакция продажи товаров под `lockForUpdate`, выдачи абонементов через `MembershipIssuerInterface`, сохранения `Sale` с `PaymentMark` и отправки аудируемого события `PaymentMarked`). Всего 147 тестов зелёные.
+- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` (`UNIQUE (company_id, idempotency_key)` в `sales_sales`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`. Всего 151 тест зелёный.
 
 ## Точный следующий шаг
 
-1. T1-33: реализовать поддержку заголовка `Idempotency-Key` (Тех. ТЗ 7.3) и HTTP-эндпоинт `POST /api/v1/business/sales` (`RegisterSaleRequest`, `RegisterSaleController`), покрыть Feature-тестами (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, повторный запрос с тем же `Idempotency-Key` не списывает остаток и не выдаёт абонемент дважды, нехватка остатка).
+1. T1-34: создать `ListCompanySales`, `ListClientSales`, `ListCompanySalesController`, `ListClientSalesController`, зарегистрировать `GET /api/v1/business/sales` и `GET /api/v1/business/clients/{id}/sales` в `app/Modules/Sales/Presentation/routes.php`, написать `tests/Feature/Sales/ListSalesTest.php`.
 
 ## Окружение: важное про Docker
 

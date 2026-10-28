@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property int $accepted_by_user_id
  * @property Carbon $paid_at
+ * @property string|null $idempotency_key
  * @property string|null $refund_reason
  * @property int|null $refunded_by_user_id
  * @property Carbon|null $refunded_at
@@ -40,6 +41,7 @@ final class SaleModel extends Model
         'currency',
         'accepted_by_user_id',
         'paid_at',
+        'idempotency_key',
         'refund_reason',
         'refunded_by_user_id',
         'refunded_at',

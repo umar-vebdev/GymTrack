@@ -18,6 +18,7 @@ final class RegisterSaleCommand
         public readonly ?int $clientId,
         public readonly PaymentMethod $paymentMethod,
         public readonly array $products = [],
-        public readonly array $membershipTypeIds = []
+        public readonly array $membershipTypeIds = [],
+        public readonly ?string $idempotencyKey = null
     ) {}
 }

@@ -59,9 +59,13 @@
    - [x] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
      - Заметки: в `MembershipIssuerInterface` добавлен метод `quoteType(int $companyId, int $typeId): MembershipTypeQuote`, чтобы модуль `Sales` получал название и цену типа абонемента строго через `Contracts`. Вся операция выполняется в одной `DB::transaction`, событие `PaymentMarked` (`AuditableEvent`) отправляется после фиксации.
 
-   - [ ] **T1-33** Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`: хранение ключа идемпотентности (Тех. ТЗ 7.3), контроллер, валидация, Feature-тесты (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, идемпотентность, нехватка остатка).
+   - [x] **T1-33** Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`: хранение ключа идемпотентности (Тех. ТЗ 7.3), контроллер, валидация, Feature-тесты (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, идемпотентность, нехватка остатка).
+     - Заметки: в `sales_sales` добавлен столбец `idempotency_key` (`UNIQUE (company_id, idempotency_key)`). При повторном запросе с тем же `Idempotency-Key` возвращается ранее созданная продажа без повторного списания остатков, выдачи абонемента и отправки `PaymentMarked`.
 
    - [ ] **T1-34** История покупок клиента и список продаж зала: `GET /api/v1/business/clients/{id}/sales` (Бизнес-ТЗ 4.4) и `GET /api/v1/business/sales` + Feature-тесты.
+     - Ссылки: Бизнес-ТЗ 4.4, 4.5; Тех. ТЗ 7.1, 7.2, 8.
+     - Файлы: `Application/ListCompanySales.php`, `Application/ListClientSales.php`, `Presentation/ListCompanySalesController.php`, `Presentation/ListClientSalesController.php`, `Presentation/routes.php`, `tests/Feature/Sales/ListSalesTest.php`.
+     - Готово когда: Feature-тесты проверяют получение списка продаж зала и истории покупок клиента владельцем и администратором, а также изоляцию компаний.
 
    - [ ] **T1-35** Отмена/возврат продажи владельцем со связкой с `Memberships`: контракт `MembershipCancellerInterface` в `Memberships/Contracts`, Use Case `RefundSale` и эндпоинт `POST /api/v1/business/sales/{id}/refund` (только владелец, обязательная причина, возврат остатка товаров и отмена выданного абонемента в одной транзакции, событие `SaleRefunded` → `Audit`) + Feature-тесты.
 

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('currency', 3);
             $table->foreignId('accepted_by_user_id')->constrained('users');
             $table->timestamp('paid_at');
+            $table->string('idempotency_key', 128)->nullable();
             $table->text('refund_reason')->nullable();
             $table->foreignId('refunded_by_user_id')->nullable()->constrained('users');
             $table->timestamp('refunded_at')->nullable();
@@ -28,6 +29,7 @@ return new class extends Migration
 
             $table->index(['company_id', 'created_at']);
             $table->index(['company_id', 'client_id']);
+            $table->unique(['company_id', 'idempotency_key']);
         });
 
         DB::statement('ALTER TABLE sales_sales ADD CONSTRAINT sales_sales_total_minor_check CHECK (total_minor >= 0)');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Sales\Presentation\CreateProductController;
 use App\Modules\Sales\Presentation\ListProductsController;
+use App\Modules\Sales\Presentation\RegisterSaleController;
 use App\Modules\Sales\Presentation\UpdateProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,4 +14,5 @@ Route::prefix('api/v1/business')
         Route::get('/products', ListProductsController::class);
         Route::post('/products', CreateProductController::class);
         Route::patch('/products/{id}', UpdateProductController::class);
+        Route::post('/sales', RegisterSaleController::class);
     });

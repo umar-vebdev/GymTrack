@@ -47,7 +47,23 @@ final class RegisterSale
             throw new DomainException('Для продажи абонемента необходимо указать клиента.');
         }
 
-        $sale = DB::transaction(function () use ($command): Sale {
+        if ($command->idempotencyKey !== null) {
+            $existing = $this->sales->findByIdempotencyKey($command->companyId, $command->idempotencyKey);
+            if ($existing !== null) {
+                return $existing;
+            }
+        }
+
+        $createdNew = false;
+
+        $sale = DB::transaction(function () use ($command, &$createdNew): Sale {
+            if ($command->idempotencyKey !== null) {
+                $existing = $this->sales->findByIdempotencyKey($command->companyId, $command->idempotencyKey);
+                if ($existing !== null) {
+                    return $existing;
+                }
+            }
+
             if ($command->clientId !== null && !$this->clients->existsInCompany($command->clientId, $command->companyId)) {
                 throw new DomainException(sprintf('Клиент #%d не найден в этой компании.', $command->clientId));
             }
@@ -110,22 +126,27 @@ final class RegisterSale
                 paidAt: $now
             );
 
+            $createdNew = true;
+
             return $this->sales->create(
                 companyId: $command->companyId,
                 clientId: $command->clientId,
                 paymentMark: $paymentMark,
-                items: $items
+                items: $items,
+                idempotencyKey: $command->idempotencyKey
             );
         });
 
-        Event::dispatch(new PaymentMarked(
-            saleId: $sale->id(),
-            companyId: $sale->companyId(),
-            clientId: $sale->clientId(),
-            method: $sale->paymentMark()->method,
-            amount: $sale->paymentMark()->amount,
-            acceptedByUserId: $sale->paymentMark()->acceptedByUserId
-        ));
+        if ($createdNew) {
+            Event::dispatch(new PaymentMarked(
+                saleId: $sale->id(),
+                companyId: $sale->companyId(),
+                clientId: $sale->clientId(),
+                method: $sale->paymentMark()->method,
+                amount: $sale->paymentMark()->amount,
+                acceptedByUserId: $sale->paymentMark()->acceptedByUserId
+            ));
+        }
 
         return $sale;
     }

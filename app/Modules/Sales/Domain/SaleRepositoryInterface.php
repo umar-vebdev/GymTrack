@@ -13,6 +13,8 @@ interface SaleRepositoryInterface
      */
     public function findByIdForUpdate(int $id): ?Sale;
 
+    public function findByIdempotencyKey(int $companyId, string $idempotencyKey): ?Sale;
+
     /**
      * @param  list<SaleItem>  $items
      */
@@ -20,7 +22,8 @@ interface SaleRepositoryInterface
         int $companyId,
         ?int $clientId,
         PaymentMark $paymentMark,
-        array $items
+        array $items,
+        ?string $idempotencyKey = null
     ): Sale;
 
     /**

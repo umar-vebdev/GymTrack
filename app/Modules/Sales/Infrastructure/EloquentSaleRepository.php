@@ -34,11 +34,23 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
         return $model ? $this->toEntity($model) : null;
     }
 
+    public function findByIdempotencyKey(int $companyId, string $idempotencyKey): ?Sale
+    {
+        $model = SaleModel::withoutGlobalScopes()
+            ->with('items')
+            ->where('company_id', $companyId)
+            ->where('idempotency_key', $idempotencyKey)
+            ->first();
+
+        return $model ? $this->toEntity($model) : null;
+    }
+
     public function create(
         int $companyId,
         ?int $clientId,
         PaymentMark $paymentMark,
-        array $items
+        array $items,
+        ?string $idempotencyKey = null
     ): Sale {
         // Validate domain invariants before inserting rows
         new Sale(
@@ -59,6 +71,7 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
             'currency' => $paymentMark->amount->currency(),
             'accepted_by_user_id' => $paymentMark->acceptedByUserId,
             'paid_at' => $paymentMark->paidAt,
+            'idempotency_key' => $idempotencyKey,
         ]);
 
         foreach ($items as $item) {
