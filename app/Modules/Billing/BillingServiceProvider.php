@@ -9,6 +9,7 @@ use App\Modules\Billing\Domain\PlatformPlanRepositoryInterface;
 use App\Modules\Billing\Domain\SubscriptionRepositoryInterface;
 use App\Modules\Billing\Infrastructure\EloquentPlatformPlanRepository;
 use App\Modules\Billing\Infrastructure\EloquentSubscriptionRepository;
+use App\Modules\Billing\Presentation\Console\ExpireDueSubscriptionsCommand;
 use App\Modules\Companies\Contracts\CompanyRegistered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +36,12 @@ final class BillingServiceProvider extends ServiceProvider
 
         if (file_exists(__DIR__.'/Presentation/routes.php')) {
             $this->loadRoutesFrom(__DIR__.'/Presentation/routes.php');
+        }
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ExpireDueSubscriptionsCommand::class,
+            ]);
         }
     }
 }

@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('memberships:expire-due')->daily();
+Schedule::command('billing:expire-due')->daily();

@@ -9,16 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-39a Сценарии активации подписки и ежедневного завершения просроченных подписок
+- Задача: T1-39b HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`
 - Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-36**, **T1-37**, **T1-38a**, **T1-38b** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автоматический старт пробного периода при регистрации компании (`CompanyRegistered` → `StartTrialOnCompanyRegistered`), эндпоинты `GET /api/v1/business/billing/plans` и `GET /api/v1/business/billing/subscription`. Всего 160 тестов зелёные.
+- **T1-36**…**T1-39a** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автостарт пробного периода при регистрации компании, эндпоинты просмотра планов и статуса подписки, Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions` + команда `billing:expire-due`. Всего 160 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-39a: создать `PlanNotFound`, `SubscriptionActivated`, `ActivateCompanySubscription`, `ExpireDueSubscriptions`, `ExpireDueSubscriptionsCommand` (`billing:expire-due` + `routes/console.php`).
+1. T1-39b: добавить флаг `is_platform_admin` (`boolean`, default `false`) для роли «Админ платформы» (Бизнес-ТЗ 2; Тех. ТЗ 7.1 `/api/v1/platform/...`), создать `ActivateSubscriptionRequest` и `ActivateCompanySubscriptionController`, зарегистрировать маршрут `POST /api/v1/platform/companies/{id}/subscription/activate`, написать `tests/Feature/Billing/ActivateAndExpireSubscriptionTest.php`.
 
 ## Окружение: важное про Docker
 

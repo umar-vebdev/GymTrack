@@ -53,12 +53,10 @@
    - [x] **T1-38b** HTTP-эндпоинты тарифов и статуса подписки зала (`GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`) и Feature-тесты: `ListPlatformPlansController`, `GetCompanySubscriptionController`, `Presentation/routes.php`, `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
      - Заметки: `GET /api/v1/business/billing/subscription` возвращает статус подписки, даты и вычисляемый флаг `is_read_only`.
 
-   - [~] **T1-39a** Сценарии активации подписки и ежедневного завершения просроченных подписок: исключение `PlanNotFound`, аудируемое событие `SubscriptionActivated` (`SUBSCRIPTION_ACTIVATED`), Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions`, консольная команда `billing:expire-due` (+ регистрация в `BillingServiceProvider` и `routes/console.php`).
-     - Ссылки: Бизнес-ТЗ 1.1, 2, 4.1; Тех. ТЗ 9.4, 9.5.
-     - Файлы: `app/Modules/Billing/Domain/Exceptions/PlanNotFound.php`, `app/Modules/Billing/Domain/Events/SubscriptionActivated.php`, `app/Modules/Billing/Application/ActivateCompanySubscription.php`, `app/Modules/Billing/Application/ExpireDueSubscriptions.php`, `app/Modules/Billing/Presentation/Console/ExpireDueSubscriptionsCommand.php`, `app/Modules/Billing/BillingServiceProvider.php`, `routes/console.php`.
-     - Готово когда: `composer lint && composer analyse && composer deps` и `docker compose exec -T app composer test` зелёные.
+   - [x] **T1-39a** Сценарии активации подписки и ежедневного завершения просроченных подписок: исключение `PlanNotFound`, аудируемое событие `SubscriptionActivated` (`SUBSCRIPTION_ACTIVATED`), Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions`, консольная команда `billing:expire-due` (+ регистрация в `BillingServiceProvider` и `routes/console.php`).
+     - Заметки: `ExpireDueSubscriptions` поддерживает как пакетный обход всех просроченных подписок, так и явную передачу `$companyId` (Тех. ТЗ 9.4).
 
-   - [ ] **T1-39b** HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`.
+   - [~] **T1-39b** HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`.
      - Ссылки: Бизнес-ТЗ 1.1, 2, 4.1; Тех. ТЗ 7.1, 7.2, 8, 9.4.
      - Файлы: `database/migrations/0001_01_01_000000_create_users_table.php`, `app/Models/User.php`, `app/Modules/Billing/Presentation/Requests/ActivateSubscriptionRequest.php`, `app/Modules/Billing/Presentation/ActivateCompanySubscriptionController.php`, `app/Modules/Billing/Presentation/routes.php`, `tests/Feature/Billing/ActivateAndExpireSubscriptionTest.php`.
      - Готово когда: Feature-тесты проверяют активацию подписки админом платформы (с записью в аудит), отказ обычным пользователям (`403`) и ежедневную команду `billing:expire-due`.
