@@ -47,10 +47,8 @@
    - [x] **T1-30a** Управление товарами (Domain + Application): исключение `ProductNotFound`, сценарии `CreateProduct` (валюта по умолчанию `TJS` согласно D-003), `ListProducts` (фильтр `onlyActive`), `UpdateProduct` (обновление `is_active` и/или `stock_quantity` внутри транзакции под `findByIdForUpdate`).
      - Заметки: `UpdateProduct` разделяет флаг `updateStock` и значение `?int $stockQuantity`, чтобы можно было сбросить учёт остатка в `null`.
 
-   - [~] **T1-30b** Управление товарами (HTTP API + Feature-тесты): валидация (`CreateProductRequest`, `UpdateProductRequest`), контроллеры и маршруты `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}` + `ProductsManagementTest`.
-     - Ссылки: Бизнес-ТЗ 2, 4.3; Тех. ТЗ 7.1, 7.2, 8.
-     - Файлы: `Presentation/Requests/CreateProductRequest.php`, `Presentation/Requests/UpdateProductRequest.php`, `Presentation/CreateProductController.php`, `Presentation/ListProductsController.php`, `Presentation/UpdateProductController.php`, `Presentation/routes.php`, `tests/Feature/Sales/ProductsManagementTest.php`.
-     - Готово когда: Feature-тесты проверяют создание и обновление владельцем, 403 для администратора при создании/обновлении, доступ администратора к списку, фильтр `only_active` и изоляцию компаний.
+   - [x] **T1-30b** Управление товарами (HTTP API + Feature-тесты): валидация (`CreateProductRequest`, `UpdateProductRequest`), контроллеры и маршруты `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}` + `ProductsManagementTest`.
+     - Заметки: создание и редактирование товаров доступны только владельцу компании; список товаров с фильтром `?only_active=` доступен владельцу и администратору.
 
    - [ ] **T1-31** Домен и инфраструктура продаж и отметок оплаты (`Sale`, `SaleItem`, `PaymentMark`, `PaymentMethod`): таблицы `sales_sales` и `sales_sale_items` (позиция: товар или тип абонемента + `issued_membership_id`), `SaleRepositoryInterface` + `EloquentSaleRepository`, тест репозитория.
 
