@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Companies\Application;
 
+use App\Modules\Companies\Contracts\CompanyRegistered;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\Role;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 
 final class RegisterCompany
 {
@@ -23,7 +25,7 @@ final class RegisterCompany
      */
     public function execute(int $ownerId, string $companyName, string $gymName, ?string $gymAddress): array
     {
-        return DB::transaction(function () use ($ownerId, $companyName, $gymName, $gymAddress) {
+        $result = DB::transaction(function () use ($ownerId, $companyName, $gymName, $gymAddress) {
             $companyId = $this->companies->create(
                 ownerId: $ownerId,
                 name: $companyName
@@ -46,5 +48,12 @@ final class RegisterCompany
                 'gym_id' => $gymId,
             ];
         });
+
+        Event::dispatch(new CompanyRegistered(
+            companyId: $result['company_id'],
+            ownerId: $ownerId
+        ));
+
+        return $result;
     }
 }

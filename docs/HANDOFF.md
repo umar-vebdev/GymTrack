@@ -9,16 +9,16 @@
 
 ## Текущая задача
 
-- Задача: T1-38 Автоматический старт пробного периода при регистрации компании и просмотр статуса подписки
+- Задача: T1-38b HTTP-эндпоинты тарифов и статуса подписки зала (`GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`) и Feature-тесты
 - Статус: в работе (`[~]`)
 
 ## Последняя сессия: что сделано
 
-- **T1-36** и **T1-37** закрыты: домен и инфраструктура тарифов платформы (`PlatformPlan`, `billing_plans`) и подписки компании (`Subscription`, `TrialPolicy`, `billing_subscriptions`). Всего 158 тестов зелёные.
+- **T1-36**, **T1-37**, **T1-38a** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, событие `CompanyRegistered` и слушатель `StartTrialOnCompanyRegistered`, Use Cases `ListPlatformPlans` и `GetCompanySubscription`. Всего 158 тестов зелёные.
 
 ## Точный следующий шаг
 
-1. T1-38: создать `CompanyRegistered` в `Companies\Contracts\Events` и отправить из `RegisterCompany`, создать слушатель `StartTrialOnCompanyRegistered`, Use Cases `ListPlatformPlans` и `GetCompanySubscription`, контроллеры и маршруты `GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`, написать `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
+1. T1-38b: создать `ListPlatformPlansController`, `GetCompanySubscriptionController`, `app/Modules/Billing/Presentation/routes.php`, написать `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
 
 ## Окружение: важное про Docker
 
