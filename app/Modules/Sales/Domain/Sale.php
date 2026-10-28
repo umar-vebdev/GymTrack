@@ -120,3 +120,4 @@ final class Sale
         $this->refundedAt = $at;
     }
 }
+

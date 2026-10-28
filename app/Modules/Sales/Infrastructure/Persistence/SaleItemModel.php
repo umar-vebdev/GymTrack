@@ -32,3 +32,4 @@ final class SaleItemModel extends Model
         'quantity',
     ];
 }
+

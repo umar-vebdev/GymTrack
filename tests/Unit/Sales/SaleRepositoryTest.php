@@ -90,3 +90,4 @@ final class SaleRepositoryTest extends TestCase
         $this->assertSame($staff->id, $reloaded->refundedByUserId());
     }
 }
+

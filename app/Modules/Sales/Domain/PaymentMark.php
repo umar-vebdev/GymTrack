@@ -19,3 +19,4 @@ final class PaymentMark
         public readonly DateTimeImmutable $paidAt
     ) {}
 }
+

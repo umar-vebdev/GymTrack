@@ -14,3 +14,4 @@ enum PaymentMethod: string
     case CardTerminal = 'card_terminal';
     case Transfer = 'transfer';
 }
+
