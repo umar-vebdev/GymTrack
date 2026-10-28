@@ -92,3 +92,4 @@ final class EloquentSubscriptionRepository implements SubscriptionRepositoryInte
         );
     }
 }
+

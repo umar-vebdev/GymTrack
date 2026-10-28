@@ -34,3 +34,4 @@ final class PlatformPlanModel extends Model
         'is_active' => 'boolean',
     ];
 }
+

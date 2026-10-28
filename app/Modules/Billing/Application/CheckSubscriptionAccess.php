@@ -32,3 +32,4 @@ final class CheckSubscriptionAccess implements SubscriptionAccessInterface
         return $subscription->isReadOnlyAt($now);
     }
 }
+

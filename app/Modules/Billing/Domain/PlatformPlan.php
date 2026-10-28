@@ -74,3 +74,4 @@ final class PlatformPlan
         $this->isActive = $isActive;
     }
 }
+

@@ -27,3 +27,4 @@ interface SubscriptionRepositoryInterface
      */
     public function listDueForExpiry(DateTimeImmutable $at): array;
 }
+

@@ -12,3 +12,4 @@ interface SubscriptionAccessInterface
 {
     public function isReadOnly(int $companyId): bool;
 }
+

@@ -71,3 +71,4 @@ final class ActivateCompanySubscription
         return $subscription;
     }
 }
+

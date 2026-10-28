@@ -19,3 +19,4 @@ Route::prefix('api/v1/platform')
     ->group(function () {
         Route::post('/companies/{id}/subscription/activate', ActivateCompanySubscriptionController::class);
     });
+

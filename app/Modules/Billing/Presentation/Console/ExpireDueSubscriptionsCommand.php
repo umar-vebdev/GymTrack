@@ -34,3 +34,4 @@ final class ExpireDueSubscriptionsCommand extends Command
         return self::SUCCESS;
     }
 }
+

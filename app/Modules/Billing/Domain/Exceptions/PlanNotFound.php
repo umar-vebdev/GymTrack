@@ -13,3 +13,4 @@ final class PlanNotFound extends DomainException
         return new self("Тарифный план #{$id} не найден.");
     }
 }
+

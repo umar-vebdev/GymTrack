@@ -35,3 +35,4 @@ final class SubscriptionModel extends Model
         'ends_at' => 'datetime',
     ];
 }
+

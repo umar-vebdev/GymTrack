@@ -56,3 +56,4 @@ final class EnsureActiveCompanySubscription
         return $next($request);
     }
 }
+

@@ -46,3 +46,4 @@ final class ExpireDueSubscriptions
         return $expiredCount;
     }
 }
+

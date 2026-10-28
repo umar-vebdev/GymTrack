@@ -21,3 +21,4 @@ final class ListPlatformPlans
         return $this->plans->listAll($onlyActive);
     }
 }
+

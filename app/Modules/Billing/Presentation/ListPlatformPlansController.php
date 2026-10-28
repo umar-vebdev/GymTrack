@@ -33,3 +33,4 @@ final class ListPlatformPlansController extends Controller
         ]);
     }
 }
+

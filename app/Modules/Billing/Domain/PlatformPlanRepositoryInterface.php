@@ -26,3 +26,4 @@ interface PlatformPlanRepositoryInterface
 
     public function save(PlatformPlan $plan): void;
 }
+

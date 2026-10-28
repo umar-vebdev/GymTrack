@@ -27,3 +27,4 @@ final class CompanyRegistered implements DomainEvent
         return $this->occurredOn;
     }
 }
+

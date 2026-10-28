@@ -72,3 +72,4 @@ final class SubscriptionActivated implements AuditableEvent, DomainEvent
         return null;
     }
 }
+

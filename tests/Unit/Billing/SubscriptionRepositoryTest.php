@@ -83,3 +83,4 @@ final class SubscriptionRepositoryTest extends TestCase
         $this->assertFalse($active->isReadOnlyAt(new DateTimeImmutable('2026-02-01T00:00:00Z')));
     }
 }
+
