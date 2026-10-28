@@ -9,17 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-31 Домен и инфраструктура продаж и отметок оплаты (`Sale`, `SaleItem`, `PaymentMark`, `PaymentMethod`, таблицы `sales_sales` и `sales_sale_items`, `SaleRepositoryInterface` + `EloquentSaleRepository`)
-- Статус: не начата
+- Задача: T1-31b Инфраструктура продаж: миграция `sales_sales` и `sales_sale_items`, `SaleModel`, `SaleItemModel`, `SaleRepositoryInterface`, `EloquentSaleRepository`
+- Статус: в работе (`[~]`)
 - **НАПОМИНАНИЕ (требование разработчика):** выдача абонемента в `T1-32` идёт в одной транзакции с `PaymentMark`, возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
 
 ## Последняя сессия: что сделано
 
-- **T1-30a, T1-30b** закрыты: управление товарами (`CreateProduct`, `ListProducts`, `UpdateProduct`, эндпоинты `POST/GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}`) + Feature-тесты. Всего 140 тестов зелёные.
+- **T1-31a** закрыта: доменные классы `PaymentMethod`, `SaleStatus`, `PaymentMark`, `SaleItem`, `Sale` и unit-тесты `SaleDomainTest`.
 
 ## Точный следующий шаг
 
-1. T1-31: перечисления `PaymentMethod` (`cash` | `card_terminal` | `transfer`), `SaleItemKind` (`product` | `membership_type`), `SaleStatus` (`completed` | `refunded`), Value Object `PaymentMark` (способ оплаты, сумма `Money`, `acceptedByUserId`, `paidAt`), сущности `SaleItem` и `Sale`, миграция `sales_sales` и `sales_sale_items` (без удаления финансовых записей — Тех. ТЗ 6.1), `SaleRepositoryInterface` + `EloquentSaleRepository` и тест репозитория.
+1. T1-31b: создать `SaleRepositoryInterface`, миграцию `2026_10_04_000001_create_sales_tables.php` (`sales_sales`, `sales_sale_items`), `SaleModel`, `SaleItemModel`, `EloquentSaleRepository`, привязать в `SalesServiceProvider` и написать `tests/Unit/Sales/SaleRepositoryTest.php`.
 
 ## Окружение: важное про Docker
 

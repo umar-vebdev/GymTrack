@@ -50,7 +50,13 @@
    - [x] **T1-30b** Управление товарами (HTTP API + Feature-тесты): валидация (`CreateProductRequest`, `UpdateProductRequest`), контроллеры и маршруты `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}` + `ProductsManagementTest`.
      - Заметки: создание и редактирование товаров доступны только владельцу компании; список товаров с фильтром `?only_active=` доступен владельцу и администратору.
 
-   - [ ] **T1-31** Домен и инфраструктура продаж и отметок оплаты (`Sale`, `SaleItem`, `PaymentMark`, `PaymentMethod`): таблицы `sales_sales` и `sales_sale_items` (позиция: товар или тип абонемента + `issued_membership_id`), `SaleRepositoryInterface` + `EloquentSaleRepository`, тест репозитория.
+   - [x] **T1-31a** Домен продаж и отметок оплаты: перечисления `PaymentMethod` (`cash` | `card_terminal` | `transfer`) и `SaleStatus` (`completed` | `refunded`), Value Object `PaymentMark` (способ, сумма `Money`, кто принял, когда) и `SaleItem` (товар или абонемент с проверкой инвариантов), сущность `Sale` (проверка совпадения суммы `PaymentMark` с суммой позиций, проверка обязательности `clientId` при наличии абонемента, метод `refund()`), unit-тесты.
+     - Заметки: для продажи только товаров `clientId` может быть `null`, при наличии позиции абонемента `clientId` обязателен (Бизнес-ТЗ 4.5).
+
+   - [~] **T1-31b** Инфраструктура продаж: миграция `sales_sales` и `sales_sale_items` (с `CHECK >= 0`, финансовые записи не удаляются — Тех. ТЗ 6.1), `SaleModel`, `SaleItemModel`, `SaleRepositoryInterface`, `EloquentSaleRepository` (+ привязка в `SalesServiceProvider`), тест репозитория.
+     - Ссылки: Тех. ТЗ 6.1, 6.2, 6.3.
+     - Файлы: `Domain/SaleRepositoryInterface.php`, `Infrastructure/Migrations/2026_10_04_000001_create_sales_tables.php`, `Infrastructure/Persistence/SaleModel.php`, `Infrastructure/Persistence/SaleItemModel.php`, `Infrastructure/EloquentSaleRepository.php`, `SalesServiceProvider.php`, `tests/Unit/Sales/SaleRepositoryTest.php`.
+     - Готово когда: тест репозитория проверяет сохранение и чтение продажи с позициями и `PaymentMark`, выборку по компании и клиенту и сохранение возврата.
 
    - [ ] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
 
