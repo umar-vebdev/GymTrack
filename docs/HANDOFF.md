@@ -4,21 +4,25 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-10-28
-**Этап:** 1 — Business (E1-F Sales)
+**Этап:** 1 — Business (переход к E1-G Billing)
 **Ветка:** main
 
 ## Текущая задача
 
-- Задача: T1-35b HTTP-эндпоинт возврата продажи `POST /api/v1/business/sales/{id}/refund` и Feature-тесты
-- Статус: в работе (`[~]`)
+- Эпик **E1-F Sales** полностью завершён (`T1-29`…`T1-35b`).
+- Следующий эпик: **E1-G Billing** (`T1-36`…`T1-40`, ожидает подтверждения списка задач разработчиком).
 
 ## Последняя сессия: что сделано
 
-- **T1-33**, **T1-34**, **T1-35a** закрыты: идемпотентная касса `POST /api/v1/business/sales`, история покупок клиента и список продаж зала, контракт `MembershipCancellerInterface` и Use Case `RefundSale`. Всего 153 теста зелёные.
+- **T1-33** закрыта: идемпотентность по заголовку `Idempotency-Key` и HTTP-эндпоинт кассы `POST /api/v1/business/sales`.
+- **T1-34** закрыта: история покупок клиента (`GET /api/v1/business/clients/{id}/sales`) и список продаж зала (`GET /api/v1/business/sales`).
+- **T1-35a** и **T1-35b** закрыты: контракт `MembershipCancellerInterface`, Use Case `RefundSale`, событие `SaleRefunded` и эндпоинт `POST /api/v1/business/sales/{id}/refund` (возврат остатков товаров + отмена выданного абонемента в одной транзакции + запись в журнал аудита).
+- Всего 155 тестов (550 проверок) зелёные.
 
 ## Точный следующий шаг
 
-1. T1-35b: создать `RefundSaleRequest`, `RefundSaleController`, маршрут `POST /api/v1/business/sales/{id}/refund` и `tests/Feature/Sales/RefundSaleTest.php`.
+1. Получить подтверждение разработчика по декомпозиции эпика **E1-G Billing** (`T1-36`…`T1-40` в `docs/TASKS.md`).
+2. Начать с **T1-36** (домен и инфраструктура тарифов платформы `PlatformPlan`).
 
 ## Окружение: важное про Docker
 

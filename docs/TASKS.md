@@ -32,48 +32,20 @@
 - [x] **E1-C Audit**: неизменяемый журнал, подписка на события
 - [x] **E1-D Clients (CRM)**: T1-11…T1-15 — создание, поиск, связывание по `PhoneVerified` (D-002), объединение дубликатов (только владелец; перенос данных абонементов/посещений добавить при появлении Memberships/Visits; аудит слияния — отдельной задачей)
 - [x] **E1-E Memberships**: T1-16…T1-28 — типы абонементов, правила (`MembershipRules`), богатая сущность `Membership`, стратегии списания, выдача (`IssueMembership`), контракт выбора (`FindUsableMembership`), заморозка/разморозка, отмена владельцем + аудит, список абонементов клиента, ежедневное завершение истёкших (`memberships:expire-due`), список истекающих в ближайшие 7 дней (`GET /memberships/expiring`)
+- [x] **E1-F Sales**: T1-29…T1-35b — товары (`Product`), управление товарами, домен и инфраструктура продаж (`Sale`, `SaleItem`, `PaymentMark`), касса (`RegisterSale` с атомарной выдачей абонемента и списанием остатков + `Idempotency-Key` + `PaymentMarked`), история покупок клиента и список продаж зала, возврат продажи владельцем (`RefundSale` с возвратом остатков и отменой выданного абонемента через `MembershipCancellerInterface` + `SaleRefunded`)
 
 ---
 
-## Этап 1 — Business (Sales, Billing, Analytics)
+## Этап 1 — Business (Billing, Analytics)
 
-6. **E1-F Sales**: товары, касса, `PaymentMark`, ручная выдача абонемента
-   > Раскрытие эпика подтверждено разработчиком 2026-10-28.
-   > **ВАЖНО (требование разработчика):** выдача абонемента выполняется в одной транзакции с отметкой оплаты (`PaymentMark`), а возврат продажи владельцем отменяет выданный абонемент и возвращает остаток товаров с записью в `Audit`. Ссылки: Бизнес-ТЗ 3, 4.3, 4.4, 4.5; Тех. ТЗ 3.6–3.8, 6, 7.3, 8, 9.2.
+7. [ ] **E1-G Billing**: тарифы платформы (`PlatformPlan`), подписка компании (`Subscription`), автоматический пробный период 14 дней (`TrialPolicy`), ежедневный перевод истёкших подписок, режим «только чтение» после окончания подписки/пробного периода
+   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
+   - [ ] **T1-36** Домен и инфраструктура тарифов платформы (`PlatformPlan`): сущность `PlatformPlan` (название, период `month` | `year`, цена `Money`, лимиты `max_gyms` и `max_staff`, флаг `is_active`), миграция `billing_plans`, `PlatformPlanRepositoryInterface`, `EloquentPlatformPlanRepository`, `BillingServiceProvider`, unit/repo-тест.
+   - [ ] **T1-37** Домен и инфраструктура подписки компании (`Subscription`, `TrialPolicy`): статусы `trial` | `active` | `expired`, сущность `Subscription` (проверка активности/режима только чтение, переход в `expired`, продление по тарифу), `TrialPolicy` (14 дней по умолчанию — Бизнес-ТЗ 1.1, 4.1), миграция `billing_subscriptions`, `SubscriptionRepositoryInterface`, `EloquentSubscriptionRepository`, unit/repo-тест.
+   - [ ] **T1-38** Автоматический старт пробного периода при регистрации компании и просмотр статуса подписки: событие `CompanyRegistered` в `Companies\Contracts` (отправляется из `RegisterCompany`), слушатель `StartTrialOnCompanyRegistered` в `Billing\Application`, эндпоинты `GET /api/v1/business/billing/plans` и `GET /api/v1/business/billing/subscription`, Feature-тест.
+   - [ ] **T1-39** Подтверждение оплаты подписки админом платформы и ежедневная задача проверки истёкших подписок: `ActivateCompanySubscription` (`POST /api/v1/platform/companies/{id}/subscription/activate` + аудируемое событие `SubscriptionActivated`), консольная команда `billing:expire-due` (ежедневно в `routes/console.php`, Тех. ТЗ 9.4), Feature-тесты.
+   - [ ] **T1-40** Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8): контракт `SubscriptionAccessInterface` (или middleware `EnsureActiveCompanySubscription`), блокирующий мутирующие запросы (`POST`/`PUT`/`PATCH`/`DELETE`) к `/api/v1/business/*` (кроме чтения `GET` и раздела `/billing/*`) кодом `402`/`403 SUBSCRIPTION_EXPIRED`, Feature-тест по критерию приёмки 12.8.
 
-   - [x] **T1-29** Домен и инфраструктура товаров (`Product`): сущность `Product` (название, цена `Money`, опциональный остаток `stock_quantity` с `CHECK >= 0`, активность `is_active`, методы изменения остатка и активности), миграция `sales_products`, `ProductRepositoryInterface`, `EloquentProductRepository`, `SalesServiceProvider` (+ регистрация в `bootstrap/providers.php`), тест репозитория.
-     - Заметки: таблица `sales_products` (префикс модуля по Тех. ТЗ 6.1), ограничения целостности `CHECK (price_minor >= 0)` и `CHECK (stock_quantity IS NULL OR stock_quantity >= 0)`. `stock_quantity = null` означает, что учёт остатков не ведётся.
-
-   - [x] **T1-30a** Управление товарами (Domain + Application): исключение `ProductNotFound`, сценарии `CreateProduct` (валюта по умолчанию `TJS` согласно D-003), `ListProducts` (фильтр `onlyActive`), `UpdateProduct` (обновление `is_active` и/или `stock_quantity` внутри транзакции под `findByIdForUpdate`).
-     - Заметки: `UpdateProduct` разделяет флаг `updateStock` и значение `?int $stockQuantity`, чтобы можно было сбросить учёт остатка в `null`.
-
-   - [x] **T1-30b** Управление товарами (HTTP API + Feature-тесты): валидация (`CreateProductRequest`, `UpdateProductRequest`), контроллеры и маршруты `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}` + `ProductsManagementTest`.
-     - Заметки: создание и редактирование товаров доступны только владельцу компании; список товаров с фильтром `?only_active=` доступен владельцу и администратору.
-
-   - [x] **T1-31a** Домен продаж и отметок оплаты: перечисления `PaymentMethod` (`cash` | `card_terminal` | `transfer`) и `SaleStatus` (`completed` | `refunded`), Value Object `PaymentMark` (способ, сумма `Money`, кто принял, когда) и `SaleItem` (товар или абонемент с проверкой инвариантов), сущность `Sale` (проверка совпадения суммы `PaymentMark` с суммой позиций, проверка обязательности `clientId` при наличии абонемента, метод `refund()`), unit-тесты.
-     - Заметки: для продажи только товаров `clientId` может быть `null`, при наличии позиции абонемента `clientId` обязателен (Бизнес-ТЗ 4.5).
-
-   - [x] **T1-31b** Инфраструктура продаж: миграция `sales_sales` и `sales_sale_items` (с `CHECK >= 0`, финансовые записи не удаляются — Тех. ТЗ 6.1), `SaleModel`, `SaleItemModel`, `SaleRepositoryInterface`, `EloquentSaleRepository` (+ привязка в `SalesServiceProvider`), тест репозитория.
-     - Заметки: составные индексы `(company_id, created_at)` и `(company_id, client_id)` согласно Тех. ТЗ 6.3. Связь `SaleModel::items()` находится строго внутри модуля `Sales`.
-
-   - [x] **T1-32** Касса (Use Case `RegisterSale`): продажа товаров и ручная выдача абонемента с `PaymentMark` в одной транзакции (проверка клиента, списание остатка товаров под `lockForUpdate`, вызов `MembershipIssuerInterface::issue()`, сохранение `Sale` + `PaymentMark`, аудируемое событие `PaymentMarked`).
-     - Заметки: в `MembershipIssuerInterface` добавлен метод `quoteType(int $companyId, int $typeId): MembershipTypeQuote`, чтобы модуль `Sales` получал название и цену типа абонемента строго через `Contracts`. Вся операция выполняется в одной `DB::transaction`, событие `PaymentMarked` (`AuditableEvent`) отправляется после фиксации.
-
-   - [x] **T1-33** Идемпотентность (`Idempotency-Key`) и HTTP-эндпоинт кассы `POST /api/v1/business/sales`: хранение ключа идемпотентности (Тех. ТЗ 7.3), контроллер, валидация, Feature-тесты (продажа товара без клиента, продажа абонемента + товара клиенту в одной транзакции, идемпотентность, нехватка остатка).
-     - Заметки: в `sales_sales` добавлен столбец `idempotency_key` (`UNIQUE (company_id, idempotency_key)`). При повторном запросе с тем же `Idempotency-Key` возвращается ранее созданная продажа без повторного списания остатков, выдачи абонемента и отправки `PaymentMarked`.
-
-   - [x] **T1-34** История покупок клиента и список продаж зала: `GET /api/v1/business/clients/{id}/sales` (Бизнес-ТЗ 4.4) и `GET /api/v1/business/sales` + Feature-тесты.
-     - Заметки: проверка принадлежности клиента компании выполняется через `ClientLookupInterface::existsInCompany()`. Сериализация продаж переиспользует `RegisterSaleController::serializeSale()`.
-
-   - [x] **T1-35a** Контракт `MembershipCancellerInterface` и Use Case `RefundSale`: интерфейс `MembershipCancellerInterface` в `Memberships/Contracts` (реализация в `CancelMembership`), исключение `SaleNotFound`, аудируемое событие `SaleRefunded` (`SALE_REFUNDED`), Use Case `RefundSale` (блокировка продажи и товаров, возврат остатков на склад, отмена выданных абонементов через `MembershipCancellerInterface` в одной `DB::transaction`).
-     - Заметки: `CancelMembership::cancel()` реализует `MembershipCancellerInterface` и обрабатывает `MembershipAlreadyCancelled` идемпотентно, если абонемент уже был отменён вручную ранее.
-
-   - [~] **T1-35b** HTTP-эндпоинт возврата продажи `POST /api/v1/business/sales/{id}/refund` и Feature-тесты: `RefundSaleRequest`, `RefundSaleController` (только владелец, обязательная причина), маршрут и `tests/Feature/Sales/RefundSaleTest.php`.
-     - Ссылки: Бизнес-ТЗ 4.2, 4.5, 4.7; Тех. ТЗ 7.1, 7.2, 8, 9.5.
-     - Файлы: `Presentation/Requests/RefundSaleRequest.php`, `Presentation/RefundSaleController.php`, `Presentation/routes.php`, `tests/Feature/Sales/RefundSaleTest.php`.
-     - Готово когда: Feature-тесты проверяют, что владелец возвращает продажу с обязательной причиной, остатки товаров возвращаются на склад, выданный при продаже абонемент переходит в `cancelled`, оба события (`MEMBERSHIP_CANCELLED` и `SALE_REFUNDED`) пишутся в журнал аудита, а администратор получает `403`.
-
-7. [ ] **E1-G Billing**: тарифы платформы, пробный период 14 дней, режим «только чтение» после окончания
 8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность
 
 ## Этап 2 — Client (эпики)

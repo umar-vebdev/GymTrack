@@ -6,6 +6,7 @@ use App\Modules\Sales\Presentation\CreateProductController;
 use App\Modules\Sales\Presentation\ListClientSalesController;
 use App\Modules\Sales\Presentation\ListCompanySalesController;
 use App\Modules\Sales\Presentation\ListProductsController;
+use App\Modules\Sales\Presentation\RefundSaleController;
 use App\Modules\Sales\Presentation\RegisterSaleController;
 use App\Modules\Sales\Presentation\UpdateProductController;
 use Illuminate\Support\Facades\Route;
@@ -18,5 +19,6 @@ Route::prefix('api/v1/business')
         Route::patch('/products/{id}', UpdateProductController::class);
         Route::get('/sales', ListCompanySalesController::class);
         Route::post('/sales', RegisterSaleController::class);
+        Route::post('/sales/{id}/refund', RefundSaleController::class);
         Route::get('/clients/{id}/sales', ListClientSalesController::class);
     });
