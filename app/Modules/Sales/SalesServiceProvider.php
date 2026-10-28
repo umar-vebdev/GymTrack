@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Sales;
 
 use App\Modules\Sales\Domain\ProductRepositoryInterface;
+use App\Modules\Sales\Domain\SaleRepositoryInterface;
 use App\Modules\Sales\Infrastructure\EloquentProductRepository;
+use App\Modules\Sales\Infrastructure\EloquentSaleRepository;
 use Illuminate\Support\ServiceProvider;
 
 final class SalesServiceProvider extends ServiceProvider
@@ -15,6 +17,10 @@ final class SalesServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductRepositoryInterface::class,
             EloquentProductRepository::class
+        );
+        $this->app->bind(
+            SaleRepositoryInterface::class,
+            EloquentSaleRepository::class
         );
     }
 
