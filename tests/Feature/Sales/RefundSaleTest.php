@@ -186,3 +186,4 @@ final class RefundSaleTest extends TestCase
             ->assertJsonPath('error.code', 'SALE_NOT_FOUND');
     }
 }
+

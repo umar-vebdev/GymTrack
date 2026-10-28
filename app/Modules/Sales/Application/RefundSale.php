@@ -86,3 +86,4 @@ final class RefundSale
         return $sale;
     }
 }
+

@@ -153,3 +153,4 @@ final class ListSalesTest extends TestCase
         $this->getJson("/api/v1/business/clients/{$clientB}/sales")->assertForbidden();
     }
 }
+

@@ -29,3 +29,4 @@ final class RegisterSaleRequest extends FormRequest
         ];
     }
 }
+
