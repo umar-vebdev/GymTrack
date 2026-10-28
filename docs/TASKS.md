@@ -44,7 +44,13 @@
    - [x] **T1-29** Домен и инфраструктура товаров (`Product`): сущность `Product` (название, цена `Money`, опциональный остаток `stock_quantity` с `CHECK >= 0`, активность `is_active`, методы изменения остатка и активности), миграция `sales_products`, `ProductRepositoryInterface`, `EloquentProductRepository`, `SalesServiceProvider` (+ регистрация в `bootstrap/providers.php`), тест репозитория.
      - Заметки: таблица `sales_products` (префикс модуля по Тех. ТЗ 6.1), ограничения целостности `CHECK (price_minor >= 0)` и `CHECK (stock_quantity IS NULL OR stock_quantity >= 0)`. `stock_quantity = null` означает, что учёт остатков не ведётся.
 
-   - [ ] **T1-30** Управление товарами (Use Cases + HTTP API): создание товара (`POST /api/v1/business/products`, только владелец), список (`GET /api/v1/business/products`, фильтр `only_active`, доступ сотрудникам), обновление активности/остатка (`PATCH /api/v1/business/products/{id}`, только владелец) + Feature-тесты.
+   - [x] **T1-30a** Управление товарами (Domain + Application): исключение `ProductNotFound`, сценарии `CreateProduct` (валюта по умолчанию `TJS` согласно D-003), `ListProducts` (фильтр `onlyActive`), `UpdateProduct` (обновление `is_active` и/или `stock_quantity` внутри транзакции под `findByIdForUpdate`).
+     - Заметки: `UpdateProduct` разделяет флаг `updateStock` и значение `?int $stockQuantity`, чтобы можно было сбросить учёт остатка в `null`.
+
+   - [~] **T1-30b** Управление товарами (HTTP API + Feature-тесты): валидация (`CreateProductRequest`, `UpdateProductRequest`), контроллеры и маршруты `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}` + `ProductsManagementTest`.
+     - Ссылки: Бизнес-ТЗ 2, 4.3; Тех. ТЗ 7.1, 7.2, 8.
+     - Файлы: `Presentation/Requests/CreateProductRequest.php`, `Presentation/Requests/UpdateProductRequest.php`, `Presentation/CreateProductController.php`, `Presentation/ListProductsController.php`, `Presentation/UpdateProductController.php`, `Presentation/routes.php`, `tests/Feature/Sales/ProductsManagementTest.php`.
+     - Готово когда: Feature-тесты проверяют создание и обновление владельцем, 403 для администратора при создании/обновлении, доступ администратора к списку, фильтр `only_active` и изоляцию компаний.
 
    - [ ] **T1-31** Домен и инфраструктура продаж и отметок оплаты (`Sale`, `SaleItem`, `PaymentMark`, `PaymentMethod`): таблицы `sales_sales` и `sales_sale_items` (позиция: товар или тип абонемента + `issued_membership_id`), `SaleRepositoryInterface` + `EloquentSaleRepository`, тест репозитория.
 

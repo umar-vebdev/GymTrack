@@ -9,19 +9,17 @@
 
 ## Текущая задача
 
-- Задача: T1-30 Управление товарами (Use Cases + HTTP API: `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}`)
-- Статус: не начата
+- Задача: T1-30b Управление товарами (HTTP API + Feature-тесты): `POST /api/v1/business/products`, `GET /api/v1/business/products`, `PATCH /api/v1/business/products/{id}`
+- Статус: в работе (`[~]`)
 - **НАПОМИНАНИЕ (требование разработчика):** выдача абонемента в `T1-32` идёт в одной транзакции с `PaymentMark`, возврат продажи в `T1-35` отменяет выданный абонемент через контракт.
 
 ## Последняя сессия: что сделано
 
-- **T1-29** закрыта: сущность `Product`, миграция `sales_products`, `ProductRepositoryInterface`, `EloquentProductRepository`, `SalesServiceProvider` и `ProductRepositoryTest`. Всего 137 тестов зелёные.
+- **T1-30a** закрыта: добавлены `ProductNotFound`, `CreateProduct`, `ListProducts`, `UpdateProduct`.
 
 ## Точный следующий шаг
 
-1. Разбить **T1-30** по правилу размера задачи (4.1) на:
-   - **T1-30a**: Use Cases управления товарами (`CreateProduct`, `ListProducts`, `UpdateProduct`, доменное исключение `ProductNotFound`).
-   - **T1-30b**: HTTP-эндпоинты `POST /api/v1/business/products`, `GET /api/v1/business/products` (`?only_active=`), `PATCH /api/v1/business/products/{id}` + Feature-тесты.
+1. T1-30b: создать `CreateProductRequest`, `UpdateProductRequest`, `CreateProductController` (только владелец), `ListProductsController` (сотрудники), `UpdateProductController` (только владелец), `Presentation/routes.php`, написать `tests/Feature/Sales/ProductsManagementTest.php` и прогнать все проверки.
 
 ## Окружение: важное про Docker
 
