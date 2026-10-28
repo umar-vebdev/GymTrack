@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Billing;
 
+use App\Modules\Billing\Application\CheckSubscriptionAccess;
 use App\Modules\Billing\Application\Listeners\StartTrialOnCompanyRegistered;
+use App\Modules\Billing\Contracts\SubscriptionAccessInterface;
 use App\Modules\Billing\Domain\PlatformPlanRepositoryInterface;
 use App\Modules\Billing\Domain\SubscriptionRepositoryInterface;
 use App\Modules\Billing\Infrastructure\EloquentPlatformPlanRepository;
@@ -25,6 +27,10 @@ final class BillingServiceProvider extends ServiceProvider
         $this->app->bind(
             SubscriptionRepositoryInterface::class,
             EloquentSubscriptionRepository::class
+        );
+        $this->app->bind(
+            SubscriptionAccessInterface::class,
+            CheckSubscriptionAccess::class
         );
     }
 

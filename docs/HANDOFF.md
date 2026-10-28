@@ -4,21 +4,26 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-10-28
-**Этап:** 1 — Business (E1-G Billing)
+**Этап:** 1 — Business (переход к E1-H Analytics)
 **Ветка:** main
 
 ## Текущая задача
 
-- Задача: T1-40 Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8)
-- Статус: в работе (`[~]`)
+- Эпик **E1-G Billing** полностью завершён (`T1-36`…`T1-40`).
+- Следующий эпик: **E1-H Analytics** (`T1-41`…`T1-43`, ожидает подтверждения списка задач разработчиком).
 
 ## Последняя сессия: что сделано
 
-- **T1-36**…**T1-39b** закрыты: `PlatformPlan`, `Subscription`, `TrialPolicy`, автостарт пробного периода при регистрации компании, эндпоинты просмотра планов и статуса подписки, активация подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и ежедневная команда `billing:expire-due`. Всего 162 теста зелёные.
+- **T1-36** и **T1-37** закрыты: домен и инфраструктура тарифов платформы (`PlatformPlan`, `billing_plans`) и подписки компании (`Subscription`, `TrialPolicy`, `billing_subscriptions`).
+- **T1-38a** и **T1-38b** закрыты: автоматический старт 14-дневного пробного периода при регистрации компании (`CompanyRegistered` → `StartTrialOnCompanyRegistered`), эндпоинты `GET /api/v1/business/billing/plans` и `GET /api/v1/business/billing/subscription`.
+- **T1-39a** и **T1-39b** закрыты: активация подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate` + аудит `SUBSCRIPTION_ACTIVATED`) и ежедневная команда `billing:expire-due`.
+- **T1-40** закрыта: режим «только чтение» при истёкшем пробном периоде или подписке (`EnsureActiveCompanySubscription`, критерий приёмки 12.8).
+- Всего 163 теста (620 проверок) зелёные.
 
 ## Точный следующий шаг
 
-1. T1-40: создать `SubscriptionAccessInterface`, `CheckSubscriptionAccess`, middleware `EnsureActiveCompanySubscription` (подключить в `bootstrap/app.php`), написать `tests/Feature/Billing/ReadOnlyExpiredSubscriptionTest.php`.
+1. Получить подтверждение разработчика по декомпозиции эпика **E1-H Analytics** (`T1-41`…`T1-43` в `docs/TASKS.md`).
+2. Начать с **T1-41** (`SalesAnalyticsQueryInterface` в `Sales\Contracts`).
 
 ## Окружение: важное про Docker
 

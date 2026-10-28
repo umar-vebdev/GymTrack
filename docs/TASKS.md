@@ -33,38 +33,18 @@
 - [x] **E1-D Clients (CRM)**: T1-11…T1-15 — создание, поиск, связывание по `PhoneVerified` (D-002), объединение дубликатов (только владелец; перенос данных абонементов/посещений добавить при появлении Memberships/Visits; аудит слияния — отдельной задачей)
 - [x] **E1-E Memberships**: T1-16…T1-28 — типы абонементов, правила (`MembershipRules`), богатая сущность `Membership`, стратегии списания, выдача (`IssueMembership`), контракт выбора (`FindUsableMembership`), заморозка/разморозка, отмена владельцем + аудит, список абонементов клиента, ежедневное завершение истёкших (`memberships:expire-due`), список истекающих в ближайшие 7 дней (`GET /memberships/expiring`)
 - [x] **E1-F Sales**: T1-29…T1-35b — товары (`Product`), управление товарами, домен и инфраструктура продаж (`Sale`, `SaleItem`, `PaymentMark`), касса (`RegisterSale` с атомарной выдачей абонемента и списанием остатков + `Idempotency-Key` + `PaymentMarked`), история покупок клиента и список продаж зала, возврат продажи владельцем (`RefundSale` с возвратом остатков и отменой выданного абонемента через `MembershipCancellerInterface` + `SaleRefunded`)
+- [x] **E1-G Billing**: T1-36…T1-40 — тарифы платформы (`PlatformPlan`), подписка компании (`Subscription`), автоматический пробный период 14 дней (`TrialPolicy`, событие `CompanyRegistered` → `StartTrialOnCompanyRegistered`), просмотр тарифов и подписки, активация тарифа админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate` + `SubscriptionActivated`), ежедневная команда `billing:expire-due`, режим «только чтение» при истёкшем пробном периоде/подписке (`EnsureActiveCompanySubscription`)
 
 ---
 
-## Этап 1 — Business (Billing, Analytics)
+## Этап 1 — Business (Analytics)
 
-7. **E1-G Billing**: тарифы платформы (`PlatformPlan`), подписка компании (`Subscription`), автоматический пробный период 14 дней (`TrialPolicy`), ежедневный перевод истёкших подписок, режим «только чтение» после окончания подписки/пробного периода
-   > Раскрытие эпика подтверждено разработчиком 2026-10-28.
-
-   - [x] **T1-36** Домен и инфраструктура тарифов платформы (`PlatformPlan`): перечисление `BillingPeriod` (`month` | `year`), сущность `PlatformPlan` (название, период, цена `Money`, лимиты `maxGyms` и `maxStaff`, флаг `isActive`), миграция `billing_plans` (с `CHECK >= 0`), `PlatformPlanModel`, `PlatformPlanRepositoryInterface`, `EloquentPlatformPlanRepository`, `BillingServiceProvider` (+ регистрация в `bootstrap/providers.php`), unit/repo-тест.
-     - Заметки: таблица `billing_plans` с проверками целостности `price_minor >= 0`, `max_gyms >= 1`, `max_staff >= 1`.
-
-   - [x] **T1-37** Домен и инфраструктура подписки компании (`Subscription`, `TrialPolicy`): статусы `trial` | `active` | `expired` (`SubscriptionStatus`), `TrialPolicy` (14 дней по умолчанию — Бизнес-ТЗ 1.1, 4.1), сущность `Subscription` (проверка активности / режима «только чтение», метод `expireIfDue()`, продление по тарифу `activatePlan()`), миграция `billing_subscriptions`, `SubscriptionModel`, `SubscriptionRepositoryInterface`, `EloquentSubscriptionRepository`, unit/repo-тест.
-     - Заметки: таблица `billing_subscriptions` с уникальным `company_id` (одна подписка на компанию) и индексом `(status, ends_at)` для ежедневного планировщика.
-
-   - [x] **T1-38a** Автоматический старт пробного периода при регистрации компании и Use Cases чтения подписки/тарифов: событие `CompanyRegistered` в `Companies\Contracts` (отправляется из `RegisterCompany`), слушатель `StartTrialOnCompanyRegistered` в `Billing\Application\Listeners` (подписка в `BillingServiceProvider`), сценарии `ListPlatformPlans` и `GetCompanySubscription`.
-     - Заметки: связь модулей `Companies` → `Billing` реализована строго через доменное событие `CompanyRegistered` в `Companies\Contracts` (по образцу `PhoneVerified`).
-
-   - [x] **T1-38b** HTTP-эндпоинты тарифов и статуса подписки зала (`GET /api/v1/business/billing/plans`, `GET /api/v1/business/billing/subscription`) и Feature-тесты: `ListPlatformPlansController`, `GetCompanySubscriptionController`, `Presentation/routes.php`, `tests/Feature/Billing/TrialAndSubscriptionStatusTest.php`.
-     - Заметки: `GET /api/v1/business/billing/subscription` возвращает статус подписки, даты и вычисляемый флаг `is_read_only`.
-
-   - [x] **T1-39a** Сценарии активации подписки и ежедневного завершения просроченных подписок: исключение `PlanNotFound`, аудируемое событие `SubscriptionActivated` (`SUBSCRIPTION_ACTIVATED`), Use Cases `ActivateCompanySubscription` и `ExpireDueSubscriptions`, консольная команда `billing:expire-due` (+ регистрация в `BillingServiceProvider` и `routes/console.php`).
-     - Заметки: `ExpireDueSubscriptions` поддерживает как пакетный обход всех просроченных подписок, так и явную передачу `$companyId` (Тех. ТЗ 9.4).
-
-   - [x] **T1-39b** HTTP-эндпоинт активации подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate`) и Feature-тесты активации и `billing:expire-due`.
-     - Заметки: для проверки глобальной роли «Админ платформы» добавлено булево поле `users.is_platform_admin` (не входит в `$fillable`, зафиксировано в `DECISIONS.md` как `D-004`).
-
-   - [~] **T1-40** Режим «только чтение» при истёкшем пробном периоде или подписке (Бизнес-ТЗ 4.1, 12.8): контракт `SubscriptionAccessInterface` в `Billing\Contracts`, middleware `EnsureActiveCompanySubscription` в `Billing\Presentation\Middleware` (подключается к группе `api`), блокирующий изменяющие запросы (`POST`/`PUT`/`PATCH`/`DELETE`) к `/api/v1/business/*` (кроме чтения `GET` и создания компании `/api/v1/business/companies`), если у компании имеется просроченная подписка, кодом `403 SUBSCRIPTION_EXPIRED`, Feature-тест по критерию приёмки 12.8.
-     - Ссылки: Бизнес-ТЗ 4.1, 12.8; Тех. ТЗ 3.5, 7.1, 7.2, 8.
-     - Файлы: `app/Modules/Billing/Contracts/SubscriptionAccessInterface.php`, `app/Modules/Billing/Application/CheckSubscriptionAccess.php`, `app/Modules/Billing/Presentation/Middleware/EnsureActiveCompanySubscription.php`, `app/Modules/Billing/BillingServiceProvider.php`, `bootstrap/app.php`, `tests/Feature/Billing/ReadOnlyExpiredSubscriptionTest.php`.
-     - Готово когда: Feature-тест проверяет критерий приёмки 12.8 (при истёкшем пробном периоде без оплаты все `GET`-запросы в `/api/v1/business/*` работают и возвращают сохранённые данные, а любые `POST`/`PATCH`/`DELETE`-запросы блокируются кодом `403 SUBSCRIPTION_EXPIRED` до активации тарифа).
-
-8. [ ] **E1-H Analytics**: выручка по отметкам оплаты, посещения, клиенты, популярность
+8. [ ] **E1-H Analytics**: отчёты для владельца по отметкам оплаты (выручка в разрезе абонементов/товаров и способов оплаты), популярности абонементов и товаров, новым и постоянным клиентам (Бизнес-ТЗ 4.7, 12.7; Тех. ТЗ 3.6, 3.7 — чтение строго через `Contracts` других модулей)
+   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
+   - [ ] **T1-41** Контракт аналитики продаж в `Sales\Contracts` (`SalesAnalyticsQueryInterface`) и его Eloquent-реализация: агрегация выручки по отметкам оплаты (только `completed`, отдельно по абонементам и товарам, в разрезе способов оплаты `cash`/`card_terminal`/`transfer`) и рейтинг популярности абонементов и товаров за выбранный период (`from`..`to`), unit/integration-тест.
+   - [ ] **T1-42** Контракт аналитики клиентов в `Clients\Contracts` (`ClientsAnalyticsQueryInterface`) и его реализация: подсчёт новых клиентов за период (`created_at` в `from`..`to`) и общего числа клиентов компании, unit/integration-тест.
+   - [ ] **T1-43** Модуль `Analytics`: Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, контроллеры и маршруты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview` (доступ ТОЛЬКО владельцу — критерий приёмки 12.7, администратор получает `403 FORBIDDEN`), `AnalyticsServiceProvider`, Feature-тест `AnalyticsEndpointsTest`.
+   > *(Примечание: отчёты по посещениям по дням/способу и клиентам, не приходившим более N дней, будут дополнены после появления модуля `Visits` на этапе 2).*
 
 ## Этап 2 — Client (эпики)
 - [ ] **E2-A** Регистрация клиента и связывание с карточками зала
