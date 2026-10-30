@@ -7,4 +7,6 @@ namespace App\Modules\Identity\Contracts;
 interface TokenGenerator
 {
     public function generateForUser(int $userId, string $device): string;
+
+    public function revokeAllForUser(int $userId): void;
 }

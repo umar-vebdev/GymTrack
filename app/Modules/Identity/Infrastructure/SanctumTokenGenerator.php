@@ -16,4 +16,13 @@ final class SanctumTokenGenerator implements TokenGenerator
 
         return $user->createToken($device)->plainTextToken;
     }
+
+    public function revokeAllForUser(int $userId): void
+    {
+        $user = User::find($userId);
+
+        if ($user !== null) {
+            $user->tokens()->delete();
+        }
+    }
 }

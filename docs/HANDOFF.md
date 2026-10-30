@@ -4,25 +4,26 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-10-30
-**Этап:** 2 — Client (переход к E2-A после полного завершения Этапа 1 Business)
+**Этап:** 2 — Client (переход к E2-B Visits)
 **Ветка:** main
 
 ## Текущая задача
 
-- **T2-01** `[x]` Поля профиля клиента (`birth_date`, `personal_data_consented_at`) и правило 18+ в `Identity`.
-- **T2-02** `[x]` Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`) и автосвязывание карточек (критерий 12.9).
-- **T2-03** `[~]` Профиль клиента и удаление/обезличивание аккаунта по запросу (`GET /api/v1/client/profile`, `DELETE /api/v1/client/profile`).
+- Эпик **E2-A Регистрация клиента и связывание с карточками зала** полностью завершён (`T2-01`…`T2-03`).
+- Следующий эпик: **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (`T2-04`…`T2-10`, ожидает подтверждения списка задач разработчиком).
 
 ## Последняя сессия: что сделано
 
 - **E1-H Analytics** (`T1-41`…`T1-43`) закрыт, Этап 1 (Business) завершён.
-- **T2-01** закрыта: поля `birth_date`, `personal_data_consented_at`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), `User::anonymize()`.
+- **T2-01** закрыта: поля `birth_date`, `personal_data_consented_at` в `users`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), `User::anonymize()`.
 - **T2-02** закрыта: реализован `RegisterClient`, `POST /api/v1/client/auth/register`, отправка OTP и сквозной тест `RegisterClientAndLinkingTest` (критерий приёмки 12.9).
-- Всего 171 тест (703 проверки) зелёные.
+- **T2-03** закрыта: реализованы `DeleteClientAccount`, `GET /api/v1/client/profile`, `DELETE /api/v1/client/profile` (обезличивание аккаунта и отзыв токенов Sanctum с сохранением карточек в залах) и тест `ClientProfileAndDeletionTest`.
+- Всего 172 теста (716 проверок) зелёные.
 
 ## Точный следующий шаг
 
-1. Выполнить **T2-03** (`GET /api/v1/client/profile` и `DELETE /api/v1/client/profile` с обезличиванием аккаунта и отзывом токенов) и завершить эпик **E2-A**.
+1. Получить подтверждение разработчика по декомпозиции эпика **E2-B Visits** (`T2-04`…`T2-10` в `docs/TASKS.md`).
+2. Начать с **T2-04** (`qr_secret` зала и `GymQrLookupInterface` в `Companies`).
 
 ## Окружение: важное про Docker
 

@@ -35,32 +35,21 @@
 - [x] **E1-F Sales**: T1-29…T1-35b — товары (`Product`), управление товарами, домен и инфраструктура продаж (`Sale`, `SaleItem`, `PaymentMark`), касса (`RegisterSale` с атомарной выдачей абонемента и списанием остатков + `Idempotency-Key` + `PaymentMarked`), история покупок клиента и список продаж зала, возврат продажи владельцем (`RefundSale` с возвратом остатков и отменой выданного абонемента через `MembershipCancellerInterface` + `SaleRefunded`)
 - [x] **E1-G Billing**: T1-36…T1-40 — тарифы платформы (`PlatformPlan`), подписка компании (`Subscription`), автоматический пробный период 14 дней (`TrialPolicy`, событие `CompanyRegistered` → `StartTrialOnCompanyRegistered`), просмотр тарифов и подписки, активация тарифа админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate` + `SubscriptionActivated`), ежедневная команда `billing:expire-due`, режим «только чтение» при истёкшем пробном периоде/подписке (`EnsureActiveCompanySubscription`)
 - [x] **E1-H Analytics**: T1-41…T1-43 — контракты аналитики продаж (`SalesAnalyticsQueryInterface`, `RevenueSummary`, `ItemPopularity`) и клиентов (`ClientsAnalyticsQueryInterface`, `ClientsAnalyticsSummary`), модуль `Analytics` (`GetRevenueReport`, `GetOverviewAnalytics`), эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview` (доступ только владельцу — критерий приёмки 12.7)
+- [x] **E2-A Регистрация клиента и связывание с карточками зала**: T2-01…T2-03 — поля `birth_date` и `personal_data_consented_at`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), регистрация `POST /api/v1/client/auth/register` с отправкой OTP и автоматическим связыванием карточек залов после подтверждения номера (критерий 12.9), профиль `GET /api/v1/client/profile` и обезличивание аккаунта по запросу `DELETE /api/v1/client/profile`
 
 ---
 
 ## Этап 2 — Client (приложение клиента)
 
-1. [~] **E2-A Регистрация клиента и связывание с карточками зала** (Бизнес-ТЗ 5.1, 10, 12.9; Тех. ТЗ 7.1, 8, 9.3)
-
-- [x] **T2-01** Поля профиля клиента (`birth_date`, `personal_data_consented_at`), метод обезличивания `User::anonymize()` и доменное правило `ClientRegistrationPolicy` (18+ и согласие)
-- [x] **T2-02** Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`), отправка OTP и автосвязывание карточек залов после подтверждения номера (критерий 12.9)
-
-### T2-03 Профиль клиента и удаление/обезличивание аккаунта по запросу
-- **Статус:** `[~]`
-- **Цель:** реализовать просмотр собственного профиля клиента (`GET /api/v1/client/profile`) и удаление/обезличивание аккаунта по запросу (`DELETE /api/v1/client/profile`) с отзывом токенов и сохранением истории в залах (Бизнес-ТЗ 10, Тех. ТЗ 8).
-- **ТЗ:** Бизнес-ТЗ 2, 10; Тех. ТЗ 7.1, 8.
-- **Файлы:**
-  - `app/Modules/Identity/Application/DeleteClientAccount.php`
-  - `app/Modules/Identity/Presentation/GetClientProfileController.php`
-  - `app/Modules/Identity/Presentation/DeleteClientAccountController.php`
-  - `app/Modules/Identity/Presentation/routes.php`
-  - `tests/Feature/Identity/ClientProfileAndDeletionTest.php`
-- **Шаги:**
-  1. Реализовать Use Case `DeleteClientAccount` (обезличивание `User::anonymize()` и отзыв всех токенов Sanctum пользователя).
-  2. Добавить контроллеры и маршруты `GET /api/v1/client/profile` и `DELETE /api/v1/client/profile`.
-  3. Написать Feature-тест `ClientProfileAndDeletionTest`.
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
-2. [ ] **E2-B** Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность
+2. [ ] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (Бизнес-ТЗ 4.4, 4.6, 5.4, 6.1–6.3, 12.1–12.4; Тех. ТЗ 3.6–3.8, 4.4, 5.3, 5.4, 6.1–6.3, 7.3, 8, 9.1)
+   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
+   - [ ] **T2-04** Секретный ключ QR зала в модуле `Companies`: зашифрованное поле `qr_secret` в таблице `gyms` (`encrypted` cast в Eloquent), автоматическая генерация при создании зала, узкий контракт `GymQrLookupInterface` в `Companies\Contracts` (получение `companyId`, `name` и расшифрованного `qrSecret` по `gymId`), unit-тест.
+   - [ ] **T2-05** Динамический QR-токен в `Visits`: Value Object `QrPayload`, сервис `HmacQrTokenService` (интервал 60 секунд, HMAC-SHA256, `hash_equals`, приём текущего и предыдущего интервала — Бизнес-ТЗ 6.1, критерий 12.3) и эндпоинт экрана ресепшена `GET /api/v1/business/gyms/{id}/qr`, unit/Feature-тесты.
+   - [ ] **T2-06** Домен и инфраструктура посещений (`Visits`): сущность `Visit`, способы отметки (`qr`, `manual`), статусы (`completed`, `cancelled`), событие `VisitRegistered` (`AuditableEvent`), таблица `visits_visits` (с индексом `(gym_id, visited_at)`, защитой от дубля за день и `idempotency_key`), `VisitRepositoryInterface` и `EloquentVisitRepository`, unit-тест.
+   - [ ] **T2-07** Контракт списания посещения в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и цепочка правил `CheckInRule` в `Visits\Domain\Rules` (полиморфизм, Open/Closed — Тех. ТЗ 5.3: проверка активного/подходящего абонемента, заморозки, времени суток, лимита входов в день и повторной отметки за день — критерии 12.1, 12.2, 12.4), unit-тесты.
+   - [ ] **T2-08** Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`: проверка QR, идемпотентность (`Idempotency-Key`), транзакция БД с блокировкой строки абонемента (`lockForUpdate` — Тех. ТЗ 9.1), списание занятия, запись `VisitRegistered` в аудит-лог, Feature-тесты всех состояний из Бизнес-ТЗ 5.4 и критериев 12.1–12.4.
+   - [ ] **T2-09** Ручная отметка посещения администратором (`POST /api/v1/business/clients/{id}/visits`, в том числе задним числом `visited_at` — Бизнес-ТЗ 4.4, 6.3) и отмена ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel` с возвратом списанного занятия и записью в аудит-лог — Бизнес-ТЗ 5.4), Feature-тесты.
+   - [ ] **T2-10** История посещений в кабинете зала (`GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`) и контракт аналитики посещений `VisitsAnalyticsQueryInterface` для модуля `Analytics` (посещения по дням и способу `qr`/`manual`, клиенты, не приходившие более N дней — Бизнес-ТЗ 4.7), Feature-тесты.
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
