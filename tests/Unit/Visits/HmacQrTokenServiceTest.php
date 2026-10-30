@@ -52,3 +52,4 @@ final class HmacQrTokenServiceTest extends TestCase
         }
     }
 }
+

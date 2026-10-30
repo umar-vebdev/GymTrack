@@ -22,3 +22,4 @@ final class InvalidQrToken extends DomainException
         return new self(self::DEFAULT_MESSAGE);
     }
 }
+

@@ -9,3 +9,4 @@ enum VisitStatus: string
     case Completed = 'completed';
     case Cancelled = 'cancelled';
 }
+

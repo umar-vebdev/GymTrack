@@ -127,3 +127,4 @@ final class Visit
         $this->cancelledAt = $at;
     }
 }
+

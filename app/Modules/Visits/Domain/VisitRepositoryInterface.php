@@ -38,3 +38,4 @@ interface VisitRepositoryInterface
      */
     public function listByCompany(int $companyId): array;
 }
+

@@ -9,3 +9,4 @@ enum VisitMethod: string
     case Qr = 'qr';
     case Manual = 'manual';
 }
+

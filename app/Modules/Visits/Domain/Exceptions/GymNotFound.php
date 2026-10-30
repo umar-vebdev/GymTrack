@@ -13,3 +13,4 @@ final class GymNotFound extends DomainException
         parent::__construct('Зал не найден.');
     }
 }
+
