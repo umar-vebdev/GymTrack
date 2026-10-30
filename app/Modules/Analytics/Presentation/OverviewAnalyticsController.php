@@ -40,7 +40,7 @@ final class OverviewAnalyticsController extends Controller
         $from = $request->fromDate($this->clock);
         $to = $request->toDate($this->clock);
 
-        $result = $this->getOverviewAnalytics->execute($companyId, $from, $to);
+        $result = $this->getOverviewAnalytics->execute($companyId, $from, $to, $request->inactiveDays());
 
         return response()->json([
             'data' => [
@@ -51,6 +51,14 @@ final class OverviewAnalyticsController extends Controller
                     'total_clients' => $result->clients->totalClients,
                     'new_clients' => $result->clients->newClients,
                     'existing_clients' => $result->clients->existingClients,
+                ],
+                'visits' => [
+                    'total_visits' => $result->visits->totalVisits,
+                    'qr_visits' => $result->visits->qrVisits,
+                    'manual_visits' => $result->visits->manualVisits,
+                    'by_day' => $result->visits->byDay,
+                    'inactive_days_threshold' => $result->inactiveDaysThreshold,
+                    'inactive_clients_count' => $result->inactiveClientsCount,
                 ],
                 'popular_memberships' => array_map(
                     [self::class, 'serializePopularity'],

@@ -23,7 +23,15 @@ final class AnalyticsPeriodRequest extends FormRequest
         return [
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'inactive_days' => ['nullable', 'integer', 'min:1', 'max:365'],
         ];
+    }
+
+    public function inactiveDays(): int
+    {
+        $raw = $this->validated('inactive_days');
+
+        return $raw === null ? 14 : (int) $raw;
     }
 
     public function fromDate(Clock $clock): DateTimeImmutable

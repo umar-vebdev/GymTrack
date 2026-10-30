@@ -124,6 +124,8 @@ final class AnalyticsEndpointsTest extends TestCase
             ->assertJsonPath('data.clients.total_clients', 2)
             ->assertJsonPath('data.clients.new_clients', 2)
             ->assertJsonPath('data.clients.existing_clients', 0)
+            ->assertJsonPath('data.visits.total_visits', 0)
+            ->assertJsonPath('data.visits.inactive_clients_count', 2)
             ->assertJsonPath('data.popular_memberships.0.item_id', $monthlyId)
             ->assertJsonPath('data.popular_memberships.0.sold_count', 1)
             ->assertJsonPath('data.popular_products.0.item_id', $barId)

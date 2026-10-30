@@ -6,6 +6,7 @@ namespace App\Modules\Visits;
 
 use App\Modules\Visits\Application\CheckInByQr;
 use App\Modules\Visits\Application\CheckInManually;
+use App\Modules\Visits\Contracts\VisitsAnalyticsQueryInterface;
 use App\Modules\Visits\Domain\QrTokenServiceInterface;
 use App\Modules\Visits\Domain\Rules\CheckInRuleInterface;
 use App\Modules\Visits\Domain\Rules\DailyLimitNotExceededRule;
@@ -14,6 +15,7 @@ use App\Modules\Visits\Domain\Rules\NotFrozenRule;
 use App\Modules\Visits\Domain\Rules\WithinAllowedTimeRule;
 use App\Modules\Visits\Domain\VisitRepositoryInterface;
 use App\Modules\Visits\Infrastructure\EloquentVisitRepository;
+use App\Modules\Visits\Infrastructure\EloquentVisitsAnalyticsQuery;
 use App\Modules\Visits\Infrastructure\HmacQrTokenService;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +30,10 @@ final class VisitsServiceProvider extends ServiceProvider
         $this->app->bind(
             VisitRepositoryInterface::class,
             EloquentVisitRepository::class,
+        );
+        $this->app->bind(
+            VisitsAnalyticsQueryInterface::class,
+            EloquentVisitsAnalyticsQuery::class,
         );
 
         $this->app->tag([

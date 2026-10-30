@@ -4,37 +4,30 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-10-30
-**Этап:** 2 — Client (переход к E2-B Visits)
+**Этап:** 2 — Client (завершён эпик E2-B Visits, переход к E2-C Заявки на абонемент)
 **Ветка:** main
 
 ## Текущая задача
 
-- **T2-04** `[x]` Секретный ключ QR зала (`qr_secret`) и контракт `GymQrLookupInterface` в `Companies`.
-- **T2-05** `[x]` Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`.
-- **T2-06** `[x]` Домен и инфраструктура посещений (`Visit`, `visits_visits`, `EloquentVisitRepository`).
-- **T2-07** `[x]` Контракт списания (`MembershipVisitConsumerInterface`, реализация `ConsumeMembershipVisit`, `Membership::restoreVisit`) и 4 правила `CheckInRule`.
-- **T2-08** `[x]` Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`.
-- **T2-09** `[x]` Ручная отметка администратором и отмена в течение 24 ч (`T2-09a`, `T2-09b`).
-- **T2-10** `[~]` — в работе (`T2-10a` `[x]`, `T2-10b` `[~]`): история посещений и аналитика посещаемости.
+- **E2-B Visits** (`T2-04`..`T2-10b`) `[x]` — полностью закрыт.
+- Следующий эпик этапа 2: **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[ ]` — нужно перечитать разделы ТЗ, раскрыть эпик в мелкие задачи и показать разработчику для подтверждения по правилу 4.3 `AGENTS.md`).
 
 ## Последняя сессия: что сделано
 
-- **E1-H Analytics** (`T1-41`…`T1-43`) и **E2-A Регистрация клиента** (`T2-01`…`T2-03`) закрыты.
-- **T2-04** закрыта: зашифрованный `qr_secret` в `gyms`, `GymQrSummary`, `GymQrLookupInterface`.
-- **T2-05** закрыта: `QrPayload`, `HmacQrTokenService`, `GenerateGymQr`, `GET /api/v1/business/gyms/{id}/qr`.
-- **T2-06** закрыта: `Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, миграция `visits_visits` с защитой от дубля за день, `EloquentVisitRepository` и `VisitRepositoryTest`.
-- **T2-07**, **T2-08**, **T2-09**, **T2-10a** закрыты. Всего 202 теста (844 проверки) зелёные, lint/analyse/deps чистые.
+- **T2-07** (`d26f01f`, `52d7471`): контракт `MembershipVisitConsumerInterface` (`ConsumeMembershipVisit`, `Membership::restoreVisit`) и полиморфная цепочка правил `CheckInRule` (`NotFrozenRule`, `MembershipIsAvailableRule`, `DailyLimitNotExceededRule`, `WithinAllowedTimeRule`) с чтением лимита и окна времени из `MembershipRules` (решение D-007).
+- **T2-08** (`839b0b9`, `e006072`, `d0d93c3`): поиск карточки клиента по `user_id` + `company_id` в `ClientLookupInterface`, сценарий `CheckInByQr` и эндпоинт `POST /api/v1/client/visits/check-in` с `Idempotency-Key`, блокировкой абонемента и аудитом.
+- **T2-09** (`5b7ce40`, `b62bcff`): ручная отметка администратором `POST /api/v1/business/clients/{id}/visits` (включая `visited_at` задним числом) и отмена ошибочной отметки в течение 24 ч `POST /api/v1/business/visits/{id}/cancel` с возвратом занятия и событием `VisitCancelled`.
+- **T2-10** (`433e94f` + финальный коммит `T2-10b`): списки посещений `GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`, контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`) и подключение показателей посещаемости и «спящих» клиентов в `GET /api/v1/business/analytics/overview`.
+- Всего 203 теста (851 проверка) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. **T2-10b** — Контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`), реализация `EloquentVisitsAnalyticsQuery` и подключение показателей посещаемости и «спящих» клиентов в модуль `Analytics` (`GetOverviewAnalytics`).
-   - Факты для T2-08b: `QrTokenServiceInterface::verifyForGym($token, $gymId, $secret, $at)`; `GymQrLookupInterface::findById($gymId)` → `GymQrSummary` (`companyId`, `qrSecret`); `VisitRegistered($visitId, $companyId, $gymId, $clientId, $membershipId, $method, $visitedAt, $registeredByUserId, $device)`; правила — `CheckInRuleInterface::validate(CheckInContext)`; уникальный индекс `(client_id, gym_id, visit_date, daily_entry_number)` для `completed`; транзакцию делать через `DB::transaction`, событие слать после коммита (образец — `RegisterSale`).
-   - Токен QR сейчас не содержит `gymId` отдельно от строки `gymId|slot|signature`; `QrPayload::parseTokenString` парсит его.
-2. Допущения D-005/D-006 отменены решением D-007 (лимит и окно времени — из абонемента); подтверждения не требуются.
+1. Перечитать разделы Бизнес-ТЗ (4.5, 5.4 сценарий Б, 12.3, 12.5) и Технического ТЗ (3.6, 9.2) по заявкам на абонемент (`MembershipRequest`).
+2. Детализировать эпик **E2-C Заявки на абонемент (Sales) и их автоотмена** в `docs/TASKS.md` и показать список задач разработчику на подтверждение (правило 4.3 `AGENTS.md`).
 
-## Окружение: важное про Docker
+## Окружение: важное про Docker и Git
 
-- Из песочницы агента сокет Docker не виден: команды `docker compose ...` запускать с обходом песочницы (нужно подтверждение разработчика).
+- Из песочницы агента сокет Docker не виден и `.git` открыт только на чтение: команды `docker compose ...` и `git commit` запускать с `BypassSandbox: true`.
 
 ## Окружение и команды
 
@@ -44,9 +37,9 @@
 | Стиль | `composer lint` |
 | Статический анализ | `composer analyse` |
 | Границы модулей | `composer deps` |
-| Тесты | `docker compose exec -T app composer test` (на хосте нет pgsql) |
+| Тесты | `docker compose exec -T app php artisan test --compact` |
 
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- Новая функция = новый модуль или расширение через Contracts и события.
+- Новая функция = новый модуль или расширение через `Contracts` и события (без прямых JOIN между таблицами разных модулей).
