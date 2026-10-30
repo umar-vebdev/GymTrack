@@ -25,4 +25,3 @@ final class TrialPolicy
         return $startedAt->modify(sprintf('+%d days', $days));
     }
 }
-

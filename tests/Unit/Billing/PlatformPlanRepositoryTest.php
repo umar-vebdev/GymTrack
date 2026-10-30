@@ -75,4 +75,3 @@ final class PlatformPlanRepositoryTest extends TestCase
         );
     }
 }
-

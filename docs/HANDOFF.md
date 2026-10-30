@@ -3,27 +3,25 @@
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
-**Обновлено:** 2026-10-28
-**Этап:** 1 — Business (переход к E1-H Analytics)
+**Обновлено:** 2026-10-30
+**Этап:** 1 — Business (эпик E1-H Analytics)
 **Ветка:** main
 
 ## Текущая задача
 
-- Эпик **E1-G Billing** полностью завершён (`T1-36`…`T1-40`).
-- Следующий эпик: **E1-H Analytics** (`T1-41`…`T1-43`, ожидает подтверждения списка задач разработчиком).
+- **T1-41** `[x]` Контракт аналитики продаж (`SalesAnalyticsQueryInterface`) и его реализация в модуле `Sales`.
+- **T1-42** `[~]` Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация в модуле `Clients`.
+- Следующая задача: **T1-43** (модуль `Analytics` и HTTP-эндпоинты).
 
 ## Последняя сессия: что сделано
 
-- **T1-36** и **T1-37** закрыты: домен и инфраструктура тарифов платформы (`PlatformPlan`, `billing_plans`) и подписки компании (`Subscription`, `TrialPolicy`, `billing_subscriptions`).
-- **T1-38a** и **T1-38b** закрыты: автоматический старт 14-дневного пробного периода при регистрации компании (`CompanyRegistered` → `StartTrialOnCompanyRegistered`), эндпоинты `GET /api/v1/business/billing/plans` и `GET /api/v1/business/billing/subscription`.
-- **T1-39a** и **T1-39b** закрыты: активация подписки админом платформы (`POST /api/v1/platform/companies/{id}/subscription/activate` + аудит `SUBSCRIPTION_ACTIVATED`) и ежедневная команда `billing:expire-due`.
-- **T1-40** закрыта: режим «только чтение» при истёкшем пробном периоде или подписке (`EnsureActiveCompanySubscription`, критерий приёмки 12.8).
-- Всего 163 теста (620 проверок) зелёные.
+- **T1-41** закрыта: добавлены DTO `RevenueSummary` и `ItemPopularity`, интерфейс `SalesAnalyticsQueryInterface` в `Sales\Contracts` и реализация `EloquentSalesAnalyticsQuery` (расчёт выручки только по завершённым продажам `completed`, в разрезе абонементов/товаров и способов оплаты, рейтинг популярности позиций, покрытие `SalesAnalyticsQueryTest`).
+- Всего 164 теста (639 проверок) зелёные.
 
 ## Точный следующий шаг
 
-1. Получить подтверждение разработчика по декомпозиции эпика **E1-H Analytics** (`T1-41`…`T1-43` в `docs/TASKS.md`).
-2. Начать с **T1-41** (`SalesAnalyticsQueryInterface` в `Sales\Contracts`).
+1. Выполнить **T1-42** (`ClientsAnalyticsQueryInterface` в `Clients\Contracts`).
+2. Выполнить **T1-43** (модуль `Analytics`, Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`).
 
 ## Окружение: важное про Docker
 

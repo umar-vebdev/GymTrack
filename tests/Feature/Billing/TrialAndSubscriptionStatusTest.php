@@ -63,4 +63,3 @@ final class TrialAndSubscriptionStatusTest extends TestCase
             ->assertJsonPath('error.code', 'FORBIDDEN');
     }
 }
-

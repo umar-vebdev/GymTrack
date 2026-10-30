@@ -39,12 +39,46 @@
 
 ## Этап 1 — Business (Analytics)
 
-8. [ ] **E1-H Analytics**: отчёты для владельца по отметкам оплаты (выручка в разрезе абонементов/товаров и способов оплаты), популярности абонементов и товаров, новым и постоянным клиентам (Бизнес-ТЗ 4.7, 12.7; Тех. ТЗ 3.6, 3.7 — чтение строго через `Contracts` других модулей)
-   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
-   - [ ] **T1-41** Контракт аналитики продаж в `Sales\Contracts` (`SalesAnalyticsQueryInterface`) и его Eloquent-реализация: агрегация выручки по отметкам оплаты (только `completed`, отдельно по абонементам и товарам, в разрезе способов оплаты `cash`/`card_terminal`/`transfer`) и рейтинг популярности абонементов и товаров за выбранный период (`from`..`to`), unit/integration-тест.
-   - [ ] **T1-42** Контракт аналитики клиентов в `Clients\Contracts` (`ClientsAnalyticsQueryInterface`) и его реализация: подсчёт новых клиентов за период (`created_at` в `from`..`to`) и общего числа клиентов компании, unit/integration-тест.
-   - [ ] **T1-43** Модуль `Analytics`: Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, контроллеры и маршруты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview` (доступ ТОЛЬКО владельцу — критерий приёмки 12.7, администратор получает `403 FORBIDDEN`), `AnalyticsServiceProvider`, Feature-тест `AnalyticsEndpointsTest`.
-   > *(Примечание: отчёты по посещениям по дням/способу и клиентам, не приходившим более N дней, будут дополнены после появления модуля `Visits` на этапе 2).*
+8. [~] **E1-H Analytics**: отчёты для владельца по отметкам оплаты (выручка в разрезе абонементов/товаров и способов оплаты), популярности абонементов и товаров, новым и постоянным клиентам (Бизнес-ТЗ 4.7, 12.7; Тех. ТЗ 3.6, 3.7 — чтение строго через `Contracts` других модулей)
+
+- [x] **T1-41** Контракт аналитики продаж (`SalesAnalyticsQueryInterface`) и его реализация (`RevenueSummary`, `ItemPopularity`, `EloquentSalesAnalyticsQuery`)
+
+### T1-42 Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация
+- **Статус:** `[~]`
+- **Цель:** предоставить модулю `Analytics` контракт чтения показателей по клиентской базе компании за выбранный период (всего клиентов, новые за период, постоянные — созданные до начала периода).
+- **ТЗ:** Бизнес-ТЗ 4.7; Тех. ТЗ 3.4, 3.5, 3.6, 3.7, 4.2 (ISP, DIP).
+- **Файлы:**
+  - `app/Modules/Clients/Contracts/ClientsAnalyticsSummary.php`
+  - `app/Modules/Clients/Contracts/ClientsAnalyticsQueryInterface.php`
+  - `app/Modules/Clients/Infrastructure/EloquentClientsAnalyticsQuery.php`
+  - `app/Modules/Clients/ClientsServiceProvider.php`
+  - `tests/Unit/Clients/ClientsAnalyticsQueryTest.php`
+- **Шаги:**
+  1. Создать DTO `ClientsAnalyticsSummary` (`totalClients`, `newClients`, `existingClients`) и интерфейс `ClientsAnalyticsQueryInterface` в `App\Modules\Clients\Contracts`.
+  2. Реализовать `EloquentClientsAnalyticsQuery` и привязать в `ClientsServiceProvider`.
+  3. Покрыть тестом `ClientsAnalyticsQueryTest` (подсчёт за период и изоляция между компаниями).
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T1-43 Модуль `Analytics`: Use Cases и эндпоинты отчётов для владельца
+- **Статус:** `[ ]`
+- **Цель:** реализовать модуль `Analytics` с эндпоинтами `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`, доступными только владельцу компании (критерий приёмки 12.7).
+- **ТЗ:** Бизнес-ТЗ 2, 4.7, 12.6, 12.7; Тех. ТЗ 3.6, 3.7, 7.1, 7.2, 8.
+- **Файлы:**
+  - `app/Modules/Analytics/Application/GetRevenueReport.php`
+  - `app/Modules/Analytics/Application/GetOverviewAnalytics.php`
+  - `app/Modules/Analytics/Presentation/Requests/AnalyticsPeriodRequest.php`
+  - `app/Modules/Analytics/Presentation/RevenueReportController.php`
+  - `app/Modules/Analytics/Presentation/OverviewAnalyticsController.php`
+  - `app/Modules/Analytics/Presentation/routes.php`
+  - `app/Modules/Analytics/AnalyticsServiceProvider.php`
+  - `bootstrap/providers.php`
+  - `tests/Feature/Analytics/AnalyticsEndpointsTest.php`
+- **Шаги:**
+  1. Создать Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, читающие данные только через `SalesAnalyticsQueryInterface` и `ClientsAnalyticsQueryInterface`.
+  2. Реализовать `AnalyticsPeriodRequest`, контроллеры и маршруты с проверкой роли владельца (`isOwner` → иначе `403 FORBIDDEN`) и активной подписки (`company.active_subscription`).
+  3. Зарегистрировать `AnalyticsServiceProvider` в `bootstrap/providers.php`.
+  4. Написать Feature-тесты `AnalyticsEndpointsTest` (отчёт владельцу, отказ 403 администратору — критерий 12.7, изоляция компаний — критерий 12.6).
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные; этап 1 полностью завершён.
 
 ## Этап 2 — Client (эпики)
 - [ ] **E2-A** Регистрация клиента и связывание с карточками зала

@@ -36,4 +36,3 @@ final class GetCompanySubscription
         return $subscription;
     }
 }
-

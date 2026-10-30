@@ -84,4 +84,3 @@ final class EloquentPlatformPlanRepository implements PlatformPlanRepositoryInte
         );
     }
 }
-

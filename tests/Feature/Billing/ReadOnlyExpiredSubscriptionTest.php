@@ -101,4 +101,3 @@ final class ReadOnlyExpiredSubscriptionTest extends TestCase
             ->assertJsonPath('data.total_minor', 1000);
     }
 }
-

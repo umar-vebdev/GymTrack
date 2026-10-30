@@ -106,4 +106,3 @@ final class Subscription
         $this->status = SubscriptionStatus::Active;
     }
 }
-
