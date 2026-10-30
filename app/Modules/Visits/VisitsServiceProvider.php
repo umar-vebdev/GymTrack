@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Visits;
 
 use App\Modules\Visits\Domain\QrTokenServiceInterface;
+use App\Modules\Visits\Domain\VisitRepositoryInterface;
+use App\Modules\Visits\Infrastructure\EloquentVisitRepository;
 use App\Modules\Visits\Infrastructure\HmacQrTokenService;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,6 +17,10 @@ final class VisitsServiceProvider extends ServiceProvider
         $this->app->bind(
             QrTokenServiceInterface::class,
             HmacQrTokenService::class,
+        );
+        $this->app->bind(
+            VisitRepositoryInterface::class,
+            EloquentVisitRepository::class,
         );
     }
 

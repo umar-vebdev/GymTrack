@@ -11,20 +11,22 @@
 
 - **T2-04** `[x]` Секретный ключ QR зала (`qr_secret`) и контракт `GymQrLookupInterface` в `Companies`.
 - **T2-05** `[x]` Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`.
-- **T2-06** `[~]` Домен и инфраструктура посещений (`Visit`, `visits_visits`, `EloquentVisitRepository`).
-- Следующие задачи эпика E2-B: **T2-07**..**T2-10**.
+- **T2-06** `[x]` Домен и инфраструктура посещений (`Visit`, `visits_visits`, `EloquentVisitRepository`).
+- **T2-07** `[~]` Контракт списания абонемента (`MembershipVisitConsumerInterface`) и цепочка правил `CheckInRule`.
+- Следующие задачи эпика E2-B: **T2-08**..**T2-10**.
 
 ## Последняя сессия: что сделано
 
 - **E1-H Analytics** (`T1-41`…`T1-43`) и **E2-A Регистрация клиента** (`T2-01`…`T2-03`) закрыты.
 - **T2-04** закрыта: зашифрованный `qr_secret` в `gyms`, `GymQrSummary`, `GymQrLookupInterface`.
-- **T2-05** закрыта: реализованы `QrPayload`, `HmacQrTokenService` (интервал 60 с, HMAC-SHA256, `hash_equals`, приём текущего и предыдущего слота — критерий 12.3), Use Case `GenerateGymQr`, эндпоинт `GET /api/v1/business/gyms/{id}/qr` и тесты `HmacQrTokenServiceTest` и `GymQrEndpointTest`.
-- Всего 174 теста (733 проверки) зелёные.
+- **T2-05** закрыта: `QrPayload`, `HmacQrTokenService`, `GenerateGymQr`, `GET /api/v1/business/gyms/{id}/qr`.
+- **T2-06** закрыта: `Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, миграция `visits_visits` с защитой от дубля за день, `EloquentVisitRepository` и `VisitRepositoryTest`.
+- Всего 175 тестов (741 проверка) зелёные.
 
 ## Точный следующий шаг
 
-1. Выполнить **T2-06** (`Visit`, `visits_visits`, `EloquentVisitRepository`).
-2. Выполнить **T2-07** (`MembershipVisitConsumerInterface` и цепочка правил `CheckInRule`).
+1. Выполнить **T2-07** (`MembershipVisitConsumerInterface` в `Memberships\Contracts` и цепочка правил `CheckInRule` в `Visits\Domain\Rules`).
+2. Выполнить **T2-08** (`CheckInByQr` и `POST /api/v1/client/visits/check-in`).
 
 ## Окружение: важное про Docker
 

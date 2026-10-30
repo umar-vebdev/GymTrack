@@ -45,32 +45,29 @@
 
 - [x] **T2-04** Секретный ключ QR зала (`qr_secret` с шифрованием `encrypted`) и контракт `GymQrLookupInterface` в `Companies`
 - [x] **T2-05** Динамический QR-токен (`QrPayload`, `HmacQrTokenService`, интервал 60 с, допуск на предыдущий слот) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`
-
-### T2-06 Домен и инфраструктура посещений (`Visit`, `visits_visits`, `VisitRepository`)
-- **Статус:** `[~]`
-- **Цель:** создать доменную модель посещения `Visit`, перечисления `VisitMethod` (`qr`, `manual`) и `VisitStatus` (`completed`, `cancelled`), событие `VisitRegistered` (`AuditableEvent`), таблицу `visits_visits` и репозиторий `EloquentVisitRepository`.
-- **ТЗ:** Бизнес-ТЗ 3, 5.4, 6.2; Тех. ТЗ 3.6, 3.8, 6.1–6.3, 8.
-- **Файлы:**
-  - `app/Modules/Visits/Domain/VisitMethod.php`
-  - `app/Modules/Visits/Domain/VisitStatus.php`
-  - `app/Modules/Visits/Domain/Visit.php`
-  - `app/Modules/Visits/Domain/Events/VisitRegistered.php`
-  - `app/Modules/Visits/Domain/VisitRepositoryInterface.php`
-  - `app/Modules/Visits/Infrastructure/Migrations/2026_10_06_000002_create_visits_table.php`
-  - `app/Modules/Visits/Infrastructure/Persistence/VisitModel.php`
-  - `app/Modules/Visits/Infrastructure/EloquentVisitRepository.php`
-  - `app/Modules/Visits/VisitsServiceProvider.php`
-  - `tests/Unit/Visits/VisitRepositoryTest.php`
-- **Шаги:**
-  1. Создать `VisitMethod`, `VisitStatus`, богатую сущность `Visit` (с методом отмены `cancel()` в течение 24 часов), событие `VisitRegistered` и `VisitRepositoryInterface`.
-  2. Создать миграцию `visits_visits` (с индексом `(gym_id, visited_at)`, `(company_id, client_id)` и уникальным ключом `(company_id, idempotency_key)`), `VisitModel` и `EloquentVisitRepository`.
-  3. Зарегистрировать `VisitRepositoryInterface` в `VisitsServiceProvider` и покрыть `VisitRepositoryTest`.
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+- [x] **T2-06** Домен и инфраструктура посещений (`Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, `visits_visits`, `EloquentVisitRepository`)
 
 ### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`
-- **Статус:** `[ ]`
-- **Цель:** реализовать узкий контракт списания/возврата занятия с блокировкой строки в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules`.
+- **Статус:** `[~]`
+- **Цель:** реализовать узкий контракт блокировки, списания и возврата занятия в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules` (проверка активного абонемента, заморозки, времени суток и лимита входов за день).
 - **ТЗ:** Бизнес-ТЗ 4.3, 5.4, 12.1, 12.2, 12.4; Тех. ТЗ 4.1, 4.2, 4.4, 5.3, 9.1.
+- **Файлы:**
+  - `app/Modules/Memberships/Contracts/CheckInMembershipCandidate.php`
+  - `app/Modules/Memberships/Contracts/MembershipVisitConsumerInterface.php`
+  - `app/Modules/Memberships/Application/ConsumeMembershipVisit.php`
+  - `app/Modules/Memberships/MembershipsServiceProvider.php`
+  - `app/Modules/Visits/Domain/Exceptions/CheckInDenied.php`
+  - `app/Modules/Visits/Domain/Rules/CheckInContext.php`
+  - `app/Modules/Visits/Domain/Rules/CheckInRuleInterface.php`
+  - `app/Modules/Visits/Domain/Rules/MembershipIsAvailableRule.php`
+  - `app/Modules/Visits/Domain/Rules/NotFrozenRule.php`
+  - `app/Modules/Visits/Domain/Rules/WithinAllowedTimeRule.php`
+  - `app/Modules/Visits/Domain/Rules/DailyLimitNotExceededRule.php`
+  - `tests/Unit/Visits/CheckInRulesTest.php`
+- **Шаги:**
+  1. Создать DTO `CheckInMembershipCandidate` и контракт `MembershipVisitConsumerInterface` в `Memberships\Contracts` (поиск подходящего или замороженного абонемента клиента с `lockForUpdate`, списание занятия `consumeVisit()` и возврат занятия при отмене отметки `restoreVisit()`).
+  2. Создать `CheckInDenied`, `CheckInContext`, интерфейс `CheckInRuleInterface` и 4 правила: `MembershipIsAvailableRule`, `NotFrozenRule`, `WithinAllowedTimeRule`, `DailyLimitNotExceededRule`.
+  3. Написать unit-тесты `CheckInRulesTest` на все правила и состояния из Бизнес-ТЗ 5.4.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
 
 ### T2-08 Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`
