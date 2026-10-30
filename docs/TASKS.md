@@ -49,20 +49,15 @@
 
 - [x] **T2-07** Контракт списания абонемента (`MembershipVisitConsumerInterface`, `ConsumeMembershipVisit`) и цепочка правил `CheckInRule` (D-007)
 - [x] **T2-08** Сценарий отметки по QR (`CheckInByQr`, `T2-08a`..`T2-08c`) и эндпоинт `POST /api/v1/client/visits/check-in`
-
-### T2-09 Ручная отметка посещения администратором и отмена ошибочной отметки в течение 24 часов
-- **Статус:** `[~]`
-- **Цель:** реализовать ручную отметку посещения сотрудником зала (`POST /api/v1/business/clients/{id}/visits`, включая `visited_at` задним числом) и отмену ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel`) с возвратом занятия и аудитом.
-- **ТЗ:** Бизнес-ТЗ 4.4, 5.4, 6.3; Тех. ТЗ 8.
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
-- [x] **T2-09a** Ручная отметка (`CheckInManually`, `ManualCheckInRequest`, `ManualCheckInController`, `POST /api/v1/business/clients/{id}/visits` с `gym_id`, необязательным `visited_at` задним числом и `Idempotency-Key`, тесты).
-- [~] **T2-09b** Отмена отметки в течение 24 часов (`VisitCancelled` событие аудита, `CancelVisit`, `CancelVisitRequest`, `CancelVisitController`, `POST /api/v1/business/visits/{id}/cancel` с `restoreVisit()`, тесты).
+- [x] **T2-09** Ручная отметка посещения администратором (`POST /api/v1/business/clients/{id}/visits`, `T2-09a`) и отмена ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel`, `T2-09b`)
 
 ### T2-10 История посещений зала и аналитика посещаемости (`VisitsAnalyticsQueryInterface`)
-- **Статус:** `[ ]`
+- **Статус:** `[~]`
 - **Цель:** реализовать список посещений клиента и зала (`GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`) и подключить показатели посещений и «спящих» клиентов (не приходивших более N дней) в модуль `Analytics`.
 - **ТЗ:** Бизнес-ТЗ 4.4, 4.7; Тех. ТЗ 3.6, 3.7.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные; эпик E2-B завершён.
+- [~] **T2-10a** Список посещений клиента и компании (`ListClientVisits`, `ListCompanyVisits`, `ListClientVisitsController`, `ListCompanyVisitsController`, `GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`, тесты).
+- [ ] **T2-10b** Контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`), реализация `EloquentVisitsAnalyticsQuery` (посещения за период + «спящие» клиенты без визитов > N дней), интеграция в `GetOverviewAnalytics` и тесты.
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
