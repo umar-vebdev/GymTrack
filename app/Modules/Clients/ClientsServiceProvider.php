@@ -6,9 +6,11 @@ namespace App\Modules\Clients;
 
 use App\Modules\Clients\Application\Listeners\LinkUserToClients;
 use App\Modules\Clients\Contracts\ClientLookupInterface;
+use App\Modules\Clients\Contracts\ClientsAnalyticsQueryInterface;
 use App\Modules\Clients\Domain\ClientRepositoryInterface;
 use App\Modules\Clients\Infrastructure\EloquentClientLookup;
 use App\Modules\Clients\Infrastructure\EloquentClientRepository;
+use App\Modules\Clients\Infrastructure\EloquentClientsAnalyticsQuery;
 use App\Modules\Identity\Contracts\PhoneVerified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +26,10 @@ final class ClientsServiceProvider extends ServiceProvider
         $this->app->bind(
             ClientRepositoryInterface::class,
             EloquentClientRepository::class
+        );
+        $this->app->bind(
+            ClientsAnalyticsQueryInterface::class,
+            EloquentClientsAnalyticsQuery::class
         );
     }
 

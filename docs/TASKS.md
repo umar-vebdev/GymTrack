@@ -42,25 +42,10 @@
 8. [~] **E1-H Analytics**: отчёты для владельца по отметкам оплаты (выручка в разрезе абонементов/товаров и способов оплаты), популярности абонементов и товаров, новым и постоянным клиентам (Бизнес-ТЗ 4.7, 12.7; Тех. ТЗ 3.6, 3.7 — чтение строго через `Contracts` других модулей)
 
 - [x] **T1-41** Контракт аналитики продаж (`SalesAnalyticsQueryInterface`) и его реализация (`RevenueSummary`, `ItemPopularity`, `EloquentSalesAnalyticsQuery`)
-
-### T1-42 Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация
-- **Статус:** `[~]`
-- **Цель:** предоставить модулю `Analytics` контракт чтения показателей по клиентской базе компании за выбранный период (всего клиентов, новые за период, постоянные — созданные до начала периода).
-- **ТЗ:** Бизнес-ТЗ 4.7; Тех. ТЗ 3.4, 3.5, 3.6, 3.7, 4.2 (ISP, DIP).
-- **Файлы:**
-  - `app/Modules/Clients/Contracts/ClientsAnalyticsSummary.php`
-  - `app/Modules/Clients/Contracts/ClientsAnalyticsQueryInterface.php`
-  - `app/Modules/Clients/Infrastructure/EloquentClientsAnalyticsQuery.php`
-  - `app/Modules/Clients/ClientsServiceProvider.php`
-  - `tests/Unit/Clients/ClientsAnalyticsQueryTest.php`
-- **Шаги:**
-  1. Создать DTO `ClientsAnalyticsSummary` (`totalClients`, `newClients`, `existingClients`) и интерфейс `ClientsAnalyticsQueryInterface` в `App\Modules\Clients\Contracts`.
-  2. Реализовать `EloquentClientsAnalyticsQuery` и привязать в `ClientsServiceProvider`.
-  3. Покрыть тестом `ClientsAnalyticsQueryTest` (подсчёт за период и изоляция между компаниями).
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+- [x] **T1-42** Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация (`ClientsAnalyticsSummary`, `EloquentClientsAnalyticsQuery`)
 
 ### T1-43 Модуль `Analytics`: Use Cases и эндпоинты отчётов для владельца
-- **Статус:** `[ ]`
+- **Статус:** `[~]`
 - **Цель:** реализовать модуль `Analytics` с эндпоинтами `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`, доступными только владельцу компании (критерий приёмки 12.7).
 - **ТЗ:** Бизнес-ТЗ 2, 4.7, 12.6, 12.7; Тех. ТЗ 3.6, 3.7, 7.1, 7.2, 8.
 - **Файлы:**

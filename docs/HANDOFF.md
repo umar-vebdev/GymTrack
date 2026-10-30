@@ -10,18 +10,18 @@
 ## Текущая задача
 
 - **T1-41** `[x]` Контракт аналитики продаж (`SalesAnalyticsQueryInterface`) и его реализация в модуле `Sales`.
-- **T1-42** `[~]` Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация в модуле `Clients`.
-- Следующая задача: **T1-43** (модуль `Analytics` и HTTP-эндпоинты).
+- **T1-42** `[x]` Контракт аналитики клиентов (`ClientsAnalyticsQueryInterface`) и его реализация в модуле `Clients`.
+- **T1-43** `[~]` Модуль `Analytics`: Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`.
 
 ## Последняя сессия: что сделано
 
-- **T1-41** закрыта: добавлены DTO `RevenueSummary` и `ItemPopularity`, интерфейс `SalesAnalyticsQueryInterface` в `Sales\Contracts` и реализация `EloquentSalesAnalyticsQuery` (расчёт выручки только по завершённым продажам `completed`, в разрезе абонементов/товаров и способов оплаты, рейтинг популярности позиций, покрытие `SalesAnalyticsQueryTest`).
-- Всего 164 теста (639 проверок) зелёные.
+- **T1-41** закрыта: добавлены DTO `RevenueSummary` и `ItemPopularity`, интерфейс `SalesAnalyticsQueryInterface` в `Sales\Contracts` и реализация `EloquentSalesAnalyticsQuery`.
+- **T1-42** закрыта: добавлены DTO `ClientsAnalyticsSummary`, интерфейс `ClientsAnalyticsQueryInterface` в `Clients\Contracts` и реализация `EloquentClientsAnalyticsQuery` + тест `ClientsAnalyticsQueryTest`.
+- Всего 165 тестов (642 проверки) зелёные.
 
 ## Точный следующий шаг
 
-1. Выполнить **T1-42** (`ClientsAnalyticsQueryInterface` в `Clients\Contracts`).
-2. Выполнить **T1-43** (модуль `Analytics`, Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`).
+1. Выполнить **T1-43** (модуль `Analytics`, Use Cases `GetRevenueReport` и `GetOverviewAnalytics`, эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`, проверка роли владельца — критерий приёмки 12.7).
 
 ## Окружение: важное про Docker
 
