@@ -10,19 +10,19 @@
 ## Текущая задача
 
 - **T2-01** `[x]` Поля профиля клиента (`birth_date`, `personal_data_consented_at`) и правило 18+ в `Identity`.
-- **T2-02** `[~]` Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`) и автосвязывание карточек (критерий 12.9).
-- Следующая задача: **T2-03** (профиль клиента и обезличивание аккаунта).
+- **T2-02** `[x]` Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`) и автосвязывание карточек (критерий 12.9).
+- **T2-03** `[~]` Профиль клиента и удаление/обезличивание аккаунта по запросу (`GET /api/v1/client/profile`, `DELETE /api/v1/client/profile`).
 
 ## Последняя сессия: что сделано
 
 - **E1-H Analytics** (`T1-41`…`T1-43`) закрыт, Этап 1 (Business) завершён.
-- **T2-01** закрыта: добавлена миграция `add_client_fields_to_users_table` (`birth_date`, `personal_data_consented_at`), доменное правило `ClientRegistrationPolicy` (возраст ≥ 18 лет и согласие на обработку персональных данных), исключение `ClientRegistrationDenied`, расширены `Domain\User` (включая `anonymize()`), `UserRepositoryInterface`, `EloquentUserRepository` и `UserRepositoryTest`.
-- Всего 169 тестов (683 проверки) зелёные.
+- **T2-01** закрыта: поля `birth_date`, `personal_data_consented_at`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), `User::anonymize()`.
+- **T2-02** закрыта: реализован `RegisterClient`, `POST /api/v1/client/auth/register`, отправка OTP и сквозной тест `RegisterClientAndLinkingTest` (критерий приёмки 12.9).
+- Всего 171 тест (703 проверки) зелёные.
 
 ## Точный следующий шаг
 
-1. Выполнить **T2-02** (`RegisterClient`, `POST /api/v1/client/auth/register`, сквозной тест с подтверждением телефона и автосвязыванием карточек зала).
-2. Выполнить **T2-03** (`GET /api/v1/client/profile` и `DELETE /api/v1/client/profile`).
+1. Выполнить **T2-03** (`GET /api/v1/client/profile` и `DELETE /api/v1/client/profile` с обезличиванием аккаунта и отзывом токенов) и завершить эпик **E2-A**.
 
 ## Окружение: важное про Docker
 
