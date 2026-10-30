@@ -55,4 +55,3 @@ final class GymQrEndpointTest extends TestCase
             ->assertJsonPath('error.code', 'GYM_NOT_FOUND');
     }
 }
-

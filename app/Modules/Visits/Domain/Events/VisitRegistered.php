@@ -82,4 +82,3 @@ final class VisitRegistered implements AuditableEvent, DomainEvent
         return null;
     }
 }
-

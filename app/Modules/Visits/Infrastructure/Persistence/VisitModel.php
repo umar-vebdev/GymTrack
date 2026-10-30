@@ -55,4 +55,3 @@ final class VisitModel extends Model
         'cancelled_at' => 'datetime',
     ];
 }
-

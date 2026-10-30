@@ -9,10 +9,10 @@ use DateTimeImmutable;
 /**
  * Data Transfer Object (DTO) representing a candidate membership for a check‑in.
  *
- * @property int $membershipId           Идентификатор абонемента.
- * @property int $remainingVisits       Осталось посещений (null – без ограничения).
- * @property DateTimeImmutable $expiresAt  Дата истечения (null – бессрочно).
- * @property bool $isFrozen               Заморожен ли абонемент.
+ * @property int $membershipId Идентификатор абонемента.
+ * @property int $remainingVisits Осталось посещений (null – без ограничения).
+ * @property DateTimeImmutable $expiresAt Дата истечения (null – бессрочно).
+ * @property bool $isFrozen Заморожен ли абонемент.
  */
 final class CheckInMembershipCandidate
 {

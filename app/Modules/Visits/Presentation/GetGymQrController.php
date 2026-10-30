@@ -59,4 +59,3 @@ final class GetGymQrController extends Controller
         ]);
     }
 }
-

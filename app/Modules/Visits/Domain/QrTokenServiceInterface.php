@@ -20,4 +20,3 @@ interface QrTokenServiceInterface
      */
     public function verifyForGym(string $token, int $gymId, string $secret, DateTimeImmutable $at): void;
 }
-

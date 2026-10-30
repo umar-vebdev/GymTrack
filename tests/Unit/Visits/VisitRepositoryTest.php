@@ -91,4 +91,3 @@ final class VisitRepositoryTest extends TestCase
         $this->assertSame(0, $visits->countCompletedForClientInGymOnDate($clientId, $gymId, '2026-10-30'));
     }
 }
-

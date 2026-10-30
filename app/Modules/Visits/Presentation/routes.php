@@ -10,4 +10,3 @@ Route::prefix('api/v1/business')
     ->group(function () {
         Route::get('/gyms/{id}/qr', GetGymQrController::class);
     });
-
