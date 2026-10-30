@@ -44,33 +44,27 @@
 2. [~] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (Бизнес-ТЗ 4.4, 4.6, 5.4, 6.1–6.3, 12.1–12.4; Тех. ТЗ 3.6–3.8, 4.4, 5.3, 5.4, 6.1–6.3, 7.3, 8, 9.1)
 
 - [x] **T2-04** Секретный ключ QR зала (`qr_secret` с шифрованием `encrypted`) и контракт `GymQrLookupInterface` в `Companies`
-
-### T2-05 Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`
-- **Статус:** `[~]`
-- **Цель:** реализовать генерацию и проверку динамического QR-кода зала с интервалом 60 секунд и подписью HMAC-SHA256 (`hash_equals`, приём текущего и предыдущего интервала — Бизнес-ТЗ 6.1, критерий 12.3) и эндпоинт показа QR для экрана ресепшена.
-- **ТЗ:** Бизнес-ТЗ 4.6, 6.1, 12.3; Тех. ТЗ 3.6, 5.4, 5.5, 8.
-- **Файлы:**
-  - `app/Modules/Visits/Domain/QrPayload.php`
-  - `app/Modules/Visits/Domain/QrTokenServiceInterface.php`
-  - `app/Modules/Visits/Domain/Exceptions/InvalidQrToken.php`
-  - `app/Modules/Visits/Infrastructure/HmacQrTokenService.php`
-  - `app/Modules/Visits/Application/GenerateGymQr.php`
-  - `app/Modules/Visits/Presentation/GetGymQrController.php`
-  - `app/Modules/Visits/Presentation/routes.php`
-  - `app/Modules/Visits/VisitsServiceProvider.php`
-  - `bootstrap/providers.php`
-  - `tests/Unit/Visits/HmacQrTokenServiceTest.php`
-  - `tests/Feature/Visits/GymQrEndpointTest.php`
-- **Шаги:**
-  1. Создать Value Object `QrPayload`, интерфейс `QrTokenServiceInterface`, исключение `InvalidQrToken` и реализацию `HmacQrTokenService`.
-  2. Создать Use Case `GenerateGymQr`, контроллер `GetGymQrController` (`GET /api/v1/business/gyms/{id}/qr`), `VisitsServiceProvider`.
-  3. Покрыть unit- и Feature-тестами (текущий и предыдущий слот принимаются, слот старше 2 минут или с чужой подписью отклоняется, изоляция залов между компаниями).
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+- [x] **T2-05** Динамический QR-токен (`QrPayload`, `HmacQrTokenService`, интервал 60 с, допуск на предыдущий слот) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`
 
 ### T2-06 Домен и инфраструктура посещений (`Visit`, `visits_visits`, `VisitRepository`)
-- **Статус:** `[ ]`
-- **Цель:** создать доменную модель посещения `Visit`, событие `VisitRegistered` (`AuditableEvent`), таблицу `visits_visits` и репозиторий `EloquentVisitRepository`.
+- **Статус:** `[~]`
+- **Цель:** создать доменную модель посещения `Visit`, перечисления `VisitMethod` (`qr`, `manual`) и `VisitStatus` (`completed`, `cancelled`), событие `VisitRegistered` (`AuditableEvent`), таблицу `visits_visits` и репозиторий `EloquentVisitRepository`.
 - **ТЗ:** Бизнес-ТЗ 3, 5.4, 6.2; Тех. ТЗ 3.6, 3.8, 6.1–6.3, 8.
+- **Файлы:**
+  - `app/Modules/Visits/Domain/VisitMethod.php`
+  - `app/Modules/Visits/Domain/VisitStatus.php`
+  - `app/Modules/Visits/Domain/Visit.php`
+  - `app/Modules/Visits/Domain/Events/VisitRegistered.php`
+  - `app/Modules/Visits/Domain/VisitRepositoryInterface.php`
+  - `app/Modules/Visits/Infrastructure/Migrations/2026_10_06_000002_create_visits_table.php`
+  - `app/Modules/Visits/Infrastructure/Persistence/VisitModel.php`
+  - `app/Modules/Visits/Infrastructure/EloquentVisitRepository.php`
+  - `app/Modules/Visits/VisitsServiceProvider.php`
+  - `tests/Unit/Visits/VisitRepositoryTest.php`
+- **Шаги:**
+  1. Создать `VisitMethod`, `VisitStatus`, богатую сущность `Visit` (с методом отмены `cancel()` в течение 24 часов), событие `VisitRegistered` и `VisitRepositoryInterface`.
+  2. Создать миграцию `visits_visits` (с индексом `(gym_id, visited_at)`, `(company_id, client_id)` и уникальным ключом `(company_id, idempotency_key)`), `VisitModel` и `EloquentVisitRepository`.
+  3. Зарегистрировать `VisitRepositoryInterface` в `VisitsServiceProvider` и покрыть `VisitRepositoryTest`.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
 
 ### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`

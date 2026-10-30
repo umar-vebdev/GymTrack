@@ -10,6 +10,7 @@ use App\Modules\Companies\CompaniesServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Memberships\MembershipsServiceProvider;
 use App\Modules\Sales\SalesServiceProvider;
+use App\Modules\Visits\VisitsServiceProvider;
 use App\Providers\AppServiceProvider;
 
 return [
@@ -22,4 +23,5 @@ return [
     SalesServiceProvider::class,
     BillingServiceProvider::class,
     AnalyticsServiceProvider::class,
+    VisitsServiceProvider::class,
 ];
