@@ -15,6 +15,9 @@ function checkInContext(
     ?DateTimeImmutable $expiresAt = null,
     bool $frozen = false,
     string $now = '2026-10-30 12:00:00',
+    int $dailyLimit = 1,
+    ?int $from = null,
+    ?int $to = null,
 ): CheckInContext {
     return new CheckInContext(
         companyId: 1,
@@ -24,6 +27,9 @@ function checkInContext(
         remainingVisits: $remaining,
         membershipExpiresAt: $expiresAt,
         membershipFrozen: $frozen,
+        dailyLimit: $dailyLimit,
+        timeFromMinute: $from,
+        timeToMinute: $to,
     );
 }
 
@@ -64,20 +70,34 @@ test('not frozen rule passes and denies', function () {
         ->toContain(CheckInDenied::REASON_FROZEN);
 });
 
-test('time rule allows opening hours and denies outside them', function () {
-    $rule = new WithinAllowedTimeRule;
+test('time rule allows any time when membership has no window', function () {
+    expect(denialReason(fn () => (new WithinAllowedTimeRule)->validate(checkInContext(now: '2026-10-30 03:00:00'))))->toBeNull();
+});
 
-    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 06:00:00'))))->toBeNull();
-    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 21:59:00'))))->toBeNull();
-    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 05:59:00'))))
+test('time rule enforces membership window, right bound exclusive', function () {
+    $rule = new WithinAllowedTimeRule;
+    $morning = [480, 720]; // 08:00–12:00
+
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 08:00:00', from: 480, to: 720))))->toBeNull();
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 11:59:00', from: $morning[0], to: $morning[1]))))->toBeNull();
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 07:59:00', from: 480, to: 720))))
         ->toContain(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
-    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 22:00:00'))))
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 12:00:00', from: 480, to: 720))))
         ->toContain(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
 });
 
-test('daily limit rule passes under limit and denies at limit', function () {
-    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(1)))->validate(checkInContext())))
-        ->toBeNull();
-    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(2)))->validate(checkInContext())))
+test('daily limit defaults to one entry per day', function () {
+    $ctx = checkInContext();
+
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(0)))->validate($ctx)))->toBeNull();
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(1)))->validate($ctx)))
+        ->toContain(CheckInDenied::REASON_DAILY_LIMIT_EXCEEDED);
+});
+
+test('daily limit follows membership setting', function () {
+    $ctx = checkInContext(dailyLimit: 3);
+
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(2)))->validate($ctx)))->toBeNull();
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(3)))->validate($ctx)))
         ->toContain(CheckInDenied::REASON_DAILY_LIMIT_EXCEEDED);
 });

@@ -7,20 +7,20 @@ namespace App\Modules\Visits\Domain\Rules;
 use App\Modules\Visits\Domain\Exceptions\CheckInDenied;
 
 /**
- * Rule that validates the check‑in occurs within allowed gym opening hours.
- *
- * @assumption: Opening hours are fixed 06:00‑22:00 (UTC). To be replaced by a proper GymOpeningHours entity.
+ * Если у абонемента задано окно времени суток, отметка допустима только внутри него
+ * (минуты от 00:00 UTC, правая граница не включается). Без окна — в любое время (Бизнес-ТЗ 4.3, 5.4).
  */
 final class WithinAllowedTimeRule implements CheckInRuleInterface
 {
-    private const string OPEN_HOUR = '06:00';
-
-    private const string CLOSE_HOUR = '22:00';
-
     public function validate(CheckInContext $ctx): void
     {
-        $time = $ctx->now->format('H:i');
-        if ($time < self::OPEN_HOUR || $time >= self::CLOSE_HOUR) {
+        if ($ctx->timeFromMinute === null || $ctx->timeToMinute === null) {
+            return;
+        }
+
+        $minute = (int) $ctx->now->format('G') * 60 + (int) $ctx->now->format('i');
+
+        if ($minute < $ctx->timeFromMinute || $minute >= $ctx->timeToMinute) {
             throw CheckInDenied::forReason(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
         }
     }

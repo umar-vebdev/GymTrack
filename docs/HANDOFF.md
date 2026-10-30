@@ -13,7 +13,7 @@
 - **T2-05** `[x]` Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`.
 - **T2-06** `[x]` Домен и инфраструктура посещений (`Visit`, `visits_visits`, `EloquentVisitRepository`).
 - **T2-07** `[x]` Контракт списания (`MembershipVisitConsumerInterface`, реализация `ConsumeMembershipVisit`, `Membership::restoreVisit`) и 4 правила `CheckInRule`.
-- **T2-08** `[ ]` — следующая: `CheckInByQr` + `POST /api/v1/client/visits/check-in`.
+- **T2-08** `[ ]` — следующая (разбита на T2-08a/b/c): `CheckInByQr` + `POST /api/v1/client/visits/check-in`.
 - Дальше в эпике E2-B: **T2-09**, **T2-10**.
 
 ## Последняя сессия: что сделано
@@ -26,8 +26,10 @@
 
 ## Точный следующий шаг
 
-1. **T2-08**: Use Case `CheckInByQr` (проверка QR через `QrTokenServiceInterface::verifyForGym($token, $gymId, $secret, $at)` и `GymQrLookupInterface`; `findCandidate` → `CheckInContext` → цепочка правил → `consumeVisit` → `VisitRepository::create` → событие `VisitRegistered($visitId, $companyId, $gymId, $clientId, $membershipId, $method, $visitedAt, $registeredByUserId, $device)`), всё в одной транзакции с `Idempotency-Key`. Клиентский маршрут вне группы `business`; как определить `clientId` из пользователя — сверить со схемой `clients`/`users` (не угадывать). Правила регистрировать в `VisitsServiceProvider`.
-2. Подтвердить у разработчика допущения D-005 и D-006.
+1. **T2-08a** — контракт `Clients`: `ClientLookupInterface::findIdByUser(int $userId, int $companyId): ?int` (карточка клиента по `clients.user_id` + `company_id`), реализация, тест. Затем **T2-08b** (Use Case) и **T2-08c** (эндпоинт) — см. `TASKS.md`.
+   - Факты для T2-08b: `QrTokenServiceInterface::verifyForGym($token, $gymId, $secret, $at)`; `GymQrLookupInterface::findById($gymId)` → `GymQrSummary` (`companyId`, `qrSecret`); `VisitRegistered($visitId, $companyId, $gymId, $clientId, $membershipId, $method, $visitedAt, $registeredByUserId, $device)`; правила — `CheckInRuleInterface::validate(CheckInContext)`; уникальный индекс `(client_id, gym_id, visit_date, daily_entry_number)` для `completed`; транзакцию делать через `DB::transaction`, событие слать после коммита (образец — `RegisterSale`).
+   - Токен QR сейчас не содержит `gymId` отдельно от строки `gymId|slot|signature`; `QrPayload::parseTokenString` парсит его.
+2. Допущения D-005/D-006 отменены решением D-007 (лимит и окно времени — из абонемента); подтверждения не требуются.
 
 ## Окружение: важное про Docker
 

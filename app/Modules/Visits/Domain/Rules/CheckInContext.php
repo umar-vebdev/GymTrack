@@ -20,5 +20,8 @@ final class CheckInContext
         public readonly ?int $remainingVisits,
         public readonly ?DateTimeImmutable $membershipExpiresAt,
         public readonly bool $membershipFrozen,
+        public readonly int $dailyLimit,
+        public readonly ?int $timeFromMinute,
+        public readonly ?int $timeToMinute,
     ) {}
 }

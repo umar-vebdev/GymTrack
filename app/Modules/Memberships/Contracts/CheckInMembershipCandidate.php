@@ -7,12 +7,8 @@ namespace App\Modules\Memberships\Contracts;
 use DateTimeImmutable;
 
 /**
- * Data Transfer Object (DTO) representing a candidate membership for a check‑in.
- *
- * @property int $membershipId Идентификатор абонемента.
- * @property int $remainingVisits Осталось посещений (null – без ограничения).
- * @property DateTimeImmutable $expiresAt Дата истечения (null – бессрочно).
- * @property bool $isFrozen Заморожен ли абонемент.
+ * DTO выбранного для отметки абонемента: только то, что нужно модулю Visits для проверки правил.
+ * Лимит входов в день и окно времени суток (в минутах от 00:00 UTC) задаются типом абонемента (Бизнес-ТЗ 4.3).
  */
 final class CheckInMembershipCandidate
 {
@@ -21,5 +17,8 @@ final class CheckInMembershipCandidate
         public readonly ?int $remainingVisits,
         public readonly ?DateTimeImmutable $expiresAt,
         public readonly bool $isFrozen,
+        public readonly int $dailyLimit,
+        public readonly ?int $timeFromMinute,
+        public readonly ?int $timeToMinute,
     ) {}
 }

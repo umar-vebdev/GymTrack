@@ -78,6 +78,9 @@ final class ConsumeMembershipVisitTest extends TestCase
         $this->assertNotNull($candidate);
         $this->assertSame($sooner, $candidate->membershipId);
         $this->assertFalse($candidate->isFrozen);
+        $this->assertSame(1, $candidate->dailyLimit);
+        $this->assertNull($candidate->timeFromMinute);
+        $this->assertNull($candidate->timeToMinute);
     }
 
     public function test_frozen_membership_is_returned_only_when_nothing_usable(): void

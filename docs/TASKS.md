@@ -49,7 +49,7 @@
 
 ### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`
 - **Статус:** `[x]`
-- **Заметки:** `CheckInContext` хранит простые поля (не DTO из `Memberships`), иначе Deptrac запрещает зависимость Domain → чужие Contracts; маппинг делает Use Case в T2-08. Реализация контракта — `ConsumeMembershipVisit`; в сущность добавлен `Membership::restoreVisit()`. Часы работы 06:00–22:00 и лимит 2 входа в день — допущения D-005, D-006 (ждут подтверждения). Правила в `DailyLimitNotExceededRule` пока не сверяют лимит с `MembershipRules` абонемента — учесть в T2-08.
+- **Заметки:** `CheckInContext` хранит простые поля (не DTO из `Memberships`), иначе Deptrac запрещает зависимость Domain → чужие Contracts; маппинг делает Use Case в T2-08. Реализация контракта — `ConsumeMembershipVisit`; в сущность добавлен `Membership::restoreVisit()`. Лимит входов в день и окно времени берутся из `MembershipRules` абонемента (D-007, отменяет D-005/D-006). Пояс зала для расчёта «дня» пока UTC.
 - **Цель:** реализовать узкий контракт блокировки, списания и возврата занятия в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules` (проверка активного абонемента, заморозки, времени суток и лимита входов за день).
 - **ТЗ:** Бизнес-ТЗ 4.3, 5.4, 12.1, 12.2, 12.4; Тех. ТЗ 4.1, 4.2, 4.4, 5.3, 9.1.
 - **Файлы:**
@@ -71,11 +71,14 @@
   3. Написать unit-тесты `CheckInRulesTest` на все правила и состояния из Бизнес-ТЗ 5.4.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
 
-### T2-08 Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`
+### T2-08 Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in` (разбита на подзадачи)
 - **Статус:** `[ ]`
-- **Цель:** реализовать транзакционную идемпотентную отметку посещения клиентом по QR с блокировкой абонемента (`lockForUpdate`), проверкой всех правил `CheckInRule` и записью в аудит-лог.
+- **Цель:** транзакционная идемпотентная отметка посещения клиентом по QR с блокировкой абонемента (`lockForUpdate`), проверкой всех правил `CheckInRule` и записью в аудит-лог (событие `VisitRegistered` после коммита).
 - **ТЗ:** Бизнес-ТЗ 5.4, 12.1–12.4; Тех. ТЗ 5.4, 7.3, 9.1.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+- [ ] **T2-08a** Контракт `Clients`: найти карточку клиента по `user_id` и компании (`clients.user_id` + `company_id`; один пользователь — по карточке в каждом зале). Файлы: `ClientLookupInterface` (+ метод), реализация, тест.
+- [ ] **T2-08b** Use Case `CheckInByQr` (`CheckInCommand`, `CheckInResult`): `GymQrLookupInterface` → `QrTokenServiceInterface::verifyForGym` → `Idempotency-Key` → транзакция → `findCandidate` → `CheckInContext` → правила → `consumeVisit` → `VisitRepository::create` → `VisitRegistered`; регистрация правил в `VisitsServiceProvider`; интеграционные тесты Use Case.
+- [ ] **T2-08c** Эндпоинт: `CheckInRequest` (FormRequest), контроллер, маршрут `/api/v1/client/visits/check-in` (вне группы `business`), маппинг `CheckInDenied`/`InvalidQrToken` на коды ошибок, feature-тесты (успех, повтор по ключу, уже отмечен, заморожен, чужой QR).
 
 ### T2-09 Ручная отметка посещения администратором и отмена ошибочной отметки в течение 24 часов
 - **Статус:** `[ ]`

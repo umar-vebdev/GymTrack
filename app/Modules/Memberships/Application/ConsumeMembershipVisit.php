@@ -74,6 +74,9 @@ final class ConsumeMembershipVisit implements MembershipVisitConsumerInterface
             $membership->remainingVisits(),
             $membership->endsAt(),
             $membership->status() === MembershipStatus::Frozen,
+            $membership->rules()->dailyLimit,
+            $membership->rules()->timeFromMinute,
+            $membership->rules()->timeToMinute,
         );
     }
 }
