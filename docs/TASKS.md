@@ -56,8 +56,8 @@
 - **Цель:** реализовать список посещений клиента и зала (`GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`) и подключить показатели посещений и «спящих» клиентов (не приходивших более N дней) в модуль `Analytics`.
 - **ТЗ:** Бизнес-ТЗ 4.4, 4.7; Тех. ТЗ 3.6, 3.7.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные; эпик E2-B завершён.
-- [~] **T2-10a** Список посещений клиента и компании (`ListClientVisits`, `ListCompanyVisits`, `ListClientVisitsController`, `ListCompanyVisitsController`, `GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`, тесты).
-- [ ] **T2-10b** Контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`), реализация `EloquentVisitsAnalyticsQuery` (посещения за период + «спящие» клиенты без визитов > N дней), интеграция в `GetOverviewAnalytics` и тесты.
+- [x] **T2-10a** Список посещений клиента и компании (`ListClientVisits`, `ListCompanyVisits`, `ListClientVisitsController`, `ListCompanyVisitsController`, `GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`, тесты).
+- [~] **T2-10b** Контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`), реализация `EloquentVisitsAnalyticsQuery` (посещения за период + «спящие» клиенты без визитов > N дней), интеграция в `GetOverviewAnalytics` и тесты.
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история

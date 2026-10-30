@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Modules\Visits\Presentation\CancelVisitController;
 use App\Modules\Visits\Presentation\CheckInByQrController;
 use App\Modules\Visits\Presentation\GetGymQrController;
+use App\Modules\Visits\Presentation\ListClientVisitsController;
+use App\Modules\Visits\Presentation\ListCompanyVisitsController;
 use App\Modules\Visits\Presentation\ManualCheckInController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +14,8 @@ Route::prefix('api/v1/business')
     ->middleware('auth:sanctum')
     ->group(function () {
         Route::get('/gyms/{id}/qr', GetGymQrController::class);
+        Route::get('/visits', ListCompanyVisitsController::class);
+        Route::get('/clients/{id}/visits', ListClientVisitsController::class);
         Route::post('/clients/{id}/visits', ManualCheckInController::class);
         Route::post('/visits/{id}/cancel', CancelVisitController::class);
     });
