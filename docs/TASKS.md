@@ -41,15 +41,61 @@
 
 ## Этап 2 — Client (приложение клиента)
 
-2. [ ] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (Бизнес-ТЗ 4.4, 4.6, 5.4, 6.1–6.3, 12.1–12.4; Тех. ТЗ 3.6–3.8, 4.4, 5.3, 5.4, 6.1–6.3, 7.3, 8, 9.1)
-   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
-   - [ ] **T2-04** Секретный ключ QR зала в модуле `Companies`: зашифрованное поле `qr_secret` в таблице `gyms` (`encrypted` cast в Eloquent), автоматическая генерация при создании зала, узкий контракт `GymQrLookupInterface` в `Companies\Contracts` (получение `companyId`, `name` и расшифрованного `qrSecret` по `gymId`), unit-тест.
-   - [ ] **T2-05** Динамический QR-токен в `Visits`: Value Object `QrPayload`, сервис `HmacQrTokenService` (интервал 60 секунд, HMAC-SHA256, `hash_equals`, приём текущего и предыдущего интервала — Бизнес-ТЗ 6.1, критерий 12.3) и эндпоинт экрана ресепшена `GET /api/v1/business/gyms/{id}/qr`, unit/Feature-тесты.
-   - [ ] **T2-06** Домен и инфраструктура посещений (`Visits`): сущность `Visit`, способы отметки (`qr`, `manual`), статусы (`completed`, `cancelled`), событие `VisitRegistered` (`AuditableEvent`), таблица `visits_visits` (с индексом `(gym_id, visited_at)`, защитой от дубля за день и `idempotency_key`), `VisitRepositoryInterface` и `EloquentVisitRepository`, unit-тест.
-   - [ ] **T2-07** Контракт списания посещения в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и цепочка правил `CheckInRule` в `Visits\Domain\Rules` (полиморфизм, Open/Closed — Тех. ТЗ 5.3: проверка активного/подходящего абонемента, заморозки, времени суток, лимита входов в день и повторной отметки за день — критерии 12.1, 12.2, 12.4), unit-тесты.
-   - [ ] **T2-08** Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`: проверка QR, идемпотентность (`Idempotency-Key`), транзакция БД с блокировкой строки абонемента (`lockForUpdate` — Тех. ТЗ 9.1), списание занятия, запись `VisitRegistered` в аудит-лог, Feature-тесты всех состояний из Бизнес-ТЗ 5.4 и критериев 12.1–12.4.
-   - [ ] **T2-09** Ручная отметка посещения администратором (`POST /api/v1/business/clients/{id}/visits`, в том числе задним числом `visited_at` — Бизнес-ТЗ 4.4, 6.3) и отмена ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel` с возвратом списанного занятия и записью в аудит-лог — Бизнес-ТЗ 5.4), Feature-тесты.
-   - [ ] **T2-10** История посещений в кабинете зала (`GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`) и контракт аналитики посещений `VisitsAnalyticsQueryInterface` для модуля `Analytics` (посещения по дням и способу `qr`/`manual`, клиенты, не приходившие более N дней — Бизнес-ТЗ 4.7), Feature-тесты.
+2. [~] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (Бизнес-ТЗ 4.4, 4.6, 5.4, 6.1–6.3, 12.1–12.4; Тех. ТЗ 3.6–3.8, 4.4, 5.3, 5.4, 6.1–6.3, 7.3, 8, 9.1)
+
+- [x] **T2-04** Секретный ключ QR зала (`qr_secret` с шифрованием `encrypted`) и контракт `GymQrLookupInterface` в `Companies`
+
+### T2-05 Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`
+- **Статус:** `[~]`
+- **Цель:** реализовать генерацию и проверку динамического QR-кода зала с интервалом 60 секунд и подписью HMAC-SHA256 (`hash_equals`, приём текущего и предыдущего интервала — Бизнес-ТЗ 6.1, критерий 12.3) и эндпоинт показа QR для экрана ресепшена.
+- **ТЗ:** Бизнес-ТЗ 4.6, 6.1, 12.3; Тех. ТЗ 3.6, 5.4, 5.5, 8.
+- **Файлы:**
+  - `app/Modules/Visits/Domain/QrPayload.php`
+  - `app/Modules/Visits/Domain/QrTokenServiceInterface.php`
+  - `app/Modules/Visits/Domain/Exceptions/InvalidQrToken.php`
+  - `app/Modules/Visits/Infrastructure/HmacQrTokenService.php`
+  - `app/Modules/Visits/Application/GenerateGymQr.php`
+  - `app/Modules/Visits/Presentation/GetGymQrController.php`
+  - `app/Modules/Visits/Presentation/routes.php`
+  - `app/Modules/Visits/VisitsServiceProvider.php`
+  - `bootstrap/providers.php`
+  - `tests/Unit/Visits/HmacQrTokenServiceTest.php`
+  - `tests/Feature/Visits/GymQrEndpointTest.php`
+- **Шаги:**
+  1. Создать Value Object `QrPayload`, интерфейс `QrTokenServiceInterface`, исключение `InvalidQrToken` и реализацию `HmacQrTokenService`.
+  2. Создать Use Case `GenerateGymQr`, контроллер `GetGymQrController` (`GET /api/v1/business/gyms/{id}/qr`), `VisitsServiceProvider`.
+  3. Покрыть unit- и Feature-тестами (текущий и предыдущий слот принимаются, слот старше 2 минут или с чужой подписью отклоняется, изоляция залов между компаниями).
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-06 Домен и инфраструктура посещений (`Visit`, `visits_visits`, `VisitRepository`)
+- **Статус:** `[ ]`
+- **Цель:** создать доменную модель посещения `Visit`, событие `VisitRegistered` (`AuditableEvent`), таблицу `visits_visits` и репозиторий `EloquentVisitRepository`.
+- **ТЗ:** Бизнес-ТЗ 3, 5.4, 6.2; Тех. ТЗ 3.6, 3.8, 6.1–6.3, 8.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`
+- **Статус:** `[ ]`
+- **Цель:** реализовать узкий контракт списания/возврата занятия с блокировкой строки в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules`.
+- **ТЗ:** Бизнес-ТЗ 4.3, 5.4, 12.1, 12.2, 12.4; Тех. ТЗ 4.1, 4.2, 4.4, 5.3, 9.1.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-08 Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in`
+- **Статус:** `[ ]`
+- **Цель:** реализовать транзакционную идемпотентную отметку посещения клиентом по QR с блокировкой абонемента (`lockForUpdate`), проверкой всех правил `CheckInRule` и записью в аудит-лог.
+- **ТЗ:** Бизнес-ТЗ 5.4, 12.1–12.4; Тех. ТЗ 5.4, 7.3, 9.1.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-09 Ручная отметка посещения администратором и отмена ошибочной отметки в течение 24 часов
+- **Статус:** `[ ]`
+- **Цель:** реализовать ручную отметку посещения сотрудником зала (`POST /api/v1/business/clients/{id}/visits`, включая `visited_at` задним числом) и отмену ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel`) с возвратом занятия и аудитом.
+- **ТЗ:** Бизнес-ТЗ 4.4, 5.4, 6.3; Тех. ТЗ 8.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-10 История посещений зала и аналитика посещаемости (`VisitsAnalyticsQueryInterface`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать список посещений клиента и зала (`GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`) и подключить показатели посещений и «спящих» клиентов (не приходивших более N дней) в модуль `Analytics`.
+- **ТЗ:** Бизнес-ТЗ 4.4, 4.7; Тех. ТЗ 3.6, 3.7.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные; эпик E2-B завершён.
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история

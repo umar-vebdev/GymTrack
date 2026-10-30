@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Companies;
 
+use App\Modules\Companies\Contracts\GymQrLookupInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Companies\Infrastructure\EloquentCompanyRepository;
+use App\Modules\Companies\Infrastructure\EloquentGymQrLookup;
 use App\Modules\Companies\Infrastructure\EloquentGymRepository;
 use App\Modules\Companies\Infrastructure\EloquentStaffCompanyResolver;
 use App\Modules\Companies\Infrastructure\EloquentStaffMemberRepository;
@@ -33,6 +35,10 @@ final class CompaniesServiceProvider extends ServiceProvider
         $this->app->bind(
             StaffCompanyResolverInterface::class,
             EloquentStaffCompanyResolver::class
+        );
+        $this->app->bind(
+            GymQrLookupInterface::class,
+            EloquentGymQrLookup::class
         );
     }
 

@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace Tests\Unit\Companies;
 
 use App\Models\User;
+use App\Modules\Companies\Contracts\GymQrLookupInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class CompanyRepositoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_creates_company_and_gym(): void
+    public function test_it_creates_company_and_gym_with_encrypted_qr_secret(): void
     {
         $user = User::factory()->create();
 
@@ -36,5 +38,21 @@ final class CompanyRepositoryTest extends TestCase
         $this->assertSame('Main Gym', $gym->name());
         $this->assertSame('Dushanbe', $gym->address());
         $this->assertSame($companyId, $gym->companyId());
+
+        /** @var GymQrLookupInterface $qrLookup */
+        $qrLookup = $this->app->make(GymQrLookupInterface::class);
+        $summary = $qrLookup->findById($gymId);
+
+        $this->assertNotNull($summary);
+        $this->assertSame($gymId, $summary->id);
+        $this->assertSame($companyId, $summary->companyId);
+        $this->assertSame('Main Gym', $summary->name);
+        $this->assertSame(64, strlen($summary->qrSecret));
+
+        // В базе данных секрет хранится в зашифрованном виде (Тех. ТЗ 8)
+        /** @var object{qr_secret: string}|null $rawRow */
+        $rawRow = DB::table('gyms')->where('id', $gymId)->first(['qr_secret']);
+        $this->assertNotNull($rawRow);
+        $this->assertNotSame($summary->qrSecret, $rawRow->qr_secret);
     }
 }

@@ -9,21 +9,20 @@
 
 ## Текущая задача
 
-- Эпик **E2-A Регистрация клиента и связывание с карточками зала** полностью завершён (`T2-01`…`T2-03`).
-- Следующий эпик: **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность** (`T2-04`…`T2-10`, ожидает подтверждения списка задач разработчиком).
+- **T2-04** `[x]` Секретный ключ QR зала (`qr_secret`) и контракт `GymQrLookupInterface` в `Companies`.
+- **T2-05** `[~]` Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`.
+- Следующие задачи эпика E2-B: **T2-06**..**T2-10**.
 
 ## Последняя сессия: что сделано
 
-- **E1-H Analytics** (`T1-41`…`T1-43`) закрыт, Этап 1 (Business) завершён.
-- **T2-01** закрыта: поля `birth_date`, `personal_data_consented_at` в `users`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), `User::anonymize()`.
-- **T2-02** закрыта: реализован `RegisterClient`, `POST /api/v1/client/auth/register`, отправка OTP и сквозной тест `RegisterClientAndLinkingTest` (критерий приёмки 12.9).
-- **T2-03** закрыта: реализованы `DeleteClientAccount`, `GET /api/v1/client/profile`, `DELETE /api/v1/client/profile` (обезличивание аккаунта и отзыв токенов Sanctum с сохранением карточек в залах) и тест `ClientProfileAndDeletionTest`.
-- Всего 172 теста (716 проверок) зелёные.
+- **E1-H Analytics** (`T1-41`…`T1-43`) и **E2-A Регистрация клиента** (`T2-01`…`T2-03`) закрыты.
+- **T2-04** закрыта: добавлена миграция `add_qr_secret_to_gyms_table`, шифрование `qr_secret` через `encrypted` cast в `GymModel`, DTO `GymQrSummary`, контракт `GymQrLookupInterface` и `EloquentGymQrLookup` + тест `CompanyRepositoryTest`.
+- Всего 172 теста (723 проверки) зелёные.
 
 ## Точный следующий шаг
 
-1. Получить подтверждение разработчика по декомпозиции эпика **E2-B Visits** (`T2-04`…`T2-10` в `docs/TASKS.md`).
-2. Начать с **T2-04** (`qr_secret` зала и `GymQrLookupInterface` в `Companies`).
+1. Выполнить **T2-05** (`QrPayload`, `HmacQrTokenService`, `GET /api/v1/business/gyms/{id}/qr`).
+2. Выполнить **T2-06** (`Visit`, `visits_visits`, `EloquentVisitRepository`).
 
 ## Окружение: важное про Docker
 
