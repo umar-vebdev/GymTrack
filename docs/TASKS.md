@@ -55,8 +55,8 @@
 - **Цель:** реализовать ручную отметку посещения сотрудником зала (`POST /api/v1/business/clients/{id}/visits`, включая `visited_at` задним числом) и отмену ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel`) с возвратом занятия и аудитом.
 - **ТЗ:** Бизнес-ТЗ 4.4, 5.4, 6.3; Тех. ТЗ 8.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
-- [~] **T2-09a** Ручная отметка (`CheckInManually`, `ManualCheckInRequest`, `ManualCheckInController`, `POST /api/v1/business/clients/{id}/visits` с `gym_id`, необязательным `visited_at` задним числом и `Idempotency-Key`, тесты).
-- [ ] **T2-09b** Отмена отметки в течение 24 часов (`VisitCancelled` событие аудита, `CancelVisit`, `CancelVisitRequest`, `CancelVisitController`, `POST /api/v1/business/visits/{id}/cancel` с `restoreVisit()`, тесты).
+- [x] **T2-09a** Ручная отметка (`CheckInManually`, `ManualCheckInRequest`, `ManualCheckInController`, `POST /api/v1/business/clients/{id}/visits` с `gym_id`, необязательным `visited_at` задним числом и `Idempotency-Key`, тесты).
+- [~] **T2-09b** Отмена отметки в течение 24 часов (`VisitCancelled` событие аудита, `CancelVisit`, `CancelVisitRequest`, `CancelVisitController`, `POST /api/v1/business/visits/{id}/cancel` с `restoreVisit()`, тесты).
 
 ### T2-10 История посещений зала и аналитика посещаемости (`VisitsAnalyticsQueryInterface`)
 - **Статус:** `[ ]`

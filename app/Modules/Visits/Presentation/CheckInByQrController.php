@@ -63,7 +63,7 @@ final class CheckInByQrController extends Controller
     /**
      * @return array{code: string, message: string}
      */
-    private static function mapDenialError(string $reason): array
+    public static function mapDenialError(string $reason): array
     {
         return match ($reason) {
             CheckInDenied::REASON_DAILY_LIMIT_EXCEEDED => [

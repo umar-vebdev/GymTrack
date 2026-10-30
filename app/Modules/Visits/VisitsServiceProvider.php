@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Visits;
 
 use App\Modules\Visits\Application\CheckInByQr;
+use App\Modules\Visits\Application\CheckInManually;
 use App\Modules\Visits\Domain\QrTokenServiceInterface;
 use App\Modules\Visits\Domain\Rules\CheckInRuleInterface;
 use App\Modules\Visits\Domain\Rules\DailyLimitNotExceededRule;
@@ -36,7 +37,7 @@ final class VisitsServiceProvider extends ServiceProvider
             WithinAllowedTimeRule::class,
         ], CheckInRuleInterface::class);
 
-        $this->app->when(CheckInByQr::class)
+        $this->app->when([CheckInByQr::class, CheckInManually::class])
             ->needs('$rules')
             ->giveTagged(CheckInRuleInterface::class);
     }
