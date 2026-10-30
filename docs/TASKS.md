@@ -47,44 +47,16 @@
 - [x] **T2-05** Динамический QR-токен (`QrPayload`, `HmacQrTokenService`, интервал 60 с, допуск на предыдущий слот) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`
 - [x] **T2-06** Домен и инфраструктура посещений (`Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, `visits_visits`, `EloquentVisitRepository`)
 
-### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`
-- **Статус:** `[x]`
-- **Заметки:** `CheckInContext` хранит простые поля (не DTO из `Memberships`), иначе Deptrac запрещает зависимость Domain → чужие Contracts; маппинг делает Use Case в T2-08. Реализация контракта — `ConsumeMembershipVisit`; в сущность добавлен `Membership::restoreVisit()`. Лимит входов в день и окно времени берутся из `MembershipRules` абонемента (D-007, отменяет D-005/D-006). Пояс зала для расчёта «дня» пока UTC.
-- **Цель:** реализовать узкий контракт блокировки, списания и возврата занятия в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules` (проверка активного абонемента, заморозки, времени суток и лимита входов за день).
-- **ТЗ:** Бизнес-ТЗ 4.3, 5.4, 12.1, 12.2, 12.4; Тех. ТЗ 4.1, 4.2, 4.4, 5.3, 9.1.
-- **Файлы:**
-  - `app/Modules/Memberships/Contracts/CheckInMembershipCandidate.php`
-  - `app/Modules/Memberships/Contracts/MembershipVisitConsumerInterface.php`
-  - `app/Modules/Memberships/Application/ConsumeMembershipVisit.php`
-  - `app/Modules/Memberships/MembershipsServiceProvider.php`
-  - `app/Modules/Visits/Domain/Exceptions/CheckInDenied.php`
-  - `app/Modules/Visits/Domain/Rules/CheckInContext.php`
-  - `app/Modules/Visits/Domain/Rules/CheckInRuleInterface.php`
-  - `app/Modules/Visits/Domain/Rules/MembershipIsAvailableRule.php`
-  - `app/Modules/Visits/Domain/Rules/NotFrozenRule.php`
-  - `app/Modules/Visits/Domain/Rules/WithinAllowedTimeRule.php`
-  - `app/Modules/Visits/Domain/Rules/DailyLimitNotExceededRule.php`
-  - `tests/Unit/Visits/CheckInRulesTest.php`
-- **Шаги:**
-  1. Создать DTO `CheckInMembershipCandidate` и контракт `MembershipVisitConsumerInterface` в `Memberships\Contracts` (поиск подходящего или замороженного абонемента клиента с `lockForUpdate`, списание занятия `consumeVisit()` и возврат занятия при отмене отметки `restoreVisit()`).
-  2. Создать `CheckInDenied`, `CheckInContext`, интерфейс `CheckInRuleInterface` и 4 правила: `MembershipIsAvailableRule`, `NotFrozenRule`, `WithinAllowedTimeRule`, `DailyLimitNotExceededRule`.
-  3. Написать unit-тесты `CheckInRulesTest` на все правила и состояния из Бизнес-ТЗ 5.4.
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
-
-### T2-08 Сценарий отметки по QR (`CheckInByQr`) и эндпоинт `POST /api/v1/client/visits/check-in` (разбита на подзадачи)
-- **Статус:** `[ ]`
-- **Цель:** транзакционная идемпотентная отметка посещения клиентом по QR с блокировкой абонемента (`lockForUpdate`), проверкой всех правил `CheckInRule` и записью в аудит-лог (событие `VisitRegistered` после коммита).
-- **ТЗ:** Бизнес-ТЗ 5.4, 12.1–12.4; Тех. ТЗ 5.4, 7.3, 9.1.
-- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
-- [x] **T2-08a** Контракт `Clients`: найти карточку клиента по `user_id` и компании (`clients.user_id` + `company_id`; один пользователь — по карточке в каждом зале). Файлы: `ClientLookupInterface` (+ метод), реализация, тест.
-- [x] **T2-08b** Use Case `CheckInByQr` (`CheckInByQrCommand`, `CheckInResult`): `GymQrLookupInterface` → `QrTokenServiceInterface::verifyForGym` → `Idempotency-Key` → транзакция → `findCandidate` → `CheckInContext` → правила → `consumeVisit` → `VisitRepository::create` → `VisitRegistered`; регистрация правил в `VisitsServiceProvider`; интеграционные тесты Use Case.
-- [~] **T2-08c** Эндпоинт: `CheckInRequest` (FormRequest), контроллер, маршрут `/api/v1/client/visits/check-in` (вне группы `business`), маппинг `CheckInDenied`/`InvalidQrToken` на коды ошибок, feature-тесты (успех, повтор по ключу, уже отмечен, заморожен, чужой QR).
+- [x] **T2-07** Контракт списания абонемента (`MembershipVisitConsumerInterface`, `ConsumeMembershipVisit`) и цепочка правил `CheckInRule` (D-007)
+- [x] **T2-08** Сценарий отметки по QR (`CheckInByQr`, `T2-08a`..`T2-08c`) и эндпоинт `POST /api/v1/client/visits/check-in`
 
 ### T2-09 Ручная отметка посещения администратором и отмена ошибочной отметки в течение 24 часов
-- **Статус:** `[ ]`
+- **Статус:** `[~]`
 - **Цель:** реализовать ручную отметку посещения сотрудником зала (`POST /api/v1/business/clients/{id}/visits`, включая `visited_at` задним числом) и отмену ошибочной отметки в течение 24 часов (`POST /api/v1/business/visits/{id}/cancel`) с возвратом занятия и аудитом.
 - **ТЗ:** Бизнес-ТЗ 4.4, 5.4, 6.3; Тех. ТЗ 8.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+- [~] **T2-09a** Ручная отметка (`CheckInManually`, `ManualCheckInRequest`, `ManualCheckInController`, `POST /api/v1/business/clients/{id}/visits` с `gym_id`, необязательным `visited_at` задним числом и `Idempotency-Key`, тесты).
+- [ ] **T2-09b** Отмена отметки в течение 24 часов (`VisitCancelled` событие аудита, `CancelVisit`, `CancelVisitRequest`, `CancelVisitController`, `POST /api/v1/business/visits/{id}/cancel` с `restoreVisit()`, тесты).
 
 ### T2-10 История посещений зала и аналитика посещаемости (`VisitsAnalyticsQueryInterface`)
 - **Статус:** `[ ]`
