@@ -23,11 +23,11 @@ interface MembershipVisitConsumerInterface
     public function findCandidate(int $companyId, int $clientId, DateTimeImmutable $now): ?CheckInMembershipCandidate;
 
     /**
-     * Consume one visit of the given membership.
+     * Consume one visit of the given membership and return updated remaining visits (null for unlimited).
      *
      * Must throw domain exceptions when the operation cannot be performed.
      */
-    public function consumeVisit(int $membershipId, DateTimeImmutable $now): void;
+    public function consumeVisit(int $membershipId, DateTimeImmutable $now): ?int;
 
     /**
      * Restore a previously consumed visit (used when a visit is cancelled).

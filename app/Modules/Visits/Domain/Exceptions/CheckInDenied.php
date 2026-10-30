@@ -9,8 +9,8 @@ use DomainException;
 /**
  * Исключение, бросаемое, когда одно из правил проверки чек‑ина не прошло.
  *
- * Сообщение содержит код причины, чтобы контроллер мог вернуть
- * корректный HTTP‑код и описание ошибки.
+ * Хранит машиночитаемый код причины ($reason), чтобы контроллер мог вернуть
+ * корректный HTTP‑код и понятное сообщение ошибки.
  */
 final class CheckInDenied extends DomainException
 {
@@ -22,8 +22,14 @@ final class CheckInDenied extends DomainException
 
     public const string REASON_DAILY_LIMIT_EXCEEDED = 'daily_limit_exceeded';
 
+    private function __construct(
+        public readonly string $reason,
+    ) {
+        parent::__construct('Check‑in denied: '.$reason);
+    }
+
     public static function forReason(string $reason): self
     {
-        return new self('Check‑in denied: '.$reason, 0, null);
+        return new self($reason);
     }
 }

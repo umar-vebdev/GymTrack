@@ -77,8 +77,8 @@
 - **ТЗ:** Бизнес-ТЗ 5.4, 12.1–12.4; Тех. ТЗ 5.4, 7.3, 9.1.
 - **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
 - [x] **T2-08a** Контракт `Clients`: найти карточку клиента по `user_id` и компании (`clients.user_id` + `company_id`; один пользователь — по карточке в каждом зале). Файлы: `ClientLookupInterface` (+ метод), реализация, тест.
-- [~] **T2-08b** Use Case `CheckInByQr` (`CheckInCommand`, `CheckInResult`): `GymQrLookupInterface` → `QrTokenServiceInterface::verifyForGym` → `Idempotency-Key` → транзакция → `findCandidate` → `CheckInContext` → правила → `consumeVisit` → `VisitRepository::create` → `VisitRegistered`; регистрация правил в `VisitsServiceProvider`; интеграционные тесты Use Case.
-- [ ] **T2-08c** Эндпоинт: `CheckInRequest` (FormRequest), контроллер, маршрут `/api/v1/client/visits/check-in` (вне группы `business`), маппинг `CheckInDenied`/`InvalidQrToken` на коды ошибок, feature-тесты (успех, повтор по ключу, уже отмечен, заморожен, чужой QR).
+- [x] **T2-08b** Use Case `CheckInByQr` (`CheckInByQrCommand`, `CheckInResult`): `GymQrLookupInterface` → `QrTokenServiceInterface::verifyForGym` → `Idempotency-Key` → транзакция → `findCandidate` → `CheckInContext` → правила → `consumeVisit` → `VisitRepository::create` → `VisitRegistered`; регистрация правил в `VisitsServiceProvider`; интеграционные тесты Use Case.
+- [~] **T2-08c** Эндпоинт: `CheckInRequest` (FormRequest), контроллер, маршрут `/api/v1/client/visits/check-in` (вне группы `business`), маппинг `CheckInDenied`/`InvalidQrToken` на коды ошибок, feature-тесты (успех, повтор по ключу, уже отмечен, заморожен, чужой QR).
 
 ### T2-09 Ручная отметка посещения администратором и отмена ошибочной отметки в течение 24 часов
 - **Статус:** `[ ]`

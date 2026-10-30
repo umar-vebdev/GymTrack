@@ -49,13 +49,15 @@ final class ConsumeMembershipVisit implements MembershipVisitConsumerInterface
         return null;
     }
 
-    public function consumeVisit(int $membershipId, DateTimeImmutable $now): void
+    public function consumeVisit(int $membershipId, DateTimeImmutable $now): ?int
     {
         $membership = $this->memberships->findByIdForUpdate($membershipId)
             ?? throw MembershipNotFound::withId($membershipId);
 
         $membership->consumeVisit($now);
         $this->memberships->save($membership);
+
+        return $membership->remainingVisits();
     }
 
     public function restoreVisit(int $membershipId, DateTimeImmutable $now): void
