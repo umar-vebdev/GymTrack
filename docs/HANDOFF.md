@@ -9,20 +9,20 @@
 
 ## Текущая задача
 
-- **Этап 1 (Business)** полностью завершён (`E1-A`…`E1-H`, включая `T1-41`…`T1-43`).
-- Следующий эпик: **E2-A Регистрация клиента и связывание с карточками зала** (`T2-01`…`T2-03`, ожидает подтверждения списка задач разработчиком).
+- **T2-01** `[x]` Поля профиля клиента (`birth_date`, `personal_data_consented_at`) и правило 18+ в `Identity`.
+- **T2-02** `[~]` Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`) и автосвязывание карточек (критерий 12.9).
+- Следующая задача: **T2-03** (профиль клиента и обезличивание аккаунта).
 
 ## Последняя сессия: что сделано
 
-- **T1-41** закрыта: добавлены DTO `RevenueSummary` и `ItemPopularity`, интерфейс `SalesAnalyticsQueryInterface` в `Sales\Contracts` и реализация `EloquentSalesAnalyticsQuery` + тест `SalesAnalyticsQueryTest`.
-- **T1-42** закрыта: добавлены DTO `ClientsAnalyticsSummary`, интерфейс `ClientsAnalyticsQueryInterface` в `Clients\Contracts` и реализация `EloquentClientsAnalyticsQuery` + тест `ClientsAnalyticsQueryTest`.
-- **T1-43** закрыта: реализован модуль `Analytics` (`GetRevenueReport`, `GetOverviewAnalytics`, `OverviewAnalyticsResult`, `RevenueReportController`, `OverviewAnalyticsController`, `AnalyticsPeriodRequest`, маршруты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview`, доступ строго для владельца — критерий 12.7) + `AnalyticsEndpointsTest`.
-- Всего 168 тестов (671 проверка) зелёные.
+- **E1-H Analytics** (`T1-41`…`T1-43`) закрыт, Этап 1 (Business) завершён.
+- **T2-01** закрыта: добавлена миграция `add_client_fields_to_users_table` (`birth_date`, `personal_data_consented_at`), доменное правило `ClientRegistrationPolicy` (возраст ≥ 18 лет и согласие на обработку персональных данных), исключение `ClientRegistrationDenied`, расширены `Domain\User` (включая `anonymize()`), `UserRepositoryInterface`, `EloquentUserRepository` и `UserRepositoryTest`.
+- Всего 169 тестов (683 проверки) зелёные.
 
 ## Точный следующий шаг
 
-1. Получить подтверждение разработчика по декомпозиции эпика **E2-A** (`T2-01`…`T2-03` в `docs/TASKS.md`).
-2. Начать с **T2-01** (поля `birth_date` и `personal_data_consented_at` в `Identity`, проверка возраста 18+ и согласия).
+1. Выполнить **T2-02** (`RegisterClient`, `POST /api/v1/client/auth/register`, сквозной тест с подтверждением телефона и автосвязыванием карточек зала).
+2. Выполнить **T2-03** (`GET /api/v1/client/profile` и `DELETE /api/v1/client/profile`).
 
 ## Окружение: важное про Docker
 

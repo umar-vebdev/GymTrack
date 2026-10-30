@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Domain;
 
+use DateTimeImmutable;
+
 interface UserRepositoryInterface
 {
     public function findById(int $id): ?User;
@@ -20,7 +22,10 @@ interface UserRepositoryInterface
         ?string $phone,
         ?string $email,
         string $passwordHash,
-        bool $isPhoneVerified
+        bool $isPhoneVerified,
+        ?string $name = null,
+        ?DateTimeImmutable $birthDate = null,
+        ?DateTimeImmutable $personalDataConsentedAt = null,
     ): int;
 
     public function update(User $user): void;

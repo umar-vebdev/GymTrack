@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Domain;
 
+use DateTimeImmutable;
+
 final class User
 {
     public function __construct(
         private readonly int $id,
-        private readonly ?string $phone,
-        private readonly ?string $email,
-        private readonly string $passwordHash,
-        private bool $isPhoneVerified
+        private ?string $phone,
+        private ?string $email,
+        private string $passwordHash,
+        private bool $isPhoneVerified,
+        private ?string $name = null,
+        private ?DateTimeImmutable $birthDate = null,
+        private ?DateTimeImmutable $personalDataConsentedAt = null,
     ) {}
 
     public function id(): int
@@ -39,8 +44,33 @@ final class User
         return $this->isPhoneVerified;
     }
 
+    public function name(): ?string
+    {
+        return $this->name;
+    }
+
+    public function birthDate(): ?DateTimeImmutable
+    {
+        return $this->birthDate;
+    }
+
+    public function personalDataConsentedAt(): ?DateTimeImmutable
+    {
+        return $this->personalDataConsentedAt;
+    }
+
     public function markPhoneAsVerified(): void
     {
         $this->isPhoneVerified = true;
+    }
+
+    public function anonymize(string $invalidatedPasswordHash): void
+    {
+        $this->name = 'Deleted User';
+        $this->phone = null;
+        $this->email = null;
+        $this->birthDate = null;
+        $this->isPhoneVerified = false;
+        $this->passwordHash = $invalidatedPasswordHash;
     }
 }

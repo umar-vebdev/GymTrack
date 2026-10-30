@@ -40,11 +40,41 @@
 
 ## Этап 2 — Client (приложение клиента)
 
-1. [ ] **E2-A Регистрация клиента и связывание с карточками зала** (Бизнес-ТЗ 5.1, 10, 12.9; Тех. ТЗ 7.1, 8, 9.3)
-   > Предлагаемое раскрытие эпика (ожидает подтверждения разработчика):
-   - [ ] **T2-01** Расширение профиля пользователя в `Identity` для клиента: поля `birth_date` и `personal_data_consented_at` в таблице `users`, сущности `User` и репозитории, проверка возраста (с 18 лет на момент регистрации по `Clock`) и обязательного согласия на обработку персональных данных, unit-тест.
-   - [ ] **T2-02** Эндпоинт регистрации клиента `POST /api/v1/client/auth/register` (`RegisterClient`, `RegisterClientRequest`, `RegisterClientController`): приём телефона, имени, пароля, даты рождения (`birth_date`, возраст ≥ 18 лет) и флага согласия (`consent = true`), отправка OTP-кода подтверждения номера; сквозной Feature-тест регистрации + подтверждения телефона + автоматического связывания с существующими карточками залов (критерий приёмки 12.9).
-   - [ ] **T2-03** Профиль клиента и удаление/обезличивание аккаунта по запросу (Бизнес-ТЗ 10, Тех. ТЗ 8): `GET /api/v1/client/profile` и `DELETE /api/v1/client/profile` (отзыв токенов Sanctum и обезличивание персональных данных пользователя с сохранением финансовой и клубной истории в залах), Feature-тест.
+1. [~] **E2-A Регистрация клиента и связывание с карточками зала** (Бизнес-ТЗ 5.1, 10, 12.9; Тех. ТЗ 7.1, 8, 9.3)
+
+- [x] **T2-01** Поля профиля клиента (`birth_date`, `personal_data_consented_at`), метод обезличивания `User::anonymize()` и доменное правило `ClientRegistrationPolicy` (18+ и согласие)
+
+### T2-02 Эндпоинт регистрации клиента (`POST /api/v1/client/auth/register`) и автосвязывание карточек
+- **Статус:** `[~]`
+- **Цель:** реализовать регистрацию клиента в мобильном приложении с проверкой 18+, сохранением даты согласия, отправкой SMS-кода и проверить сквозной сценарий автоматической привязки к карточкам залов после подтверждения номера (критерий приёмки 12.9).
+- **ТЗ:** Бизнес-ТЗ 5.1, 12.9; Тех. ТЗ 7.1, 7.2, 8, 9.3.
+- **Файлы:**
+  - `app/Modules/Identity/Application/RegisterClient.php`
+  - `app/Modules/Identity/Presentation/Requests/RegisterClientRequest.php`
+  - `app/Modules/Identity/Presentation/RegisterClientController.php`
+  - `app/Modules/Identity/Presentation/routes.php`
+  - `tests/Feature/Identity/RegisterClientAndLinkingTest.php`
+- **Шаги:**
+  1. Реализовать Use Case `RegisterClient` (проверка `ClientRegistrationPolicy`, уникальности телефона, создание пользователя с датой согласия, генерация и отправка OTP-кода).
+  2. Создать `RegisterClientRequest`, `RegisterClientController` и маршрут `POST /api/v1/client/auth/register`.
+  3. Написать сквозной Feature-тест `RegisterClientAndLinkingTest` (отказ несовершеннолетним и без согласия, успешная регистрация + подтверждение телефона → карточка клиента в зале автоматически привязана, история сохранена).
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
+
+### T2-03 Профиль клиента и удаление/обезличивание аккаунта по запросу
+- **Статус:** `[ ]`
+- **Цель:** реализовать просмотр собственного профиля клиента (`GET /api/v1/client/profile`) и удаление/обезличивание аккаунта по запросу (`DELETE /api/v1/client/profile`) с отзывом токенов и сохранением истории в залах (Бизнес-ТЗ 10, Тех. ТЗ 8).
+- **ТЗ:** Бизнес-ТЗ 2, 10; Тех. ТЗ 7.1, 8.
+- **Файлы:**
+  - `app/Modules/Identity/Application/DeleteClientAccount.php`
+  - `app/Modules/Identity/Presentation/GetClientProfileController.php`
+  - `app/Modules/Identity/Presentation/DeleteClientAccountController.php`
+  - `app/Modules/Identity/Presentation/routes.php`
+  - `tests/Feature/Identity/ClientProfileAndDeletionTest.php`
+- **Шаги:**
+  1. Реализовать Use Case `DeleteClientAccount` (обезличивание `User::anonymize()` и отзыв всех токенов Sanctum пользователя).
+  2. Добавить контроллеры и маршруты `GET /api/v1/client/profile` и `DELETE /api/v1/client/profile`.
+  3. Написать Feature-тест `ClientProfileAndDeletionTest`.
+- **Критерий готовности:** все проверки (`lint`, `analyse`, `deps`, `test`) зелёные.
 2. [ ] **E2-B** Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
