@@ -19,4 +19,9 @@ final class EloquentClientLookup implements ClientLookupInterface
 
         return $client !== null && $client->companyId() === $companyId;
     }
+
+    public function findIdByUser(int $userId, int $companyId): ?int
+    {
+        return $this->clients->findIdByUser($userId, $companyId);
+    }
 }

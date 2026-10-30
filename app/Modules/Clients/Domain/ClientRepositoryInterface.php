@@ -22,6 +22,11 @@ interface ClientRepositoryInterface
     public function existsByPhone(int $companyId, string $phone): bool;
 
     /**
+     * ID карточки клиента, привязанной к аккаунту, в указанной компании (при нескольких — самая ранняя).
+     */
+    public function findIdByUser(int $userId, int $companyId): ?int;
+
+    /**
      * Проставляет user_id всем карточкам с этим телефоном (во всех компаниях), где он ещё не задан.
      */
     public function linkUserByPhone(int $userId, string $phone): void;

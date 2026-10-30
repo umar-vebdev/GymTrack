@@ -69,6 +69,17 @@ final class EloquentClientRepository implements ClientRepositoryInterface
             ->exists();
     }
 
+    public function findIdByUser(int $userId, int $companyId): ?int
+    {
+        $id = ClientModel::withoutGlobalScopes()
+            ->where('user_id', $userId)
+            ->where('company_id', $companyId)
+            ->orderBy('id')
+            ->value('id');
+
+        return $id === null ? null : (int) $id;
+    }
+
     public function linkUserByPhone(int $userId, string $phone): void
     {
         ClientModel::withoutGlobalScopes()
