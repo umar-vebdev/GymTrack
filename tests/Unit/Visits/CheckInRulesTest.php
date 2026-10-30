@@ -2,168 +2,82 @@
 
 declare(strict_types=1);
 
-use App\Modules\Memberships\Contracts\CheckInMembershipCandidate;
 use App\Modules\Visits\Domain\Exceptions\CheckInDenied;
 use App\Modules\Visits\Domain\Rules\CheckInContext;
 use App\Modules\Visits\Domain\Rules\DailyLimitNotExceededRule;
 use App\Modules\Visits\Domain\Rules\MembershipIsAvailableRule;
 use App\Modules\Visits\Domain\Rules\NotFrozenRule;
 use App\Modules\Visits\Domain\Rules\WithinAllowedTimeRule;
-use App\Modules\Visits\Domain\VisitRepositoryInterface;
-use Mockery;
+use Tests\Unit\Visits\Support\FakeVisitRepository;
 
-/**
- * @covers \App\Modules\Visits\Domain\Rules\MembershipIsAvailableRule
- * @covers \App\Modules\Visits\Domain\Rules\NotFrozenRule
- * @covers \App\Modules\Visits\Domain\Rules\WithinAllowedTimeRule
- * @covers \App\Modules\Visits\Domain\Rules\DailyLimitNotExceededRule
- */
-test('MembershipIsAvailableRule passes when candidate has visits left and not expired', function () {
-    $candidate = new CheckInMembershipCandidate(
-        membershipId: 1,
-        remainingVisits: 5,
-        expiresAt: null,
-        isFrozen: false,
-    );
-    $ctx = new CheckInContext(
+function checkInContext(
+    ?int $remaining = 5,
+    ?DateTimeImmutable $expiresAt = null,
+    bool $frozen = false,
+    string $now = '2026-10-30 12:00:00',
+): CheckInContext {
+    return new CheckInContext(
         companyId: 1,
         gymId: 1,
         clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
+        now: new DateTimeImmutable($now),
+        remainingVisits: $remaining,
+        membershipExpiresAt: $expiresAt,
+        membershipFrozen: $frozen,
     );
-    (new MembershipIsAvailableRule)->validate($ctx);
-    expect(true)->toBeTrue(); // no exception means pass
+}
+
+function denialReason(callable $fn): ?string
+{
+    try {
+        $fn();
+    } catch (CheckInDenied $e) {
+        return $e->getMessage();
+    }
+
+    return null;
+}
+
+test('membership rule passes with visits left and no expiry', function () {
+    expect(denialReason(fn () => (new MembershipIsAvailableRule)->validate(checkInContext())))->toBeNull();
 });
 
-test('MembershipIsAvailableRule fails when no remaining visits', function () {
-    $candidate = new CheckInMembershipCandidate(
-        membershipId: 2,
-        remainingVisits: 0,
-        expiresAt: null,
-        isFrozen: false,
-    );
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    expect(fn () => (new MembershipIsAvailableRule)->validate($ctx))
-        ->toThrow(CheckInDenied::class);
+test('membership rule passes for unlimited visits', function () {
+    expect(denialReason(fn () => (new MembershipIsAvailableRule)->validate(checkInContext(remaining: null))))->toBeNull();
 });
 
-test('MembershipIsAvailableRule fails when expired', function () {
-    $candidate = new CheckInMembershipCandidate(
-        membershipId: 3,
-        remainingVisits: 5,
-        expiresAt: new DateTimeImmutable('2026-09-01 00:00:00'),
-        isFrozen: false,
-    );
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    expect(fn () => (new MembershipIsAvailableRule)->validate($ctx))
-        ->toThrow(CheckInDenied::class);
+test('membership rule denies when no visits left', function () {
+    expect(denialReason(fn () => (new MembershipIsAvailableRule)->validate(checkInContext(remaining: 0))))
+        ->toContain(CheckInDenied::REASON_NO_ACTIVE_MEMBERSHIP);
 });
 
-test('NotFrozenRule passes when not frozen', function () {
-    $candidate = new CheckInMembershipCandidate(
-        membershipId: 4,
-        remainingVisits: null,
-        expiresAt: null,
-        isFrozen: false,
-    );
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    (new NotFrozenRule)->validate($ctx);
-    expect(true)->toBeTrue();
+test('membership rule denies when expired', function () {
+    $ctx = checkInContext(expiresAt: new DateTimeImmutable('2026-09-01 00:00:00'));
+
+    expect(denialReason(fn () => (new MembershipIsAvailableRule)->validate($ctx)))
+        ->toContain(CheckInDenied::REASON_NO_ACTIVE_MEMBERSHIP);
 });
 
-test('NotFrozenRule fails when frozen', function () {
-    $candidate = new CheckInMembershipCandidate(
-        membershipId: 5,
-        remainingVisits: null,
-        expiresAt: null,
-        isFrozen: true,
-    );
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    expect(fn () => (new NotFrozenRule)->validate($ctx))
-        ->toThrow(CheckInDenied::class);
+test('not frozen rule passes and denies', function () {
+    expect(denialReason(fn () => (new NotFrozenRule)->validate(checkInContext())))->toBeNull();
+    expect(denialReason(fn () => (new NotFrozenRule)->validate(checkInContext(frozen: true))))
+        ->toContain(CheckInDenied::REASON_FROZEN);
 });
 
-test('WithinAllowedTimeRule passes during opening hours', function () {
-    $candidate = new CheckInMembershipCandidate(1, null, null, false);
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 10:00:00'), // 10:00 falls within 06‑22
-        candidate: $candidate,
-    );
-    (new WithinAllowedTimeRule)->validate($ctx);
-    expect(true)->toBeTrue();
+test('time rule allows opening hours and denies outside them', function () {
+    $rule = new WithinAllowedTimeRule;
+
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 06:00:00'))))->toBeNull();
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 21:59:00'))))->toBeNull();
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 05:59:00'))))
+        ->toContain(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
+    expect(denialReason(fn () => $rule->validate(checkInContext(now: '2026-10-30 22:00:00'))))
+        ->toContain(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
 });
 
-test('WithinAllowedTimeRule fails outside opening hours', function () {
-    $candidate = new CheckInMembershipCandidate(1, null, null, false);
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 23:00:00'), // after 22:00
-        candidate: $candidate,
-    );
-    expect(fn () => (new WithinAllowedTimeRule)->validate($ctx))
-        ->toThrow(CheckInDenied::class);
-});
-
-test('DailyLimitNotExceededRule passes when under limit', function () {
-    $repo = Mockery::mock(VisitRepositoryInterface::class);
-    $repo->shouldReceive('countCompletedForClientInGymOnDate')
-        ->with(1, 1, '2026-10-30')
-        ->andReturn(1);
-    $candidate = new CheckInMembershipCandidate(1, null, null, false);
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    (new DailyLimitNotExceededRule($repo))->validate($ctx);
-    expect(true)->toBeTrue();
-});
-
-test('DailyLimitNotExceededRule fails when limit reached', function () {
-    $repo = Mockery::mock(VisitRepositoryInterface::class);
-    $repo->shouldReceive('countCompletedForClientInGymOnDate')
-        ->with(1, 1, '2026-10-30')
-        ->andReturn(2);
-    $candidate = new CheckInMembershipCandidate(1, null, null, false);
-    $ctx = new CheckInContext(
-        companyId: 1,
-        gymId: 1,
-        clientId: 1,
-        now: new DateTimeImmutable('2026-10-30 12:00:00'),
-        candidate: $candidate,
-    );
-    expect(fn () => (new DailyLimitNotExceededRule($repo))->validate($ctx))
-        ->toThrow(CheckInDenied::class);
+test('daily limit rule passes under limit and denies at limit', function () {
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(1)))->validate(checkInContext())))
+        ->toBeNull();
+    expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(2)))->validate(checkInContext())))
+        ->toContain(CheckInDenied::REASON_DAILY_LIMIT_EXCEEDED);
 });

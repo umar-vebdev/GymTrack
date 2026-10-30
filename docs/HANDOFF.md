@@ -12,8 +12,9 @@
 - **T2-04** `[x]` Секретный ключ QR зала (`qr_secret`) и контракт `GymQrLookupInterface` в `Companies`.
 - **T2-05** `[x]` Динамический QR-токен (`HmacQrTokenService`) и эндпоинт ресепшена `GET /api/v1/business/gyms/{id}/qr`.
 - **T2-06** `[x]` Домен и инфраструктура посещений (`Visit`, `visits_visits`, `EloquentVisitRepository`).
-- **T2-07** `[~]` Контракт списания абонемента (`MembershipVisitConsumerInterface`) и цепочка правил `CheckInRule`.
-- Следующие задачи эпика E2-B: **T2-08**..**T2-10**.
+- **T2-07** `[x]` Контракт списания (`MembershipVisitConsumerInterface`, реализация `ConsumeMembershipVisit`, `Membership::restoreVisit`) и 4 правила `CheckInRule`.
+- **T2-08** `[ ]` — следующая: `CheckInByQr` + `POST /api/v1/client/visits/check-in`.
+- Дальше в эпике E2-B: **T2-09**, **T2-10**.
 
 ## Последняя сессия: что сделано
 
@@ -21,12 +22,12 @@
 - **T2-04** закрыта: зашифрованный `qr_secret` в `gyms`, `GymQrSummary`, `GymQrLookupInterface`.
 - **T2-05** закрыта: `QrPayload`, `HmacQrTokenService`, `GenerateGymQr`, `GET /api/v1/business/gyms/{id}/qr`.
 - **T2-06** закрыта: `Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, миграция `visits_visits` с защитой от дубля за день, `EloquentVisitRepository` и `VisitRepositoryTest`.
-- Всего 175 тестов (741 проверка) зелёные.
+- **T2-07** закрыта. Всего 186 тестов (766 проверок) зелёные, lint/analyse/deps чистые.
 
 ## Точный следующий шаг
 
-1. Выполнить **T2-07** (`MembershipVisitConsumerInterface` в `Memberships\Contracts` и цепочка правил `CheckInRule` в `Visits\Domain\Rules`).
-2. Выполнить **T2-08** (`CheckInByQr` и `POST /api/v1/client/visits/check-in`).
+1. **T2-08**: Use Case `CheckInByQr` (проверка QR через `QrTokenServiceInterface::verifyForGym($token, $gymId, $secret, $at)` и `GymQrLookupInterface`; `findCandidate` → `CheckInContext` → цепочка правил → `consumeVisit` → `VisitRepository::create` → событие `VisitRegistered($visitId, $companyId, $gymId, $clientId, $membershipId, $method, $visitedAt, $registeredByUserId, $device)`), всё в одной транзакции с `Idempotency-Key`. Клиентский маршрут вне группы `business`; как определить `clientId` из пользователя — сверить со схемой `clients`/`users` (не угадывать). Правила регистрировать в `VisitsServiceProvider`.
+2. Подтвердить у разработчика допущения D-005 и D-006.
 
 ## Окружение: важное про Docker
 

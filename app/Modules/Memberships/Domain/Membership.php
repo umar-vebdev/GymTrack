@@ -153,6 +153,24 @@ final class Membership
     }
 
     /**
+     * Возврат занятия при отмене ошибочной отметки посещения (Бизнес-ТЗ 5.4).
+     * Для абонементов не по занятиям остаток не меняется. Если абонемент стал Expired только
+     * из-за обнуления остатка и срок ещё не вышел, он снова становится Active.
+     */
+    public function restoreVisit(DateTimeImmutable $at): void
+    {
+        if ($this->rules->kind !== MembershipKind::Visits || $this->remainingVisits === null) {
+            return;
+        }
+
+        $this->remainingVisits++;
+
+        if ($this->status === MembershipStatus::Expired && ($this->endsAt === null || $at <= $this->endsAt)) {
+            $this->status = MembershipStatus::Active;
+        }
+    }
+
+    /**
      * Проверка срока действия и автоматический перевод в статус Expired при наступлении даты окончания.
      * Замороженные (Frozen) и уже отменённые (Cancelled) абонементы не истекают автоматически.
      */

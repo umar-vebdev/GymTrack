@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Visits\Domain\Rules;
 
-use App\Modules\Memberships\Contracts\CheckInMembershipCandidate;
 use DateTimeImmutable;
 
 /**
- * Контекст, передаваемый каждому правилу проверки.
+ * Данные для проверки отметки. Содержит только простые значения: Domain не зависит от других модулей,
+ * а Use Case сам переносит сюда поля выбранного абонемента из контракта Memberships.
  */
 final class CheckInContext
 {
@@ -17,6 +17,8 @@ final class CheckInContext
         public readonly int $gymId,
         public readonly int $clientId,
         public readonly DateTimeImmutable $now,
-        public readonly CheckInMembershipCandidate $candidate,
+        public readonly ?int $remainingVisits,
+        public readonly ?DateTimeImmutable $membershipExpiresAt,
+        public readonly bool $membershipFrozen,
     ) {}
 }

@@ -13,7 +13,7 @@ final class NotFrozenRule implements CheckInRuleInterface
 {
     public function validate(CheckInContext $ctx): void
     {
-        if ($ctx->candidate->isFrozen) {
+        if ($ctx->membershipFrozen) {
             throw CheckInDenied::forReason(CheckInDenied::REASON_FROZEN);
         }
     }

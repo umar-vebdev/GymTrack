@@ -48,7 +48,8 @@
 - [x] **T2-06** Домен и инфраструктура посещений (`Visit`, `VisitMethod`, `VisitStatus`, `VisitRegistered`, `visits_visits`, `EloquentVisitRepository`)
 
 ### T2-07 Контракт списания абонемента и цепочка правил `CheckInRule`
-- **Статус:** `[~]`
+- **Статус:** `[x]`
+- **Заметки:** `CheckInContext` хранит простые поля (не DTO из `Memberships`), иначе Deptrac запрещает зависимость Domain → чужие Contracts; маппинг делает Use Case в T2-08. Реализация контракта — `ConsumeMembershipVisit`; в сущность добавлен `Membership::restoreVisit()`. Часы работы 06:00–22:00 и лимит 2 входа в день — допущения D-005, D-006 (ждут подтверждения). Правила в `DailyLimitNotExceededRule` пока не сверяют лимит с `MembershipRules` абонемента — учесть в T2-08.
 - **Цель:** реализовать узкий контракт блокировки, списания и возврата занятия в `Memberships\Contracts` (`MembershipVisitConsumerInterface`) и полиморфную цепочку правил `CheckInRule` в `Visits\Domain\Rules` (проверка активного абонемента, заморозки, времени суток и лимита входов за день).
 - **ТЗ:** Бизнес-ТЗ 4.3, 5.4, 12.1, 12.2, 12.4; Тех. ТЗ 4.1, 4.2, 4.4, 5.3, 9.1.
 - **Файлы:**
