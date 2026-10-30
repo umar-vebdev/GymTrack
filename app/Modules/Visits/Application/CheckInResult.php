@@ -13,3 +13,4 @@ final class CheckInResult
         public readonly ?int $remainingVisits,
     ) {}
 }
+

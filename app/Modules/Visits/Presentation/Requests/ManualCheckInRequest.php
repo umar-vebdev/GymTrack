@@ -25,3 +25,4 @@ final class ManualCheckInRequest extends FormRequest
         ];
     }
 }
+

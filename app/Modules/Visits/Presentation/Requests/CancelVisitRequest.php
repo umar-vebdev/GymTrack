@@ -23,3 +23,4 @@ final class CancelVisitRequest extends FormRequest
         ];
     }
 }
+

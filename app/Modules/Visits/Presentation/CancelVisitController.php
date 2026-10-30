@@ -68,3 +68,4 @@ final class CancelVisitController extends Controller
         ];
     }
 }
+

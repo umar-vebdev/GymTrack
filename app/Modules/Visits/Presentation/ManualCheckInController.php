@@ -81,3 +81,4 @@ final class ManualCheckInController extends Controller
         ], 201);
     }
 }
+

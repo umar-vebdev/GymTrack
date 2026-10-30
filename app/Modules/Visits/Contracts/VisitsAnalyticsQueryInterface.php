@@ -28,3 +28,4 @@ interface VisitsAnalyticsQueryInterface
         DateTimeImmutable $until,
     ): array;
 }
+

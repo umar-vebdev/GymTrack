@@ -178,3 +178,4 @@ final class CheckInByQrEndpointTest extends TestCase
             ->assertJsonPath('error.code', 'DAILY_LIMIT_EXCEEDED');
     }
 }
+

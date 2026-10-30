@@ -157,3 +157,4 @@ final class CancelVisitTest extends TestCase
         ])->assertStatus(400);
     }
 }
+

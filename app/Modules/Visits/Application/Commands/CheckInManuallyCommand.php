@@ -18,3 +18,4 @@ final class CheckInManuallyCommand
         public readonly ?string $device = null,
     ) {}
 }
+

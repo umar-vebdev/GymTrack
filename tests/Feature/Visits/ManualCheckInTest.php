@@ -158,3 +158,4 @@ final class ManualCheckInTest extends TestCase
         ])->assertStatus(400);
     }
 }
+
