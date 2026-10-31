@@ -18,3 +18,4 @@ final class CurrencyModel extends Model
 
     protected $fillable = ['code', 'name', 'symbol'];
 }
+

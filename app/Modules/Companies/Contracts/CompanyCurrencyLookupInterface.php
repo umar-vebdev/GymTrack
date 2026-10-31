@@ -11,3 +11,4 @@ interface CompanyCurrencyLookupInterface
 {
     public function getCurrencyCode(int $companyId): string;
 }
+

@@ -42,3 +42,4 @@ final class EloquentCurrencyRepository implements CurrencyRepositoryInterface
         ) : null;
     }
 }
+
