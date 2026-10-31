@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Sales\Presentation\CreateMembershipRequestController;
 use App\Modules\Sales\Presentation\CreateProductController;
 use App\Modules\Sales\Presentation\ListClientSalesController;
+use App\Modules\Sales\Presentation\ListCompanyMembershipRequestsController;
 use App\Modules\Sales\Presentation\ListCompanySalesController;
 use App\Modules\Sales\Presentation\ListMyMembershipRequestsController;
 use App\Modules\Sales\Presentation\ListProductsController;
@@ -23,6 +24,7 @@ Route::prefix('api/v1/business')
         Route::post('/sales', RegisterSaleController::class);
         Route::post('/sales/{id}/refund', RefundSaleController::class);
         Route::get('/clients/{id}/sales', ListClientSalesController::class);
+        Route::get('/membership-requests', ListCompanyMembershipRequestsController::class);
     });
 
 Route::prefix('api/v1/client')

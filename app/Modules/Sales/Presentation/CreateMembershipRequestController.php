@@ -46,4 +46,3 @@ final class CreateMembershipRequestController extends Controller
         ], 201);
     }
 }
-

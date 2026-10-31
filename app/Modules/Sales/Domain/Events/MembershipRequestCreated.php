@@ -28,4 +28,3 @@ final class MembershipRequestCreated implements DomainEvent
         return $this->occurredOn;
     }
 }
-
