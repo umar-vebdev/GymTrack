@@ -7,9 +7,11 @@ namespace App\Modules\Companies;
 use App\Modules\Companies\Contracts\GymQrLookupInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
+use App\Modules\Companies\Domain\CurrencyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Companies\Infrastructure\EloquentCompanyRepository;
+use App\Modules\Companies\Infrastructure\EloquentCurrencyRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymQrLookup;
 use App\Modules\Companies\Infrastructure\EloquentGymRepository;
 use App\Modules\Companies\Infrastructure\EloquentStaffCompanyResolver;
@@ -23,6 +25,10 @@ final class CompaniesServiceProvider extends ServiceProvider
         $this->app->bind(
             CompanyRepositoryInterface::class,
             EloquentCompanyRepository::class
+        );
+        $this->app->bind(
+            CurrencyRepositoryInterface::class,
+            EloquentCurrencyRepository::class
         );
         $this->app->bind(
             GymRepositoryInterface::class,

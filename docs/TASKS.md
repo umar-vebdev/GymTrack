@@ -48,8 +48,8 @@
 - **ТЗ:** Бизнес-ТЗ 10, Тех. ТЗ 6.1, D-003.
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 - [x] **T2-00a** Таблица-справочник `currencies` (seed/default TJS), колонка `companies.currency_id` (FK), сущность `Company`, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
-- [~] **T2-00b** Эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, сценарий `UpdateCompanyCurrency`, проверка прав владельца и Feature-тесты.
-- [ ] **T2-00c** Контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts`, получение валюты компании по умолчанию в `CreateMembershipType` и фиксация в `DECISIONS.md`.
+- [x] **T2-00b** Эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, сценарий `UpdateCompanyCurrency`, проверка прав владельца и Feature-тесты.
+- [~] **T2-00c** Контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts`, получение валюты компании по умолчанию в `CreateMembershipType` и фиксация в `DECISIONS.md`.
 
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
