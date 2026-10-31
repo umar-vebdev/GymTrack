@@ -38,22 +38,11 @@
 - [x] **E2-A Регистрация клиента и связывание с карточками зала**: T2-01…T2-03 — поля `birth_date` и `personal_data_consented_at`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), регистрация `POST /api/v1/client/auth/register` с отправкой OTP и автоматическим связыванием карточек залов после подтверждения номера (критерий 12.9), профиль `GET /api/v1/client/profile` и обезличивание аккаунта по запросу `DELETE /api/v1/client/profile`
 - [x] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность**: T2-04…T2-10b — зашифрованный `qr_secret` зала, динамический HMAC QR (`HmacQrTokenService`, 60 с + предыдущий слот, `GET /api/v1/business/gyms/{id}/qr`), сущность `Visit` и `EloquentVisitRepository`, контракт `MembershipVisitConsumerInterface` (`ConsumeMembershipVisit`, `Membership::restoreVisit`), цепочка правил `CheckInRule` (D-007), отметка клиентом по QR (`POST /api/v1/client/visits/check-in`), ручная отметка сотрудником с поддержкой `visited_at` задним числом (`POST /api/v1/business/clients/{id}/visits`), отмена ошибочной отметки в течение 24 ч (`POST /api/v1/business/visits/{id}/cancel`), списки посещений клиента и компании, контракт аналитики `VisitsAnalyticsQueryInterface` (посещения по способам/дням и «спящие» клиенты в `GET /api/v1/business/analytics/overview`)
 - [x] **T2-00 Справочник валют (`currencies`), валюта компании (`currency_id`) и смена валюты зала (решение D-003 / D-008)**: T2-00a…T2-00c — справочник `currencies` (TJS id=1 по умолчанию), внешний ключ `companies.currency_id`, эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, контракт `CompanyCurrencyLookupInterface` и автоматическое использование валюты компании при создании абонементов и товаров
+- [x] **E2-C Заявки на абонемент (Sales) и их автоотмена**: T2-11…T2-15 — оформление заявки клиентом в приложении (`POST /client/membership-requests` с `Idempotency-Key`), просмотр заявок ресепшеном, приём оплаты и подтверждение с атомарной выдачей абонемента и отметкой `PaymentMark`, ручная отмена и фоновая автоотмена просроченных заявок через 24 часа (`sales:expire-requests`)
 
 ---
 
 ## Этап 2 — Client (приложение клиента)
-
-### E2-C Заявки на абонемент (Sales) и их автоотмена
-- **Статус:** `[~]`
-- **Цель:** реализовать сценарий покупки абонемента клиентом в зале (Сценарий Б): оформление заявки в приложении (`POST /client/membership-requests`), список заявок для ресепшена, проведение оплаты с атомарной выдачей абонемента и отметкой `PaymentMark`, а также фоновая автоотмена просроченных заявок через 24 часа.
-- **ТЗ:** Бизнес-ТЗ 4.5, 5.4 (сценарий Б), 12.5; Тех. ТЗ 3.6, 7.3, 9.2.
-- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
-
-- [x] **T2-11** Модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, `MembershipRequestRepositoryInterface`, `EloquentMembershipRequestRepository`, Unit-тесты).
-- [x] **T2-12** Создание и просмотр заявок клиентом (`POST /api/v1/client/membership-requests` с `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/привязка карточки клиента, событие `MembershipRequestCreated`, Feature-тесты).
-- [x] **T2-13** Просмотр заявок в кабинете зала (`GET /api/v1/business/membership-requests` с фильтром по статусу и пагинацией, проверка прав `owner`/`admin`, Feature-тесты).
-- [x] **T2-14** Отметка оплаты заявки администратором (`POST /api/v1/business/membership-requests/{id}/pay` с `Idempotency-Key`, транзакция `lockForUpdate`, создание `PaymentMark` + выдача абонемента через `MembershipIssuerInterface`, событие `MembershipRequestPaid`, Feature-тесты).
-- [~] **T2-15** Автоотмена просроченных заявок через 24 часа (консольная команда `sales:expire-requests`, ручная отмена `POST /api/v1/business/membership-requests/{id}/cancel`, тесты).
 
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история

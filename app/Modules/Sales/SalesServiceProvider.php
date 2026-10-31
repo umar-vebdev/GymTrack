@@ -12,6 +12,7 @@ use App\Modules\Sales\Infrastructure\EloquentMembershipRequestRepository;
 use App\Modules\Sales\Infrastructure\EloquentProductRepository;
 use App\Modules\Sales\Infrastructure\EloquentSaleRepository;
 use App\Modules\Sales\Infrastructure\EloquentSalesAnalyticsQuery;
+use App\Modules\Sales\Presentation\Console\ExpireDueMembershipRequestsCommand;
 use Illuminate\Support\ServiceProvider;
 
 final class SalesServiceProvider extends ServiceProvider
@@ -42,6 +43,12 @@ final class SalesServiceProvider extends ServiceProvider
 
         if (file_exists(__DIR__.'/Presentation/routes.php')) {
             $this->loadRoutesFrom(__DIR__.'/Presentation/routes.php');
+        }
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ExpireDueMembershipRequestsCommand::class,
+            ]);
         }
     }
 }

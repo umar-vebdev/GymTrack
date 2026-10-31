@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Sales\Presentation\CancelMembershipRequestController;
 use App\Modules\Sales\Presentation\CreateMembershipRequestController;
 use App\Modules\Sales\Presentation\CreateProductController;
 use App\Modules\Sales\Presentation\ListClientSalesController;
@@ -27,6 +28,7 @@ Route::prefix('api/v1/business')
         Route::get('/clients/{id}/sales', ListClientSalesController::class);
         Route::get('/membership-requests', ListCompanyMembershipRequestsController::class);
         Route::post('/membership-requests/{id}/pay', PayMembershipRequestController::class);
+        Route::post('/membership-requests/{id}/cancel', CancelMembershipRequestController::class);
     });
 
 Route::prefix('api/v1/client')

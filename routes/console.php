@@ -12,3 +12,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('memberships:expire-due')->daily();
 Schedule::command('billing:expire-due')->daily();
+Schedule::command('sales:expire-requests')->hourly();
