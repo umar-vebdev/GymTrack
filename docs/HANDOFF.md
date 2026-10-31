@@ -11,25 +11,21 @@
 
 - **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[~]`):
   - **T2-11** (`[x]`): модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, репозиторий и тесты).
-  - **T2-12** (`[~]`): создание и просмотр заявок клиентом (`POST /client/membership-requests` с `Idempotency-Key`, `GET /client/membership-requests`).
-  - **T2-13** (`[ ]`): список заявок в кабинете зала (`GET /business/membership-requests`).
+  - **T2-12** (`[x]`): создание и просмотр заявок клиентом (`POST /client/membership-requests` с `Idempotency-Key`, `GET /client/membership-requests`).
+  - **T2-13** (`[~]`): список заявок в кабинете зала (`GET /business/membership-requests`).
   - **T2-14** (`[ ]`): отметка оплаты администратором (`POST /business/membership-requests/{id}/pay` с выдачей абонемента и `PaymentMark`).
   - **T2-15** (`[ ]`): автоотмена просроченных заявок через 24 ч (`sales:expire-requests`) и ручная отмена.
 - Следующий эпик: **E2-D Notifications**.
 
 ## Последняя сессия: что сделано
 
-- **T2-11** (`[x]`):
-  - Миграция таблицы `sales_membership_requests` с внешними ключами и индексами (`company_id`, `gym_id`, `user_id`, `client_id`, `membership_type_id`, `status`, `expires_at`, `paid_at`, `sale_id`, `membership_id`, `idempotency_key`).
-  - Доменное перечисление `MembershipRequestStatus` (`pending`, `paid`, `cancelled`, `expired`).
-  - Чистая доменная сущность `MembershipRequest` с методами инвариантов (`canBePaid`, `markPaid`, `cancel`, `expire`, `isExpired`).
-  - Модель `MembershipRequestModel`, контракт `MembershipRequestRepositoryInterface`, реализация `EloquentMembershipRequestRepository` с блокировкой `lockForUpdate` и поиском просроченных заявок.
-  - Unit-тесты `MembershipRequestTest` (доменные переходы и CRUD/запросы репозитория).
-- Всего 213 тестов (929 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-11** (`[x]`): миграция `sales_membership_requests`, домен `MembershipRequest` и `MembershipRequestStatus`, `EloquentMembershipRequestRepository` и тесты.
+- **T2-12** (`[x]`): метод `findOrCreateForUser` в `ClientLookupInterface`, событие `MembershipRequestCreated`, сценарии `CreateMembershipRequest` и `ListUserMembershipRequests`, эндпоинты клиента `POST /api/v1/client/membership-requests` (с `Idempotency-Key` и сроком жизни 24 часа) и `GET /api/v1/client/membership-requests`, Feature-тесты.
+- Всего 218 тестов (956 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Реализовать задачу **T2-12**: создание и просмотр заявок клиентом (`CreateMembershipRequest`, `POST /api/v1/client/membership-requests` с поддержкой `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/поиск карточки клиента зала, событие `MembershipRequestCreated`, Feature-тесты).
+1. Реализовать задачу **T2-13**: эндпоинт `GET /api/v1/business/membership-requests` (сценарий `ListCompanyMembershipRequests`, фильтр по статусу `pending`/`paid`/`cancelled`/`expired`, пагинация, проверка прав ролей `owner`/`admin`, Feature-тесты).
 
 ## Окружение: важное про Docker и Git
 

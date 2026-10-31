@@ -50,8 +50,8 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 - [x] **T2-11** Модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, `MembershipRequestRepositoryInterface`, `EloquentMembershipRequestRepository`, Unit-тесты).
-- [~] **T2-12** Создание и просмотр заявок клиентом (`POST /api/v1/client/membership-requests` с `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/привязка карточки клиента, событие `MembershipRequestCreated`, Feature-тесты).
-- [ ] **T2-13** Просмотр заявок в кабинете зала (`GET /api/v1/business/membership-requests` с фильтром по статусу и пагинацией, проверка прав `owner`/`admin`, Feature-тесты).
+- [x] **T2-12** Создание и просмотр заявок клиентом (`POST /api/v1/client/membership-requests` с `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/привязка карточки клиента, событие `MembershipRequestCreated`, Feature-тесты).
+- [~] **T2-13** Просмотр заявок в кабинете зала (`GET /api/v1/business/membership-requests` с фильтром по статусу и пагинацией, проверка прав `owner`/`admin`, Feature-тесты).
 - [ ] **T2-14** Отметка оплаты заявки администратором (`POST /api/v1/business/membership-requests/{id}/pay` с `Idempotency-Key`, транзакция `lockForUpdate`, создание `PaymentMark` + выдача абонемента через `MembershipIssuerInterface`, событие `MembershipRequestPaid`, Feature-тесты).
 - [ ] **T2-15** Автоотмена просроченных заявок через 24 часа (консольная команда `sales:expire-requests`, ручная отмена `POST /api/v1/business/membership-requests/{id}/cancel`, тесты).
 
