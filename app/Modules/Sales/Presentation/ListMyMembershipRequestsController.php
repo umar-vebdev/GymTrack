@@ -28,3 +28,4 @@ final class ListMyMembershipRequestsController extends Controller
         ]);
     }
 }
+

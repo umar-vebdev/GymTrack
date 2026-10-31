@@ -24,3 +24,4 @@ final class CreateMembershipRequestRequest extends FormRequest
         ];
     }
 }
+
