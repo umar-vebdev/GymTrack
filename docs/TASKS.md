@@ -43,7 +43,18 @@
 
 ## Этап 2 — Client (приложение клиента)
 
-3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
+### E2-C Заявки на абонемент (Sales) и их автоотмена
+- **Статус:** `[ ]`
+- **Цель:** реализовать сценарий покупки абонемента клиентом в зале (Сценарий Б): оформление заявки в приложении (`POST /client/membership-requests`), список заявок для ресепшена, проведение оплаты с атомарной выдачей абонемента и отметкой `PaymentMark`, а также фоновая автоотмена просроченных заявок через 24 часа.
+- **ТЗ:** Бизнес-ТЗ 4.5, 5.4 (сценарий Б), 12.5; Тех. ТЗ 3.6, 7.3, 9.2.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+- [ ] **T2-11** Модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, `MembershipRequestRepositoryInterface`, `EloquentMembershipRequestRepository`, Unit-тесты).
+- [ ] **T2-12** Создание и просмотр заявок клиентом (`POST /api/v1/client/membership-requests` с `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/привязка карточки клиента, событие `MembershipRequestCreated`, Feature-тесты).
+- [ ] **T2-13** Просмотр заявок в кабинете зала (`GET /api/v1/business/membership-requests` с фильтром по статусу и пагинацией, проверка прав `owner`/`admin`, Feature-тесты).
+- [ ] **T2-14** Отметка оплаты заявки администратором (`POST /api/v1/business/membership-requests/{id}/pay` с `Idempotency-Key`, транзакция `lockForUpdate`, создание `PaymentMark` + выдача абонемента через `MembershipIssuerInterface`, событие `MembershipRequestPaid`, Feature-тесты).
+- [ ] **T2-15** Автоотмена просроченных заявок через 24 часа (консольная команда `sales:expire-requests`, ручная отмена `POST /api/v1/business/membership-requests/{id}/cancel`, тесты).
+
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
 
