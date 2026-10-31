@@ -103,4 +103,3 @@ final class ListVisitsTest extends TestCase
             ->assertJsonPath('error.code', 'CLIENT_NOT_FOUND');
     }
 }
-

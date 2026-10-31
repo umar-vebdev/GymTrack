@@ -42,6 +42,15 @@
 
 ## Этап 2 — Client (приложение клиента)
 
+### T2-00 Справочник валют (`currencies`), валюта компании (`currency_id`) и смена валюты зала (решение D-003)
+- **Статус:** `[~]`
+- **Цель:** реализовать отдельный справочник валют `currencies`, связать компанию с валютой по умолчанию (TJS, `currency_id`), дать владельцу возможность менять валюту компании и подключить получение валюты по умолчанию при создании типов абонементов.
+- **ТЗ:** Бизнес-ТЗ 10, Тех. ТЗ 6.1, D-003.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+- [x] **T2-00a** Таблица-справочник `currencies` (seed/default TJS), колонка `companies.currency_id` (FK), сущность `Company`, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
+- [~] **T2-00b** Эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, сценарий `UpdateCompanyCurrency`, проверка прав владельца и Feature-тесты.
+- [ ] **T2-00c** Контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts`, получение валюты компании по умолчанию в `CreateMembershipType` и фиксация в `DECISIONS.md`.
+
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история

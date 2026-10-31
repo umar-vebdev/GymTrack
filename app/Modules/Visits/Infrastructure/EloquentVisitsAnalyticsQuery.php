@@ -76,4 +76,3 @@ final class EloquentVisitsAnalyticsQuery implements VisitsAnalyticsQueryInterfac
         return $ids;
     }
 }
-

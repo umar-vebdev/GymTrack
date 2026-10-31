@@ -28,6 +28,12 @@ final class CompanyRepositoryTest extends TestCase
         $this->assertNotNull($company);
         $this->assertSame('GymTrack Corp', $company->name());
         $this->assertSame($user->id, $company->ownerId());
+        $this->assertSame(1, $company->currencyId());
+
+        $companyRepo->updateCurrency($companyId, 2);
+        $updatedCompany = $companyRepo->findById($companyId);
+        $this->assertNotNull($updatedCompany);
+        $this->assertSame(2, $updatedCompany->currencyId());
 
         /** @var GymRepositoryInterface $gymRepo */
         $gymRepo = $this->app->make(GymRepositoryInterface::class);

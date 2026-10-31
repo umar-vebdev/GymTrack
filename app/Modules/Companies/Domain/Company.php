@@ -9,7 +9,8 @@ final class Company
     public function __construct(
         private readonly int $id,
         private readonly int $ownerId,
-        private readonly string $name
+        private readonly string $name,
+        private readonly int $currencyId = 1
     ) {}
 
     public function id(): int
@@ -25,5 +26,10 @@ final class Company
     public function name(): string
     {
         return $this->name;
+    }
+
+    public function currencyId(): int
+    {
+        return $this->currencyId;
     }
 }

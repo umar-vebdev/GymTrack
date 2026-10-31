@@ -30,4 +30,3 @@ final class ListClientVisits
         return $this->visits->listByClient($companyId, $clientId);
     }
 }
-

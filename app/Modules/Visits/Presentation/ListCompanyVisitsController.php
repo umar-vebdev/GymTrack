@@ -44,4 +44,3 @@ final class ListCompanyVisitsController extends Controller
         ]);
     }
 }
-

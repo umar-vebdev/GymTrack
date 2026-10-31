@@ -19,4 +19,3 @@ final class VisitsAnalyticsSummary
         public readonly array $byDay,
     ) {}
 }
-

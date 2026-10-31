@@ -164,4 +164,3 @@ final class CheckInManually
         return $result;
     }
 }
-

@@ -94,4 +94,3 @@ final class VisitsAnalyticsQueryTest extends TestCase
         $this->assertSame([$client1], $activeIds);
     }
 }
-

@@ -24,4 +24,3 @@ final class CheckInByQrRequest extends FormRequest
         ];
     }
 }
-

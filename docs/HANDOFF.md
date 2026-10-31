@@ -9,8 +9,11 @@
 
 ## Текущая задача
 
-- **E2-B Visits** (`T2-04`..`T2-10b`) `[x]` — полностью закрыт.
-- Следующий эпик этапа 2: **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[ ]` — нужно перечитать разделы ТЗ, раскрыть эпик в мелкие задачи и показать разработчику для подтверждения по правилу 4.3 `AGENTS.md`).
+- **T2-00** Решение D-003: справочник валют (`currencies`), поле `currency_id` в `companies` и смена валюты зала (`[~]`).
+  - **T2-00a** (`[x]`): миграции `currencies` и `companies.currency_id`, доменная модель `Company`, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
+  - **T2-00b** (`[~]`): эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`.
+  - **T2-00c** (`[ ]`): контракт `CompanyCurrencyLookupInterface` и дефолтная валюта компании в `CreateMembershipType`.
+- Следующий эпик: **E2-C Заявки на абонемент (Sales) и их автоотмена**.
 
 ## Последняя сессия: что сделано
 

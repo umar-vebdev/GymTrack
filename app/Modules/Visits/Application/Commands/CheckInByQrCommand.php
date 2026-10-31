@@ -13,4 +13,3 @@ final class CheckInByQrCommand
         public readonly ?string $device = null,
     ) {}
 }
-

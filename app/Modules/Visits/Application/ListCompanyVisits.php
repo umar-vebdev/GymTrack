@@ -21,4 +21,3 @@ final class ListCompanyVisits
         return $this->visits->listByCompany($companyId);
     }
 }
-
