@@ -3,25 +3,21 @@
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
-**Обновлено:** 2026-10-30
-**Этап:** 2 — Client (завершён эпик E2-B Visits, переход к E2-C Заявки на абонемент)
+**Обновлено:** 2026-10-31
+**Этап:** 2 — Client (завершены эпик E2-B Visits и задача T2-00 по валюте компании; переход к E2-C Заявки на абонемент)
 **Ветка:** main
 
 ## Текущая задача
 
-- **T2-00** Решение D-003: справочник валют (`currencies`), поле `currency_id` в `companies` и смена валюты зала (`[~]`).
-  - **T2-00a** (`[x]`): миграции `currencies` и `companies.currency_id`, доменная модель `Company`, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
-  - **T2-00b** (`[x]`): эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`.
-  - **T2-00c** (`[~]`): контракт `CompanyCurrencyLookupInterface` и дефолтная валюта компании в `CreateMembershipType`.
-- Следующий эпик: **E2-C Заявки на абонемент (Sales) и их автоотмена**.
+- **T2-00** Справочник валют (`currencies`), поле `currency_id` в `companies` и смена валюты зала (`[x]`) — полностью закрыт.
+- Следующий эпик этапа 2: **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[ ]` — нужно перечитать разделы ТЗ, раскрыть эпик в мелкие задачи и показать разработчику для подтверждения по правилу 4.3 `AGENTS.md`).
 
 ## Последняя сессия: что сделано
 
-- **T2-07** (`d26f01f`, `52d7471`): контракт `MembershipVisitConsumerInterface` (`ConsumeMembershipVisit`, `Membership::restoreVisit`) и полиморфная цепочка правил `CheckInRule` (`NotFrozenRule`, `MembershipIsAvailableRule`, `DailyLimitNotExceededRule`, `WithinAllowedTimeRule`) с чтением лимита и окна времени из `MembershipRules` (решение D-007).
-- **T2-08** (`839b0b9`, `e006072`, `d0d93c3`): поиск карточки клиента по `user_id` + `company_id` в `ClientLookupInterface`, сценарий `CheckInByQr` и эндпоинт `POST /api/v1/client/visits/check-in` с `Idempotency-Key`, блокировкой абонемента и аудитом.
-- **T2-09** (`5b7ce40`, `b62bcff`): ручная отметка администратором `POST /api/v1/business/clients/{id}/visits` (включая `visited_at` задним числом) и отмена ошибочной отметки в течение 24 ч `POST /api/v1/business/visits/{id}/cancel` с возвратом занятия и событием `VisitCancelled`.
-- **T2-10** (`433e94f` + финальный коммит `T2-10b`): списки посещений `GET /api/v1/business/clients/{id}/visits`, `GET /api/v1/business/visits`, контракт `VisitsAnalyticsQueryInterface` (`VisitsAnalyticsSummary`) и подключение показателей посещаемости и «спящих» клиентов в `GET /api/v1/business/analytics/overview`.
-- Всего 203 теста (851 проверка) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-00a**: таблица-справочник `currencies` (с предзаполненными TJS [id=1], RUB, USD, EUR, UZS, KGS, KZT), колонка `companies.currency_id` (FK), сущность `Company` Domain, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
+- **T2-00b**: эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, проверка роли владельца компании (`Role::OWNER`), сценарий `UpdateCompanyCurrency` и Feature-тесты.
+- **T2-00c**: публичный контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts` и его реализация `EloquentCompanyCurrencyLookup`; подключено автоматическое использование валюты компании по умолчанию при создании типов абонементов (`CreateMembershipType`) и товаров (`CreateProduct`); закрыто решение D-003 через D-008 в `docs/DECISIONS.md`.
+- Всего 210 тестов (905 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
@@ -46,3 +42,4 @@
 
 - Платежей нет, только `PaymentMark`.
 - Новая функция = новый модуль или расширение через `Contracts` и события (без прямых JOIN между таблицами разных модулей).
+- Валюта зала хранится в `companies.currency_id` (FK на `currencies`, по умолчанию TJS = 1).

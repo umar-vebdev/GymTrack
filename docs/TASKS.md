@@ -37,19 +37,11 @@
 - [x] **E1-H Analytics**: T1-41…T1-43 — контракты аналитики продаж (`SalesAnalyticsQueryInterface`, `RevenueSummary`, `ItemPopularity`) и клиентов (`ClientsAnalyticsQueryInterface`, `ClientsAnalyticsSummary`), модуль `Analytics` (`GetRevenueReport`, `GetOverviewAnalytics`), эндпоинты `GET /api/v1/business/analytics/revenue` и `GET /api/v1/business/analytics/overview` (доступ только владельцу — критерий приёмки 12.7)
 - [x] **E2-A Регистрация клиента и связывание с карточками зала**: T2-01…T2-03 — поля `birth_date` и `personal_data_consented_at`, доменное правило `ClientRegistrationPolicy` (18+ и согласие), регистрация `POST /api/v1/client/auth/register` с отправкой OTP и автоматическим связыванием карточек залов после подтверждения номера (критерий 12.9), профиль `GET /api/v1/client/profile` и обезличивание аккаунта по запросу `DELETE /api/v1/client/profile`
 - [x] **E2-B Visits: динамический QR, отметка посещения, правила `CheckInRule`, идемпотентность**: T2-04…T2-10b — зашифрованный `qr_secret` зала, динамический HMAC QR (`HmacQrTokenService`, 60 с + предыдущий слот, `GET /api/v1/business/gyms/{id}/qr`), сущность `Visit` и `EloquentVisitRepository`, контракт `MembershipVisitConsumerInterface` (`ConsumeMembershipVisit`, `Membership::restoreVisit`), цепочка правил `CheckInRule` (D-007), отметка клиентом по QR (`POST /api/v1/client/visits/check-in`), ручная отметка сотрудником с поддержкой `visited_at` задним числом (`POST /api/v1/business/clients/{id}/visits`), отмена ошибочной отметки в течение 24 ч (`POST /api/v1/business/visits/{id}/cancel`), списки посещений клиента и компании, контракт аналитики `VisitsAnalyticsQueryInterface` (посещения по способам/дням и «спящие» клиенты в `GET /api/v1/business/analytics/overview`)
+- [x] **T2-00 Справочник валют (`currencies`), валюта компании (`currency_id`) и смена валюты зала (решение D-003 / D-008)**: T2-00a…T2-00c — справочник `currencies` (TJS id=1 по умолчанию), внешний ключ `companies.currency_id`, эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, контракт `CompanyCurrencyLookupInterface` и автоматическое использование валюты компании при создании абонементов и товаров
 
 ---
 
 ## Этап 2 — Client (приложение клиента)
-
-### T2-00 Справочник валют (`currencies`), валюта компании (`currency_id`) и смена валюты зала (решение D-003)
-- **Статус:** `[~]`
-- **Цель:** реализовать отдельный справочник валют `currencies`, связать компанию с валютой по умолчанию (TJS, `currency_id`), дать владельцу возможность менять валюту компании и подключить получение валюты по умолчанию при создании типов абонементов.
-- **ТЗ:** Бизнес-ТЗ 10, Тех. ТЗ 6.1, D-003.
-- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
-- [x] **T2-00a** Таблица-справочник `currencies` (seed/default TJS), колонка `companies.currency_id` (FK), сущность `Company`, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
-- [x] **T2-00b** Эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, сценарий `UpdateCompanyCurrency`, проверка прав владельца и Feature-тесты.
-- [~] **T2-00c** Контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts`, получение валюты компании по умолчанию в `CreateMembershipType` и фиксация в `DECISIONS.md`.
 
 3. [ ] **E2-C** Заявки на абонемент (Sales) и их автоотмена
 4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента

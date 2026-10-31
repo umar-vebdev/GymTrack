@@ -6,6 +6,7 @@ namespace App\Modules\Memberships\Presentation;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Companies\Contracts\CompanyCurrencyLookupInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Memberships\Application\Commands\CreateMembershipTypeCommand;
 use App\Modules\Memberships\Application\CreateMembershipType;
@@ -19,7 +20,8 @@ final class CreateMembershipTypeController extends Controller
 {
     public function __construct(
         private readonly CreateMembershipType $createType,
-        private readonly StaffCompanyResolverInterface $companies
+        private readonly StaffCompanyResolverInterface $companies,
+        private readonly CompanyCurrencyLookupInterface $currencyLookup
     ) {}
 
     public function __invoke(CreateMembershipTypeRequest $request): JsonResponse
@@ -33,12 +35,17 @@ final class CreateMembershipTypeController extends Controller
             return $this->error('FORBIDDEN', 'Создавать типы абонементов может только владелец.', 403);
         }
 
+        $currencyInput = $request->validated('currency');
+        $currency = is_string($currencyInput) && trim($currencyInput) !== ''
+            ? strtoupper($currencyInput)
+            : $this->currencyLookup->getCurrencyCode($companyId);
+
         try {
             $id = $this->createType->execute(new CreateMembershipTypeCommand(
                 companyId: $companyId,
                 name: $request->validated('name'),
                 priceMinor: (int) $request->validated('price_minor'),
-                currency: strtoupper((string) $request->validated('currency', 'TJS')),
+                currency: $currency,
                 kind: MembershipKind::from($request->validated('kind')),
                 startMode: StartMode::from($request->validated('start_mode')),
                 visitsCount: $this->intOrNull($request->validated('visits_count')),
@@ -54,7 +61,11 @@ final class CreateMembershipTypeController extends Controller
             return $this->error('INVALID_MEMBERSHIP_RULES', $e->getMessage(), 422);
         }
 
-        return response()->json(['data' => ['id' => $id]], 201);
+        return response()->json([
+            'data' => [
+                'id' => $id,
+            ],
+        ], 201);
     }
 
     private function intOrNull(mixed $value): ?int

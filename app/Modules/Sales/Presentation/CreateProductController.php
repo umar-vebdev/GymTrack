@@ -6,6 +6,7 @@ namespace App\Modules\Sales\Presentation;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Modules\Companies\Contracts\CompanyCurrencyLookupInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Sales\Application\CreateProduct;
 use App\Modules\Sales\Presentation\Requests\CreateProductRequest;
@@ -15,7 +16,8 @@ final class CreateProductController extends Controller
 {
     public function __construct(
         private readonly CreateProduct $createProduct,
-        private readonly StaffCompanyResolverInterface $companies
+        private readonly StaffCompanyResolverInterface $companies,
+        private readonly CompanyCurrencyLookupInterface $currencyLookup
     ) {}
 
     public function __invoke(CreateProductRequest $request): JsonResponse
@@ -34,13 +36,16 @@ final class CreateProductController extends Controller
 
         $stock = $request->validated('stock_quantity');
         $currency = $request->validated('currency');
+        $currencyCode = is_string($currency) && trim($currency) !== ''
+            ? strtoupper($currency)
+            : $this->currencyLookup->getCurrencyCode($companyId);
 
         $id = $this->createProduct->execute(
             companyId: $companyId,
             name: (string) $request->validated('name'),
             priceMinor: (int) $request->validated('price_minor'),
             stockQuantity: $stock === null ? null : (int) $stock,
-            currency: is_string($currency) ? strtoupper($currency) : null
+            currency: $currencyCode
         );
 
         return response()->json(['data' => ['id' => $id]], 201);

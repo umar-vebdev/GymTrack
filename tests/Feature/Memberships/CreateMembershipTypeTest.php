@@ -105,4 +105,26 @@ final class CreateMembershipTypeTest extends TestCase
     {
         $this->postJson(self::URL, [])->assertStatus(401);
     }
+
+    public function test_membership_type_defaults_to_company_currency(): void
+    {
+        $owner = $this->owner();
+
+        // Меняем валюту компании на RUB (id 2)
+        $this->actingAs($owner, 'sanctum')->patchJson('/api/v1/business/company/currency', [
+            'currency_id' => 2,
+        ])->assertStatus(200);
+
+        $payload = $this->validPayload();
+        $payload['name'] = '8 занятий в рублях';
+        unset($payload['currency']);
+
+        $this->actingAs($owner, 'sanctum')->postJson(self::URL, $payload)
+            ->assertStatus(201);
+
+        $this->assertDatabaseHas('membership_types', [
+            'name' => '8 занятий в рублях',
+            'currency' => 'RUB',
+        ]);
+    }
 }

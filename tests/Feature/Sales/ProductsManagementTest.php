@@ -137,4 +137,29 @@ final class ProductsManagementTest extends TestCase
             ->assertStatus(404)
             ->assertJsonPath('error.code', 'PRODUCT_NOT_FOUND');
     }
+
+    public function test_product_creation_defaults_to_company_currency(): void
+    {
+        $owner = $this->createOwnerWithCompany();
+
+        // Меняем валюту компании на USD (id 3)
+        $this->actingAs($owner, 'sanctum')->patchJson('/api/v1/business/company/currency', [
+            'currency_id' => 3,
+        ])->assertStatus(200);
+
+        $res = $this->actingAs($owner, 'sanctum')
+            ->postJson('/api/v1/business/products', [
+                'name' => 'Protein Bar USD',
+                'price_minor' => 250,
+            ])
+            ->assertStatus(201);
+
+        $productId = (int) $res->json('data.id');
+
+        $this->assertDatabaseHas('sales_products', [
+            'id' => $productId,
+            'name' => 'Protein Bar USD',
+            'currency' => 'USD',
+        ]);
+    }
 }
