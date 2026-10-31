@@ -23,3 +23,4 @@ final class CancelMembershipRequestRequest extends FormRequest
         ];
     }
 }
+

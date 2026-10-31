@@ -55,3 +55,4 @@ final class CancelMembershipRequestController extends Controller
         ]);
     }
 }
+
