@@ -9,6 +9,7 @@ use App\Modules\Sales\Presentation\ListCompanyMembershipRequestsController;
 use App\Modules\Sales\Presentation\ListCompanySalesController;
 use App\Modules\Sales\Presentation\ListMyMembershipRequestsController;
 use App\Modules\Sales\Presentation\ListProductsController;
+use App\Modules\Sales\Presentation\PayMembershipRequestController;
 use App\Modules\Sales\Presentation\RefundSaleController;
 use App\Modules\Sales\Presentation\RegisterSaleController;
 use App\Modules\Sales\Presentation\UpdateProductController;
@@ -25,6 +26,7 @@ Route::prefix('api/v1/business')
         Route::post('/sales/{id}/refund', RefundSaleController::class);
         Route::get('/clients/{id}/sales', ListClientSalesController::class);
         Route::get('/membership-requests', ListCompanyMembershipRequestsController::class);
+        Route::post('/membership-requests/{id}/pay', PayMembershipRequestController::class);
     });
 
 Route::prefix('api/v1/client')

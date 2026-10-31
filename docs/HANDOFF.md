@@ -13,20 +13,21 @@
   - **T2-11** (`[x]`): модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, репозиторий и тесты).
   - **T2-12** (`[x]`): создание и просмотр заявок клиентом (`POST /client/membership-requests` с `Idempotency-Key`, `GET /client/membership-requests`).
   - **T2-13** (`[x]`): список заявок в кабинете зала (`GET /business/membership-requests`).
-  - **T2-14** (`[~]`): отметка оплаты администратором (`POST /business/membership-requests/{id}/pay` с выдачей абонемента и `PaymentMark`).
-  - **T2-15** (`[ ]`): автоотмена просроченных заявок через 24 ч (`sales:expire-requests`) и ручная отмена.
+  - **T2-14** (`[x]`): отметка оплаты администратором (`POST /business/membership-requests/{id}/pay` с выдачей абонемента и `PaymentMark`).
+  - **T2-15** (`[~]`): автоотмена просроченных заявок через 24 ч (`sales:expire-requests`) и ручная отмена.
 - Следующий эпик: **E2-D Notifications**.
 
 ## Последняя сессия: что сделано
 
 - **T2-11** (`[x]`): миграция `sales_membership_requests`, домен `MembershipRequest` и `MembershipRequestStatus`, `EloquentMembershipRequestRepository` и тесты.
 - **T2-12** (`[x]`): создание и просмотр заявок клиентом (`POST /api/v1/client/membership-requests`, `GET /api/v1/client/membership-requests`).
-- **T2-13** (`[x]`): сценарий `ListCompanyMembershipRequests`, эндпоинт кабинета зала `GET /api/v1/business/membership-requests` с фильтрацией по статусу `?status=...`, изоляцией тенантов по `company_id` и проверкой прав сотрудника, Feature-тесты.
-- Всего 223 теста (977 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-13** (`[x]`): список заявок зала `GET /api/v1/business/membership-requests` с фильтрацией по статусу.
+- **T2-14** (`[x]`): сценарий `PayMembershipRequest`, эндпоинт `POST /api/v1/business/membership-requests/{id}/pay` (атомарное проведение `PaymentMark`, выпуск абонемента через `MembershipIssuerInterface`, события `PaymentMarked` и `MembershipRequestPaid`, защита `Idempotency-Key` и блокировка `lockForUpdate`), Feature-тесты.
+- Всего 229 тестов (1003 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Реализовать задачу **T2-14**: сценарий `PayMembershipRequest`, эндпоинт `POST /api/v1/business/membership-requests/{id}/pay` (с блокировкой `lockForUpdate`, проведением продажи, отметкой `PaymentMark`, выпуском абонемента через `MembershipIssuerInterface`, событием `MembershipRequestPaid` и Feature-тестами).
+1. Реализовать задачу **T2-15**: консольная команда `sales:expire-requests` (автоматическая отмена заявок со статусом `pending` и `expires_at <= now()`), эндпоинт ручной отмены заявки `POST /api/v1/business/membership-requests/{id}/cancel`, тесты; завершение эпика E2-C.
 
 ## Окружение: важное про Docker и Git
 
