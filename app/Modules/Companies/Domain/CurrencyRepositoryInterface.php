@@ -13,4 +13,3 @@ interface CurrencyRepositoryInterface
 
     public function findById(int $id): ?Currency;
 }
-

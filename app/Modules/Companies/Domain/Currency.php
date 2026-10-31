@@ -33,4 +33,3 @@ final class Currency
         return $this->symbol;
     }
 }
-
