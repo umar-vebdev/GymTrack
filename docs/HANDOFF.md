@@ -9,9 +9,9 @@
 
 ## Текущая задача
 
-- **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[ ]`):
-  - **T2-11** (`[ ]`): модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, репозиторий и тесты).
-  - **T2-12** (`[ ]`): создание и просмотр заявок клиентом (`POST /client/membership-requests` с `Idempotency-Key`, `GET /client/membership-requests`).
+- **E2-C Заявки на абонемент (Sales) и их автоотмена** (`[~]`):
+  - **T2-11** (`[x]`): модель данных и домен заявок (`sales_membership_requests`, `MembershipRequest`, `MembershipRequestStatus`, репозиторий и тесты).
+  - **T2-12** (`[~]`): создание и просмотр заявок клиентом (`POST /client/membership-requests` с `Idempotency-Key`, `GET /client/membership-requests`).
   - **T2-13** (`[ ]`): список заявок в кабинете зала (`GET /business/membership-requests`).
   - **T2-14** (`[ ]`): отметка оплаты администратором (`POST /business/membership-requests/{id}/pay` с выдачей абонемента и `PaymentMark`).
   - **T2-15** (`[ ]`): автоотмена просроченных заявок через 24 ч (`sales:expire-requests`) и ручная отмена.
@@ -19,15 +19,17 @@
 
 ## Последняя сессия: что сделано
 
-- **T2-00a**: таблица-справочник `currencies` (с предзаполненными TJS [id=1], RUB, USD, EUR, UZS, KGS, KZT), колонка `companies.currency_id` (FK), сущность `Company` Domain, `CompanyModel`, `EloquentCompanyRepository` и Unit-тесты.
-- **T2-00b**: эндпоинты `GET /api/v1/business/currencies` и `PATCH /api/v1/business/company/currency`, проверка роли владельца компании (`Role::OWNER`), сценарий `UpdateCompanyCurrency` и Feature-тесты.
-- **T2-00c**: публичный контракт `CompanyCurrencyLookupInterface` в `Companies/Contracts` и его реализация `EloquentCompanyCurrencyLookup`; подключено автоматическое использование валюты компании по умолчанию при создании типов абонементов (`CreateMembershipType`) и товаров (`CreateProduct`); закрыто решение D-003 через D-008 в `docs/DECISIONS.md`.
-- Всего 210 тестов (905 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-11** (`[x]`):
+  - Миграция таблицы `sales_membership_requests` с внешними ключами и индексами (`company_id`, `gym_id`, `user_id`, `client_id`, `membership_type_id`, `status`, `expires_at`, `paid_at`, `sale_id`, `membership_id`, `idempotency_key`).
+  - Доменное перечисление `MembershipRequestStatus` (`pending`, `paid`, `cancelled`, `expired`).
+  - Чистая доменная сущность `MembershipRequest` с методами инвариантов (`canBePaid`, `markPaid`, `cancel`, `expire`, `isExpired`).
+  - Модель `MembershipRequestModel`, контракт `MembershipRequestRepositoryInterface`, реализация `EloquentMembershipRequestRepository` с блокировкой `lockForUpdate` и поиском просроченных заявок.
+  - Unit-тесты `MembershipRequestTest` (доменные переходы и CRUD/запросы репозитория).
+- Всего 213 тестов (929 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать разделы Бизнес-ТЗ (4.5, 5.4 сценарий Б, 12.3, 12.5) и Технического ТЗ (3.6, 9.2) по заявкам на абонемент (`MembershipRequest`).
-2. Детализировать эпик **E2-C Заявки на абонемент (Sales) и их автоотмена** в `docs/TASKS.md` и показать список задач разработчику на подтверждение (правило 4.3 `AGENTS.md`).
+1. Реализовать задачу **T2-12**: создание и просмотр заявок клиентом (`CreateMembershipRequest`, `POST /api/v1/client/membership-requests` с поддержкой `Idempotency-Key`, `GET /api/v1/client/membership-requests`, автосоздание/поиск карточки клиента зала, событие `MembershipRequestCreated`, Feature-тесты).
 
 ## Окружение: важное про Docker и Git
 
