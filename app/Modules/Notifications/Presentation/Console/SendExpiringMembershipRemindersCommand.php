@@ -28,3 +28,4 @@ final class SendExpiringMembershipRemindersCommand extends Command
         return self::SUCCESS;
     }
 }
+
