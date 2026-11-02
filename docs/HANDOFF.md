@@ -9,26 +9,31 @@
 
 ## Текущая задача
 
-- Эпик **E2-D Notifications** раскрыт в задачи `T2-16`..`T2-20` в `docs/TASKS.md`.
-- Активная задача: **T2-16** (`[ ]`) — Каркас модуля `Notifications`, журнал `notifications_logs`, шлюзы `PushGatewayInterface`, `NotificationsSmsGatewayInterface` и сервис `NotificationSender`.
+- **T2-16** (`[x]`): каркас модуля `Notifications`, миграция `notifications_logs`, шлюзы `PushGatewayInterface`, `SmsGatewayInterface` и сервис `NotificationSender`.
+- Следующая активная задача: **T2-17** (`[ ]`) — Регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`).
 
 ## Последняя сессия: что сделано
 
-- Проверены и закрыты все задачи эпика **E2-C** (`T2-11`..`T2-15`): заявки на абонементы, оплата с атомарной выдачей и чеком, автоотмена просроченных заявок.
-- Устранены замечания линтера Pint (EOF blank lines в модуле `Sales`, коммит `62ec0e7`).
-- Проанализированы разделы Бизнес-ТЗ (5.3, 5.4, 10, 11, 12.1, 12.5) и Технического ТЗ (3.6, 3.7, 4.1, 4.4, 9.4) для модуля `Notifications`.
-- Эпик **E2-D Notifications** детализирован на 5 атомарных задач (`T2-16`..`T2-20`) по правилу 4.3 `AGENTS.md`.
-- 234 теста (1016 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-16**:
+  - Создана архитектура модуля `Notifications` (`Domain`, `Application`, `Infrastructure`, `Presentation`).
+  - Миграция таблицы `notifications_logs` (`company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `title`, `body`, `entity_type`, `entity_id`, `status`, `error`, `sent_at`).
+  - Доменные сущности и перечисления: `NotificationChannel`, `NotificationType`, `NotificationStatus`, `NotificationLogEntry`.
+  - Шлюзы и адаптеры: `PushGatewayInterface`, `SmsGatewayInterface`, `LogPushGateway`, `LogNotificationsSmsGateway`.
+  - Модель `NotificationLogModel` и репозиторий `EloquentNotificationLogRepository` с проверкой `alreadySent()`.
+  - Сервис приложения `NotificationSender` с гарантированной регистрацией статусов отправки и обработкой ошибок.
+  - Провайдер `NotificationsServiceProvider` подключён в `bootstrap/providers.php`.
+  - Unit-тесты: `NotificationSenderTest` и `EloquentNotificationLogRepositoryTest`.
+- Всего 239 тестов (1051 проверка) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Получить подтверждение разработчика на план эпика **E2-D** и перейти к задаче **T2-16**.
-2. В задаче **T2-16**:
-   - Создать директории `app/Modules/Notifications/{Domain,Application,Infrastructure,Presentation,Contracts}`.
-   - Миграция `notifications_logs` (`id`, `company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `message`, `status`, `sent_at`, `created_at`, `updated_at`).
-   - Перечисления `NotificationChannel` и `NotificationType`, интерфейсы `PushGatewayInterface` и `NotificationsSmsGatewayInterface`, адаптеры `LogPushGateway` и `LogNotificationsSmsGateway`.
-   - Сервис `NotificationSender` с записью в БД, регистрация `NotificationsServiceProvider` в `bootstrap/providers.php`.
-   - Unit-тесты `NotificationSenderTest`.
+1. Перечитать раздел Технического ТЗ 7.1 и Бизнес-ТЗ 5.3 для задачи **T2-17**.
+2. Поставить статус `[~]` для **T2-17** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
+3. Создать миграцию `notifications_device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`, `updated_at`).
+4. Создать модель `DeviceTokenModel`, интерфейс `DeviceTokenRepositoryInterface` и репозиторий `EloquentDeviceTokenRepository`.
+5. Создать Use Cases `RegisterDeviceToken` и `UnregisterDeviceToken`.
+6. Реализовать FormRequests (`RegisterDeviceTokenRequest`, `UnregisterDeviceTokenRequest`), контроллер `DeviceTokensController` и подключить маршруты в `Presentation/routes.php`.
+7. Написать Feature-тесты `DeviceTokensEndpointTest`.
 
 ## Окружение: важное про Docker и Git
 
@@ -47,6 +52,5 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- `Notifications` не экспортирует зависимости в другие модули (слушает события `VisitRegistered`, `MembershipRequestPaid` или запускается по расписанию).
-- В джобы очередей `company_id` передаётся явно, без надежды на HTTP-контекст тенанта.
-- Все задачи очередей и команды расписания идемпотентны.
+- `Notifications` слушает доменные события других модулей и не экспортирует зависимости в ядро.
+- Задачи очередей и консольные команды идемпотентны (проверка через `alreadySent` в `notifications_logs`).

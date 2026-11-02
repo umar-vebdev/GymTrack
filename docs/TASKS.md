@@ -51,7 +51,8 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 ### T2-16 Каркас модуля `Notifications`, журнал `notifications_logs`, шлюзы `PushGateway`, `SmsGateway` и сервис `NotificationSender`
-- **Статус:** `[ ]`
+- **Статус:** `[x]`
+- **Заметки:** таблица `notifications_logs` хранит `entity_type` и `entity_id` для однозначной проверки идемпотентности через `alreadySent()`. Чистые доменные интерфейсы `PushGatewayInterface` и `SmsGatewayInterface` отделены от адаптеров `LogPushGateway` и `LogNotificationsSmsGateway`. Сервис `NotificationSender` координирует отправку, регистрирует статус `pending`, переводит в `sent` с фиксацией времени или в `failed` с текстом ошибки.
 - **Цель:** создать структуру модуля `Notifications` (Domain, Application, Infrastructure, Presentation, `NotificationsServiceProvider`), таблицу `notifications_logs`, интерфейсы шлюзов и адаптеры логирования (`LogPushGateway`, `LogNotificationsSmsGateway`), сервис отправки `NotificationSender`.
 - **ТЗ:** Тех. ТЗ 3.6, 4.1, 4.4; Бизнес-ТЗ 5.3.
 - **Файлы:**
@@ -59,24 +60,44 @@
   - `app/Modules/Notifications/Infrastructure/Migrations/2026_11_02_000000_create_notifications_logs_table.php`
   - `app/Modules/Notifications/Domain/NotificationChannel.php`
   - `app/Modules/Notifications/Domain/NotificationType.php`
+  - `app/Modules/Notifications/Domain/NotificationStatus.php`
+  - `app/Modules/Notifications/Domain/NotificationLogEntry.php`
+  - `app/Modules/Notifications/Domain/NotificationLogRepositoryInterface.php`
   - `app/Modules/Notifications/Domain/PushGatewayInterface.php`
-  - `app/Modules/Notifications/Domain/NotificationsSmsGatewayInterface.php`
+  - `app/Modules/Notifications/Domain/SmsGatewayInterface.php`
   - `app/Modules/Notifications/Infrastructure/LogPushGateway.php`
   - `app/Modules/Notifications/Infrastructure/LogNotificationsSmsGateway.php`
   - `app/Modules/Notifications/Infrastructure/Persistence/NotificationLogModel.php`
+  - `app/Modules/Notifications/Infrastructure/EloquentNotificationLogRepository.php`
   - `app/Modules/Notifications/Application/NotificationSender.php`
   - `bootstrap/providers.php`
   - `tests/Unit/Notifications/NotificationSenderTest.php`
-- **Шаги:**
-  1. Создать миграцию `notifications_logs` (`id`, `company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `message`, `status`, `sent_at`, `created_at`, `updated_at`).
-  2. Создать перечисления `NotificationChannel` (`push`, `sms`) и `NotificationType` (`visit_registered`, `membership_request_paid`, `membership_expiring_7_days`, `membership_expiring_1_day`).
-  3. Создать интерфейсы `PushGatewayInterface`, `NotificationsSmsGatewayInterface` и реализации-адаптеры `LogPushGateway`, `LogNotificationsSmsGateway`.
-  4. Создать сервис `NotificationSender` с записью результата в `notification_logs`.
-  5. Зарегистрировать `NotificationsServiceProvider` в `bootstrap/providers.php`.
-  6. Написать Unit-тесты на отправку через `NotificationSender`.
+  - `tests/Unit/Notifications/EloquentNotificationLogRepositoryTest.php`
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
-- [ ] **T2-17** Регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`, Feature-тесты).
+### T2-17 Регистрация и отзыв push-токенов клиентских устройств (`POST/DELETE /api/v1/client/device-tokens`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать хранение токенов мобильных устройств клиентов для push-уведомлений, эндпоинты `POST /api/v1/client/device-tokens` (сохранение/обновление токена устройства) и `DELETE /api/v1/client/device-tokens` (отзыв токена при выходе).
+- **ТЗ:** Тех. ТЗ 3.6, 7.1; Бизнес-ТЗ 5.3.
+- **Файлы:**
+  - `app/Modules/Notifications/Infrastructure/Migrations/2026_11_02_000001_create_notifications_device_tokens_table.php`
+  - `app/Modules/Notifications/Infrastructure/Persistence/DeviceTokenModel.php`
+  - `app/Modules/Notifications/Domain/DeviceTokenRepositoryInterface.php`
+  - `app/Modules/Notifications/Infrastructure/EloquentDeviceTokenRepository.php`
+  - `app/Modules/Notifications/Application/RegisterDeviceToken.php`
+  - `app/Modules/Notifications/Application/UnregisterDeviceToken.php`
+  - `app/Modules/Notifications/Presentation/Requests/RegisterDeviceTokenRequest.php`
+  - `app/Modules/Notifications/Presentation/Requests/UnregisterDeviceTokenRequest.php`
+  - `app/Modules/Notifications/Presentation/DeviceTokensController.php`
+  - `app/Modules/Notifications/Presentation/routes.php`
+  - `tests/Feature/Notifications/DeviceTokensEndpointTest.php`
+- **Шаги:**
+  1. Создать миграцию `notifications_device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`, `updated_at`) с уникальным индексом `(user_id, token)`.
+  2. Создать репозиторий `DeviceTokenRepositoryInterface` и реализацию `EloquentDeviceTokenRepository`.
+  3. Создать Use Cases `RegisterDeviceToken` (идемпотентный upsert) и `UnregisterDeviceToken`.
+  4. Создать FormRequests и контроллер `DeviceTokensController` с маршрутами в группе `client`.
+  5. Написать Feature-тесты на регистрацию и удаление токенов.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 - [ ] **T2-18** Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явной передачей `companyId`).
 - [ ] **T2-19** Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
 - [ ] **T2-20** Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`, Feature-тесты).
