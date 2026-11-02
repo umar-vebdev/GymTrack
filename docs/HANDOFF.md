@@ -9,26 +9,29 @@
 
 ## Текущая задача
 
-- **T2-17** (`[x]`): регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`).
-- Следующая активная задача: **T2-18** (`[ ]`) — Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
+- **T2-18** (`[x]`): очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
+- Следующая активная задача: **T2-19** (`[ ]`) — Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
 
 ## Последняя сессия: что сделано
 
-- **T2-16** (`7ed2ae7`): каркас модуля `Notifications`, миграция `notifications_logs`, интерфейсы шлюзов `PushGatewayInterface`, `SmsGatewayInterface`, адаптеры `LogPushGateway`, `LogNotificationsSmsGateway`, репозиторий `EloquentNotificationLogRepository` и сервис `NotificationSender`.
-- **T2-17**:
-  - Миграция `notifications_device_tokens` с уникальным индексом `(user_id, token)`.
-  - Модель `DeviceTokenModel`, интерфейс `DeviceTokenRepositoryInterface` и репозиторий `EloquentDeviceTokenRepository`.
-  - Сценарии `RegisterDeviceToken` и `UnregisterDeviceToken`.
-  - Запросы валидации `RegisterDeviceTokenRequest`, `UnregisterDeviceTokenRequest`, контроллер `DeviceTokensController` и клиентские маршруты под `auth:sanctum`.
-  - Feature-тесты `DeviceTokensEndpointTest` (7 проверок: неавторизованный доступ, успешная регистрация, идемпотентный upsert, валидация 422, удаление токена, изоляция между пользователями).
-- Всего 246 тестов (1073 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-16** (`7ed2ae7`): каркас модуля `Notifications`, миграция `notifications_logs`, интерфейсы шлюзов `PushGatewayInterface`, `SmsGatewayInterface`, сервис `NotificationSender`.
+- **T2-17** (`9faf136`): регистрация и отзыв push-токенов (`POST/DELETE /api/v1/client/device-tokens`), таблица `notifications_device_tokens`, Feature-тесты.
+- **T2-18**:
+  - Созданы фоновые джобы `SendPushNotificationJob` и `SendSmsNotificationJob` с интерфейсом `ShouldQueue` и трейтом `Queueable`.
+  - В обе джобы `company_id` передаётся явно, сохраняя мультиарендность без HTTP-контекста (Тех. ТЗ 9.4).
+  - `SendPushNotificationJob` поддерживает прямую отправку по токену либо автоматический поиск всех активных токенов пользователя через `DeviceTokenRepositoryInterface`.
+  - Unit-тесты `NotificationJobsTest` (5 тестов: вызов SMS-сендера, прямой push, отправка на несколько токенов пользователя, пропуск при отсутствии токенов, постановка в очередь через `Queue::fake()`).
+- Всего 251 тест (1092 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Технического ТЗ 3.6 и 9.4 для задачи **T2-18**.
-2. Поставить статус `[~]` для **T2-18** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
-3. Создать джобы `SendPushNotificationJob` и `SendSmsNotificationJob` (интерфейс `ShouldQueue`, явный `companyId`, отправка через `NotificationSender`).
-4. Написать Unit-тесты `NotificationJobsTest` на успешное выполнение джоб и обработку ошибок.
+1. Перечитать раздел Бизнес-ТЗ 5.3, 5.4 и Технического ТЗ 3.5, 3.7 для задачи **T2-19**.
+2. Поставить статус `[~]` для **T2-19** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
+3. Создать DTO `ClientRecipientDto` в `Clients/Contracts` и добавить метод `findRecipient(int $clientId): ?ClientRecipientDto` в `ClientLookupInterface`.
+4. Реализовать `findRecipient` в `EloquentClientLookup`.
+5. Создать слушатели событий `SendVisitNotificationListener` (на `VisitRegistered`) и `SendMembershipRequestPaidNotificationListener` (на `MembershipRequestPaid`).
+6. Зарегистрировать слушатели в `NotificationsServiceProvider`.
+7. Написать Feature-тесты `NotificationEventListenersTest`.
 
 ## Окружение: важное про Docker и Git
 
@@ -47,6 +50,5 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- `Notifications` слушает доменные события других модулей и не экспортирует зависимости в ядро.
-- Задачи очередей получают `company_id` явно (Тех. ТЗ 9.4).
-- Все операции идемпотентны.
+- `Notifications` слушает события `VisitRegistered` и `MembershipRequestPaid` других модулей.
+- Задачи очередей получают `company_id` явно.

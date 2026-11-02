@@ -101,7 +101,8 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 ### T2-18 Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob`)
-- **Статус:** `[ ]`
+- **Статус:** `[x]`
+- **Заметки:** обе фоновые задачи реализуют `ShouldQueue`, принимают `company_id` явно для сохранения мультиарендной изоляции в очереди без HTTP-контекста. `SendPushNotificationJob` поддерживает прямую отправку по `recipientToken` или автоматический поиск всех активных токенов пользователя через `DeviceTokenRepositoryInterface`. Отправка фиксируется в `notifications_logs`.
 - **Цель:** реализовать асинхронную отправку push и SMS через очередь (`ShouldQueue`), с явной передачей `company_id` (Тех. ТЗ 9.4), отправкой push по зарегистрированным токенам пользователя и фиксацией результата в `notifications_logs`.
 - **ТЗ:** Тех. ТЗ 3.6, 9.4.
 - **Файлы:**
@@ -113,7 +114,27 @@
   2. Создать джобу `SendSmsNotificationJob` (`ShouldQueue`, явный `companyId`, отправка через `NotificationSender::sendSms`).
   3. Написать Unit/Feature тесты на выполнение джоб и корректное логирование в `notifications_logs`.
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
-- [ ] **T2-19** Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
+
+### T2-19 Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать подписку модуля `Notifications` на события `VisitRegistered` и `MembershipRequestPaid`, получение контактов клиента через `ClientLookupInterface` и постановку уведомлений в очередь (`SendPushNotificationJob` и `SendSmsNotificationJob`).
+- **ТЗ:** Бизнес-ТЗ 5.3, 5.4, 12.1, 12.5; Тех. ТЗ 3.5, 3.7.
+- **Файлы:**
+  - `app/Modules/Clients/Contracts/ClientRecipientDto.php`
+  - `app/Modules/Clients/Contracts/ClientLookupInterface.php`
+  - `app/Modules/Clients/Infrastructure/EloquentClientLookup.php`
+  - `app/Modules/Notifications/Application/Listeners/SendVisitNotificationListener.php`
+  - `app/Modules/Notifications/Application/Listeners/SendMembershipRequestPaidNotificationListener.php`
+  - `app/Modules/Notifications/NotificationsServiceProvider.php`
+  - `tests/Feature/Notifications/NotificationEventListenersTest.php`
+- **Шаги:**
+  1. Создать DTO `ClientRecipientDto` (`clientId`, `userId`, `phone`, `name`) в `Clients\Contracts` и добавить метод `findRecipient(int $clientId)` в `ClientLookupInterface`.
+  2. Реализовать `findRecipient` в `EloquentClientLookup`.
+  3. Реализовать слушатель `SendVisitNotificationListener` (на `VisitRegistered`), формирующий текст «Посещение подтверждено» и ставящий задачи в очередь.
+  4. Реализовать слушатель `SendMembershipRequestPaidNotificationListener` (на `MembershipRequestPaid`), отправляющий «Абонемент активирован. Вы можете отметить посещение».
+  5. Зарегистрировать слушатели событий в `NotificationsServiceProvider`.
+  6. Написать Feature-тесты `NotificationEventListenersTest` на генерацию уведомлений при наступлении событий.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 - [ ] **T2-20** Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`, Feature-тесты).
 
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
