@@ -4,31 +4,36 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-11-02
-**Этап:** 2 — Client (завершён эпик E2-D Notifications; переход к E2-E API для приложения клиента: мои абонементы, история)
+**Этап:** 2 — Client (эпик E2-E API для приложения клиента: мои абонементы, история)
 **Ветка:** main
 
 ## Текущая задача
 
-- **E2-D Notifications: push и SMS, напоминания об окончании абонемента** (`T2-16`..`T2-20`) `[x]` — полностью закрыт.
-- Следующий и финальный эпик этапа 2: **E2-E API для приложения клиента: мои абонементы, история** (`[ ]` — перечитать разделы ТЗ, раскрыть в мелкие задачи и согласовать с разработчиком по правилу 4.3 `AGENTS.md`).
+- **T2-21** (`[x]`): эндпоинт абонементов клиента (`GET /api/v1/client/memberships`) с фильтрами по статусу и компании.
+- Следующая активная задача: **T2-22** (`[ ]`) — Эндпоинт истории посещений клиента (`GET /api/v1/client/visits`).
 
 ## Последняя сессия: что сделано
 
-- **T2-16** (`7ed2ae7`): модуль `Notifications`, таблица `notifications_logs`, шлюзы `PushGatewayInterface`, `SmsGatewayInterface` с адаптерами `LogPushGateway` и `LogNotificationsSmsGateway`, репозиторий `EloquentNotificationLogRepository` и сервис `NotificationSender`.
-- **T2-17** (`9faf136`): регистрация и отзыв push-токенов (`POST/DELETE /api/v1/client/device-tokens`), таблица `notifications_device_tokens`, Feature-тесты.
-- **T2-18** (`93e6372`): очереди и фоновые задачи `SendPushNotificationJob`, `SendSmsNotificationJob` с явной передачей `company_id`.
-- **T2-19** (`0e645b3`): DTO `ClientRecipientDto` и метод `findRecipient` в `ClientLookupInterface`, геттеры в `VisitRegistered`, слушатели `SendVisitNotificationListener` и `SendMembershipRequestPaidNotificationListener`, Feature-тесты.
-- **T2-20**:
-  - DTO `ExpiringMembershipDto` и метод `findExpiringBetween` в `MembershipLookupInterface`, `FindUsableMembership` и `EloquentMembershipRepository`.
-  - Защита от дублей (идемпотентность) в `SendPushNotificationJob` и `SendSmsNotificationJob` через `alreadySent`.
-  - Сценарий `SendExpiringMembershipReminders` (напоминания за 7 и 1 день с push/SMS и проверкой идемпотентности).
-  - Консольная команда `notifications:send-expiring-reminders` и ежедневное расписание в `routes/console.php`.
-  - Feature-тесты `SendExpiringMembershipRemindersTest` (259 тестов, 1113 проверок — все зелёные, `lint`/`analyse`/`deps` чистые).
+- **T2-20** (`1efd2f3`): DTO `ExpiringMembershipDto`, метод `findExpiringBetween` в `MembershipLookupInterface`, сценарий `SendExpiringMembershipReminders`, команда `notifications:send-expiring-reminders` и расписание.
+- Завершён эпик **E2-D Notifications** (все задачи закрыты).
+- **T2-21**:
+  - Метод `findAllClientIdsByUser` в `ClientLookupInterface` и `EloquentClientLookup`.
+  - DTO `ClientMembershipItemDto` в `Memberships/Contracts`.
+  - Метод `listByClientIds` в `MembershipRepositoryInterface` и `EloquentMembershipRepository` с фильтрами `status=active|past` и `company_id`.
+  - Связь `type(): BelongsTo` в `MembershipModel`.
+  - Use Case `ListMyMemberships`, запрос `ListMyMembershipsRequest` и контроллер `ListMyMembershipsController`.
+  - Маршрут `GET /api/v1/client/memberships` под `auth:sanctum`.
+  - Feature-тесты `ListMyMembershipsTest` (6 проверок: неавторизованный доступ 401, пустой список для клиента без залов, сбор абонементов по разным залам, фильтрация active/past, фильтрация по компании, ошибка валидации 422).
+- Всего 265 тестов (1136 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Бизнес-ТЗ (5.2 «Мои абонементы и история») и Технического ТЗ (7.1 маршруты клиента) для эпика **E2-E**.
-2. Детализировать эпик **E2-E** в `docs/TASKS.md` на мелкие задачи и показать список разработчику на подтверждение (правило 4.3 `AGENTS.md`).
+1. Перечитать раздел Бизнес-ТЗ 5.2 и Технического ТЗ 7.1 для задачи **T2-22**.
+2. Поставить статус `[~]` для **T2-22** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
+3. Создать DTO `ClientVisitItemDto` в `Visits/Contracts`.
+4. Добавить метод `listForClients` с пагинацией и фильтрами в `VisitRepositoryInterface` и `EloquentVisitRepository`.
+5. Создать Use Case `ListMyVisits`, `ListMyVisitsRequest`, контроллер `ListMyVisitsController` и маршрут `GET /api/v1/client/visits`.
+6. Написать Feature-тесты `ListMyVisitsTest`.
 
 ## Окружение: важное про Docker и Git
 
@@ -47,5 +52,5 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- `Notifications` подписан на доменные события других модулей и не экспортирует зависимости в ядро.
-- Задачи очередей и команды расписания идемпотентны.
+- У одного аккаунта клиента (`users.id`) может быть несколько карточек (`clients.id`) в разных залах (мультиарендность).
+- Клиентские эндпоинты агрегируют данные по всем залам клиента через `ClientLookupInterface`.

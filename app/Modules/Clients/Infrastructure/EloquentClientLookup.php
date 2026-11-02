@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Clients\Contracts\ClientLookupInterface;
 use App\Modules\Clients\Contracts\ClientRecipientDto;
 use App\Modules\Clients\Domain\ClientRepositoryInterface;
+use App\Modules\Clients\Infrastructure\Persistence\ClientModel;
 
 final class EloquentClientLookup implements ClientLookupInterface
 {
@@ -75,5 +76,17 @@ final class EloquentClientLookup implements ClientLookupInterface
             name: $client->name(),
             phone: $client->phone()
         );
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function findAllClientIdsByUser(int $userId): array
+    {
+        /** @var list<int> */
+        return ClientModel::withoutGlobalScopes()
+            ->where('user_id', $userId)
+            ->pluck('id')
+            ->all();
     }
 }

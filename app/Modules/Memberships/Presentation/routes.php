@@ -8,6 +8,7 @@ use App\Modules\Memberships\Presentation\FreezeMembershipController;
 use App\Modules\Memberships\Presentation\ListClientMembershipsController;
 use App\Modules\Memberships\Presentation\ListExpiringMembershipsController;
 use App\Modules\Memberships\Presentation\ListMembershipTypesController;
+use App\Modules\Memberships\Presentation\ListMyMembershipsController;
 use App\Modules\Memberships\Presentation\SetMembershipTypeActiveController;
 use App\Modules\Memberships\Presentation\UnfreezeMembershipController;
 use Illuminate\Support\Facades\Route;
@@ -23,4 +24,10 @@ Route::prefix('api/v1/business')
         Route::post('/memberships/{id}/freeze', FreezeMembershipController::class);
         Route::post('/memberships/{id}/unfreeze', UnfreezeMembershipController::class);
         Route::post('/memberships/{id}/cancel', CancelMembershipController::class);
+    });
+
+Route::prefix('api/v1/client')
+    ->middleware('auth:sanctum')
+    ->group(function () {
+        Route::get('/memberships', ListMyMembershipsController::class);
     });

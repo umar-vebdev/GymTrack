@@ -28,4 +28,11 @@ interface ClientLookupInterface
      * Возвращает данные получателя уведомлений по ID карточки клиента или null.
      */
     public function findRecipient(int $clientId): ?ClientRecipientDto;
+
+    /**
+     * Возвращает список всех ID карточек клиента (по всем залам), привязанных к аккаунту пользователя.
+     *
+     * @return list<int>
+     */
+    public function findAllClientIdsByUser(int $userId): array;
 }

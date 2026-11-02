@@ -59,6 +59,18 @@ interface MembershipRepositoryInterface
     public function findExpiringAcrossCompanies(DateTimeImmutable $from, DateTimeImmutable $to): array;
 
     /**
+     * Абонементы по списку ID карточек клиентов с опциональным фильтром по статусу и компании.
+     *
+     * @param  list<int>  $clientIds
+     * @return list<Membership>
+     */
+    public function listByClientIds(
+        array $clientIds,
+        ?string $statusFilter = null,
+        ?int $companyId = null
+    ): array;
+
+    /**
      * Создаёт запись абонемента и возвращает его ID.
      */
     public function create(

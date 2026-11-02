@@ -7,6 +7,7 @@ namespace App\Modules\Memberships\Infrastructure\Persistence;
 use App\Shared\Infrastructure\Eloquent\BelongsToCompany;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -41,4 +42,12 @@ final class MembershipModel extends Model
         'ends_at' => 'datetime',
         'frozen_at' => 'datetime',
     ];
+
+    /**
+     * @return BelongsTo<MembershipTypeModel, $this>
+     */
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(MembershipTypeModel::class, 'type_id');
+    }
 }

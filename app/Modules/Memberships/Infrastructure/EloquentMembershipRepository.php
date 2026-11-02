@@ -112,6 +112,40 @@ final class EloquentMembershipRepository implements MembershipRepositoryInterfac
         return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
     }
 
+    public function listByClientIds(
+        array $clientIds,
+        ?string $statusFilter = null,
+        ?int $companyId = null
+    ): array {
+        if ($clientIds === []) {
+            return [];
+        }
+
+        $query = MembershipModel::withoutGlobalScopes()
+            ->whereIn('client_id', $clientIds);
+
+        if ($companyId !== null) {
+            $query->where('company_id', $companyId);
+        }
+
+        if ($statusFilter === 'active') {
+            $query->whereIn('status', [
+                MembershipStatus::Active->value,
+                MembershipStatus::Pending->value,
+                MembershipStatus::Frozen->value,
+            ]);
+        } elseif ($statusFilter === 'past') {
+            $query->whereIn('status', [
+                MembershipStatus::Expired->value,
+                MembershipStatus::Cancelled->value,
+            ]);
+        }
+
+        $models = $query->orderBy('ends_at')->orderByDesc('id')->get();
+
+        return array_values($models->map(fn (MembershipModel $m): Membership => $this->toEntity($m))->all());
+    }
+
     public function create(
         int $companyId,
         int $clientId,

@@ -16,4 +16,3 @@ final readonly class ExpiringMembershipDto
         public ?DateTimeImmutable $endsAt
     ) {}
 }
-

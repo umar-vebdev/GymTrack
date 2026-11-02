@@ -92,4 +92,3 @@ final class SendExpiringMembershipReminders
         return $count;
     }
 }
-

@@ -45,7 +45,61 @@
 
 ## Этап 2 — Client (приложение клиента)
 
-5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
+### E2-E API для приложения клиента: мои абонементы, история
+- **Статус:** `[ ]`
+- **Цель:** реализовать эндпоинты личного кабинета клиента в мобильном приложении: просмотр списка активных и прошедших абонементов с остатком и сроком действия, история посещений и история покупок по залам.
+- **ТЗ:** Бизнес-ТЗ 5.2; Тех. ТЗ 3.6, 7.1.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+### T2-21 Эндпоинт абонементов клиента (`GET /api/v1/client/memberships`)
+- **Статус:** `[x]`
+- **Заметки:** метод `findAllClientIdsByUser` в `ClientLookupInterface` собирает ID карточек пользователя во всех залах. `listByClientIds` агрегирует абонементы по карточкам с фильтрацией `status=active` (статусы `active`, `pending`, `frozen`) или `status=past` (`expired`, `cancelled`), а также опциональным `company_id`. Возвращает `ClientMembershipItemDto` с названием типа абонемента и флагом `is_usable`.
+- **Цель:** реализовать эндпоинт `GET /api/v1/client/memberships` для мобильного клиента с фильтрами по статусу (`active` / `past`) и компании, возвращающий список абонементов пользователя по всем залам с остатком занятий, сроками и названием типа.
+- **ТЗ:** Бизнес-ТЗ 5.2; Тех. ТЗ 7.1.
+- **Файлы:**
+  - `app/Modules/Clients/Contracts/ClientLookupInterface.php`
+  - `app/Modules/Clients/Infrastructure/EloquentClientLookup.php`
+  - `app/Modules/Memberships/Contracts/ClientMembershipItemDto.php`
+  - `app/Modules/Memberships/Domain/MembershipRepositoryInterface.php`
+  - `app/Modules/Memberships/Infrastructure/EloquentMembershipRepository.php`
+  - `app/Modules/Memberships/Application/ListMyMemberships.php`
+  - `app/Modules/Memberships/Presentation/Requests/ListMyMembershipsRequest.php`
+  - `app/Modules/Memberships/Presentation/ListMyMembershipsController.php`
+  - `app/Modules/Memberships/Presentation/routes.php`
+  - `tests/Feature/Memberships/ListMyMembershipsTest.php`
+- **Шаги:**
+  1. Добавить метод `findAllClientIdsByUser(int $userId): array` в `ClientLookupInterface` и реализовать в `EloquentClientLookup`.
+  2. Создать DTO `ClientMembershipItemDto` в `Memberships/Contracts`.
+  3. Добавить метод `listClientMembershipsByUser` в `MembershipRepositoryInterface` и реализовать в `EloquentMembershipRepository` (с подгрузкой `type` и фильтрами `status`, `company_id`).
+  4. Создать Use Case `ListMyMemberships`.
+  5. Создать `ListMyMembershipsRequest` (валидация `status: in:active,past`, `company_id: integer`) и контроллер `ListMyMembershipsController`.
+  6. Зарегистрировать маршрут `GET /api/v1/client/memberships` в `Presentation/routes.php`.
+  7. Написать Feature-тесты `ListMyMembershipsTest`.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+### T2-22 Эндпоинт истории посещений клиента (`GET /api/v1/client/visits`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать клиентский эндпоинт `GET /api/v1/client/visits` для мобильного приложения, возвращающий историю визитов пользователя по всем залам (с пагинацией, фильтром по залу/компании и статусу `completed` / `cancelled`).
+- **ТЗ:** Бизнес-ТЗ 5.2; Тех. ТЗ 7.1.
+- **Файлы:**
+  - `app/Modules/Visits/Contracts/ClientVisitItemDto.php`
+  - `app/Modules/Visits/Domain/VisitRepositoryInterface.php`
+  - `app/Modules/Visits/Infrastructure/EloquentVisitRepository.php`
+  - `app/Modules/Visits/Application/ListMyVisits.php`
+  - `app/Modules/Visits/Presentation/Requests/ListMyVisitsRequest.php`
+  - `app/Modules/Visits/Presentation/ListMyVisitsController.php`
+  - `app/Modules/Visits/Presentation/routes.php`
+  - `tests/Feature/Visits/ListMyVisitsTest.php`
+- **Шаги:**
+  1. Создать DTO `ClientVisitItemDto` (`id`, `companyId`, `gymId`, `clientId`, `membershipId`, `method`, `status`, `visitedAt`, `cancelReason`, `cancelledAt`) в `Visits/Contracts`.
+  2. Добавить метод `listForClients` с пагинацией и фильтрами в `VisitRepositoryInterface` и `EloquentVisitRepository`.
+  3. Создать Use Case `ListMyVisits` (получает карточки через `ClientLookupInterface::findAllClientIdsByUser`, запрашивает визиты).
+  4. Создать `ListMyVisitsRequest` и контроллер `ListMyVisitsController`.
+  5. Зарегистрировать маршрут `GET /api/v1/client/visits` под `auth:sanctum`.
+  6. Написать Feature-тесты `ListMyVisitsTest`.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+- [ ] **T2-23** Эндпоинт истории покупок клиента (`GET /api/v1/client/purchases`, позиции чека, отметка оплаты `PaymentMark`, Feature-тесты).
 
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
 

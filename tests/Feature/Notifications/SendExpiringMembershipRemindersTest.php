@@ -161,4 +161,3 @@ final class SendExpiringMembershipRemindersTest extends TestCase
         Queue::assertNothingPushed();
     }
 }
-
