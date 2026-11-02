@@ -23,4 +23,9 @@ interface ClientLookupInterface
      * Находит ID карточки клиента для пользователя или создаёт новую карточку в CRM зала.
      */
     public function findOrCreateForUser(int $userId, int $companyId): int;
+
+    /**
+     * Возвращает данные получателя уведомлений по ID карточки клиента или null.
+     */
+    public function findRecipient(int $clientId): ?ClientRecipientDto;
 }

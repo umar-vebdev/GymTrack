@@ -116,17 +116,20 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 ### T2-19 Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`)
-- **Статус:** `[ ]`
+- **Статус:** `[x]`
+- **Заметки:** контракт `ClientLookupInterface` дополнен DTO `ClientRecipientDto` и методом `findRecipient`, что позволило получать контакты получателя без прямого доступа к БД модуля `Clients`. В класс `VisitRegistered` добавлены типизированные геттеры `clientId()`, `gymId()`, `membershipId()`. Слушатели `SendVisitNotificationListener` и `SendMembershipRequestPaidNotificationListener` ставят соответствующие фоновые задачи `SendPushNotificationJob` или `SendSmsNotificationJob` в очередь.
 - **Цель:** реализовать подписку модуля `Notifications` на события `VisitRegistered` и `MembershipRequestPaid`, получение контактов клиента через `ClientLookupInterface` и постановку уведомлений в очередь (`SendPushNotificationJob` и `SendSmsNotificationJob`).
 - **ТЗ:** Бизнес-ТЗ 5.3, 5.4, 12.1, 12.5; Тех. ТЗ 3.5, 3.7.
 - **Файлы:**
   - `app/Modules/Clients/Contracts/ClientRecipientDto.php`
   - `app/Modules/Clients/Contracts/ClientLookupInterface.php`
   - `app/Modules/Clients/Infrastructure/EloquentClientLookup.php`
+  - `app/Modules/Visits/Domain/Events/VisitRegistered.php`
   - `app/Modules/Notifications/Application/Listeners/SendVisitNotificationListener.php`
   - `app/Modules/Notifications/Application/Listeners/SendMembershipRequestPaidNotificationListener.php`
   - `app/Modules/Notifications/NotificationsServiceProvider.php`
   - `tests/Feature/Notifications/NotificationEventListenersTest.php`
+  - `tests/Feature/Clients/ClientLookupByUserTest.php`
 - **Шаги:**
   1. Создать DTO `ClientRecipientDto` (`clientId`, `userId`, `phone`, `name`) в `Clients\Contracts` и добавить метод `findRecipient(int $clientId)` в `ClientLookupInterface`.
   2. Реализовать `findRecipient` в `EloquentClientLookup`.
@@ -135,7 +138,26 @@
   5. Зарегистрировать слушатели событий в `NotificationsServiceProvider`.
   6. Написать Feature-тесты `NotificationEventListenersTest` на генерацию уведомлений при наступлении событий.
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
-- [ ] **T2-20** Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`, Feature-тесты).
+
+### T2-20 Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать ежедневный сценарий поиска абонементов, истекающих ровно через 7 дней и через 1 день, идемпотентную отправку напоминаний клиентам (с защитой от дублирования через `alreadySent` в `notifications_logs`), консольную команду и расписание в `routes/console.php`.
+- **ТЗ:** Бизнес-ТЗ 5.3; Тех. ТЗ 9.4.
+- **Файлы:**
+  - `app/Modules/Memberships/Contracts/ExpiringMembershipDto.php`
+  - `app/Modules/Memberships/Contracts/MembershipLookupInterface.php`
+  - `app/Modules/Memberships/Infrastructure/EloquentMembershipRepository.php`
+  - `app/Modules/Notifications/Application/SendExpiringMembershipReminders.php`
+  - `app/Modules/Notifications/Presentation/Console/SendExpiringMembershipRemindersCommand.php`
+  - `routes/console.php`
+  - `tests/Feature/Notifications/SendExpiringMembershipRemindersTest.php`
+- **Шаги:**
+  1. Создать DTO `ExpiringMembershipDto` (`membershipId`, `companyId`, `clientId`, `expiresAt`, `membershipTypeName`) в `Memberships/Contracts` и расширить метод в `MembershipLookupInterface`.
+  2. Реализовать поиск абонементов с окончанием через ровно N дней в `Memberships`.
+  3. Создать Use Case `SendExpiringMembershipReminders`, проверяющий идемпотентность через `NotificationLogRepositoryInterface::alreadySent` (для типа `membership_expiring_7_days` и `membership_expiring_1_day`) и отправляющий push/SMS через джобы.
+  4. Создать консольную команду `notifications:send-expiring-reminders` и зарегистрировать ежедневный запуск (`daily()`) в `routes/console.php`.
+  5. Написать Feature-тесты `SendExpiringMembershipRemindersTest` (проверка напоминаний за 7 дней, за 1 день, защита от дублей при повторном запуске).
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
 

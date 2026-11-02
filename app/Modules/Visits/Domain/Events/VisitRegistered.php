@@ -37,6 +37,21 @@ final class VisitRegistered implements AuditableEvent, DomainEvent
         return $this->visitId;
     }
 
+    public function clientId(): int
+    {
+        return $this->clientId;
+    }
+
+    public function gymId(): int
+    {
+        return $this->gymId;
+    }
+
+    public function membershipId(): int
+    {
+        return $this->membershipId;
+    }
+
     public function companyId(): int
     {
         return $this->companyId;

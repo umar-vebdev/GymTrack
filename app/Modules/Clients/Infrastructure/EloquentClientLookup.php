@@ -6,6 +6,7 @@ namespace App\Modules\Clients\Infrastructure;
 
 use App\Models\User;
 use App\Modules\Clients\Contracts\ClientLookupInterface;
+use App\Modules\Clients\Contracts\ClientRecipientDto;
 use App\Modules\Clients\Domain\ClientRepositoryInterface;
 
 final class EloquentClientLookup implements ClientLookupInterface
@@ -57,6 +58,22 @@ final class EloquentClientLookup implements ClientLookupInterface
             name: is_string($user->name) && $user->name !== '' ? $user->name : 'Клиент',
             phone: is_string($user->phone) ? $user->phone : '',
             userId: $userId
+        );
+    }
+
+    public function findRecipient(int $clientId): ?ClientRecipientDto
+    {
+        $client = $this->clients->findById($clientId);
+        if ($client === null) {
+            return null;
+        }
+
+        return new ClientRecipientDto(
+            clientId: $client->id(),
+            companyId: $client->companyId(),
+            userId: $client->userId(),
+            name: $client->name(),
+            phone: $client->phone()
         );
     }
 }

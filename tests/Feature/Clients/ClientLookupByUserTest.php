@@ -65,4 +65,23 @@ final class ClientLookupByUserTest extends TestCase
 
         $this->assertSame($first, $this->lookup()->findIdByUser($user->id, $company));
     }
+
+    public function test_finds_recipient_data_for_existing_client(): void
+    {
+        $user = User::factory()->create();
+        $company = $this->company();
+
+        $clientId = $this->clients()->create($company, 'Recipient Client', '+992900999888', $user->id);
+
+        $recipient = $this->lookup()->findRecipient($clientId);
+
+        $this->assertNotNull($recipient);
+        $this->assertSame($clientId, $recipient->clientId);
+        $this->assertSame($company, $recipient->companyId);
+        $this->assertSame($user->id, $recipient->userId);
+        $this->assertSame('Recipient Client', $recipient->name);
+        $this->assertSame('+992900999888', $recipient->phone);
+
+        $this->assertNull($this->lookup()->findRecipient(999999));
+    }
 }

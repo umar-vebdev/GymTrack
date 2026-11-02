@@ -9,29 +9,30 @@
 
 ## Текущая задача
 
-- **T2-18** (`[x]`): очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
-- Следующая активная задача: **T2-19** (`[ ]`) — Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
+- **T2-19** (`[x]`): слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
+- Следующая активная задача: **T2-20** (`[ ]`) — Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`).
 
 ## Последняя сессия: что сделано
 
 - **T2-16** (`7ed2ae7`): каркас модуля `Notifications`, миграция `notifications_logs`, интерфейсы шлюзов `PushGatewayInterface`, `SmsGatewayInterface`, сервис `NotificationSender`.
 - **T2-17** (`9faf136`): регистрация и отзыв push-токенов (`POST/DELETE /api/v1/client/device-tokens`), таблица `notifications_device_tokens`, Feature-тесты.
-- **T2-18**:
-  - Созданы фоновые джобы `SendPushNotificationJob` и `SendSmsNotificationJob` с интерфейсом `ShouldQueue` и трейтом `Queueable`.
-  - В обе джобы `company_id` передаётся явно, сохраняя мультиарендность без HTTP-контекста (Тех. ТЗ 9.4).
-  - `SendPushNotificationJob` поддерживает прямую отправку по токену либо автоматический поиск всех активных токенов пользователя через `DeviceTokenRepositoryInterface`.
-  - Unit-тесты `NotificationJobsTest` (5 тестов: вызов SMS-сендера, прямой push, отправка на несколько токенов пользователя, пропуск при отсутствии токенов, постановка в очередь через `Queue::fake()`).
-- Всего 251 тест (1092 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-18** (`93e6372`): очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
+- **T2-19**:
+  - DTO `ClientRecipientDto` и метод `findRecipient` в `ClientLookupInterface` и `EloquentClientLookup`.
+  - Типизированные геттеры `clientId()`, `gymId()`, `membershipId()` в доменном событии `VisitRegistered`.
+  - Слушатели `SendVisitNotificationListener` и `SendMembershipRequestPaidNotificationListener` с регистрацией в `NotificationsServiceProvider`.
+  - Feature-тесты `NotificationEventListenersTest` (проверка отправки push при наличии аккаунта, SMS при его отсутствии, push при оплате заявки).
+- Всего 255 тестов (1104 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Бизнес-ТЗ 5.3, 5.4 и Технического ТЗ 3.5, 3.7 для задачи **T2-19**.
-2. Поставить статус `[~]` для **T2-19** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
-3. Создать DTO `ClientRecipientDto` в `Clients/Contracts` и добавить метод `findRecipient(int $clientId): ?ClientRecipientDto` в `ClientLookupInterface`.
-4. Реализовать `findRecipient` в `EloquentClientLookup`.
-5. Создать слушатели событий `SendVisitNotificationListener` (на `VisitRegistered`) и `SendMembershipRequestPaidNotificationListener` (на `MembershipRequestPaid`).
-6. Зарегистрировать слушатели в `NotificationsServiceProvider`.
-7. Написать Feature-тесты `NotificationEventListenersTest`.
+1. Перечитать раздел Бизнес-ТЗ 5.3 и Технического ТЗ 9.4 для задачи **T2-20**.
+2. Поставить статус `[~]` для **T2-20** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
+3. Создать DTO `ExpiringMembershipDto` в `Memberships/Contracts` и добавить метод `findExpiringOnDay(int $daysAhead): array` в `MembershipLookupInterface`.
+4. Реализовать `findExpiringOnDay` в `EloquentMembershipRepository` / сервисе.
+5. Создать Use Case `SendExpiringMembershipReminders` с проверкой идемпотентности через `alreadySent`.
+6. Создать консольную команду `notifications:send-expiring-reminders` и зарегистрировать расписание в `routes/console.php`.
+7. Написать Feature-тесты `SendExpiringMembershipRemindersTest`.
 
 ## Окружение: важное про Docker и Git
 
@@ -50,5 +51,5 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- `Notifications` слушает события `VisitRegistered` и `MembershipRequestPaid` других модулей.
-- Задачи очередей получают `company_id` явно.
+- Модули общаются только через `Contracts` и доменные события.
+- Задачи очередей и команды планировщика идемпотентны.
