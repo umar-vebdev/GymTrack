@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Memberships\Application;
 
+use App\Modules\Memberships\Contracts\ExpiringMembershipDto;
 use App\Modules\Memberships\Contracts\MembershipLookupInterface;
 use App\Modules\Memberships\Contracts\MembershipSummary;
 use App\Modules\Memberships\Domain\Membership;
@@ -43,6 +44,25 @@ final class FindUsableMembership implements MembershipLookupInterface
             $best->status()->value,
             $best->remainingVisits(),
             $best->endsAt()
+        );
+    }
+
+    /**
+     * @return list<ExpiringMembershipDto>
+     */
+    public function findExpiringBetween(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        $memberships = $this->memberships->findExpiringAcrossCompanies($from, $to);
+
+        return array_map(
+            static fn (Membership $m): ExpiringMembershipDto => new ExpiringMembershipDto(
+                membershipId: $m->id(),
+                companyId: $m->companyId(),
+                clientId: $m->clientId(),
+                typeId: $m->typeId(),
+                endsAt: $m->endsAt()
+            ),
+            $memberships
         );
     }
 }

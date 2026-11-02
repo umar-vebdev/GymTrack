@@ -8,6 +8,9 @@ use App\Modules\Notifications\Application\Jobs\SendPushNotificationJob;
 use App\Modules\Notifications\Application\Jobs\SendSmsNotificationJob;
 use App\Modules\Notifications\Application\NotificationSender;
 use App\Modules\Notifications\Domain\DeviceTokenRepositoryInterface;
+use App\Modules\Notifications\Domain\NotificationChannel;
+use App\Modules\Notifications\Domain\NotificationLogEntry;
+use App\Modules\Notifications\Domain\NotificationStatus;
 use App\Modules\Notifications\Domain\NotificationType;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -83,7 +86,7 @@ final class NotificationJobsTest extends TestCase
             entityId: 123
         );
 
-        $job->handle($this->sender);
+        $job->handle($this->sender, $this->logRepo);
 
         $this->assertCount(1, $this->smsGateway->sent);
         $this->assertSame('+992900000001', $this->smsGateway->sent[0]['phone']);
@@ -92,6 +95,39 @@ final class NotificationJobsTest extends TestCase
         $this->assertSame(10, $this->logRepo->entries[1]->companyId);
         $this->assertSame('visit', $this->logRepo->entries[1]->entityType);
         $this->assertSame(123, $this->logRepo->entries[1]->entityId);
+    }
+
+    public function test_send_sms_job_skips_when_already_sent(): void
+    {
+        $job = new SendSmsNotificationJob(
+            companyId: 10,
+            userId: 20,
+            clientId: 30,
+            phone: '+992900000001',
+            message: 'СМС сообщение',
+            type: NotificationType::VisitRegistered,
+            entityType: 'visit',
+            entityId: 123
+        );
+
+        // Pre-mark as sent in repository
+        $this->logRepo->create(new NotificationLogEntry(
+            companyId: 10,
+            userId: 20,
+            clientId: 30,
+            channel: NotificationChannel::Sms,
+            type: NotificationType::VisitRegistered,
+            recipient: '+992900000001',
+            title: null,
+            body: 'Old message',
+            entityType: 'visit',
+            entityId: 123,
+            status: NotificationStatus::Sent
+        ));
+
+        $job->handle($this->sender, $this->logRepo);
+
+        $this->assertCount(0, $this->smsGateway->sent);
     }
 
     public function test_send_push_job_with_direct_token(): void
@@ -109,7 +145,7 @@ final class NotificationJobsTest extends TestCase
             payload: ['action' => 'open_membership']
         );
 
-        $job->handle($this->sender, $this->deviceTokenRepo);
+        $job->handle($this->sender, $this->deviceTokenRepo, $this->logRepo);
 
         $this->assertCount(1, $this->pushGateway->sent);
         $this->assertSame('direct-token-xyz', $this->pushGateway->sent[0]['recipient']);
@@ -132,7 +168,7 @@ final class NotificationJobsTest extends TestCase
             entityId: 789
         );
 
-        $job->handle($this->sender, $this->deviceTokenRepo);
+        $job->handle($this->sender, $this->deviceTokenRepo, $this->logRepo);
 
         $this->assertCount(2, $this->pushGateway->sent);
         $this->assertSame('token-iphone', $this->pushGateway->sent[0]['recipient']);
@@ -151,10 +187,43 @@ final class NotificationJobsTest extends TestCase
             type: NotificationType::MembershipExpiring1Day
         );
 
-        $job->handle($this->sender, $this->deviceTokenRepo);
+        $job->handle($this->sender, $this->deviceTokenRepo, $this->logRepo);
 
         $this->assertCount(0, $this->pushGateway->sent);
         $this->assertCount(0, $this->logRepo->entries);
+    }
+
+    public function test_send_push_job_skips_when_already_sent(): void
+    {
+        $job = new SendPushNotificationJob(
+            companyId: 10,
+            userId: 20,
+            clientId: 30,
+            title: 'Push',
+            body: 'Тело',
+            type: NotificationType::MembershipExpiring7Days,
+            recipientToken: 'direct-token-xyz',
+            entityType: 'membership',
+            entityId: 789
+        );
+
+        $this->logRepo->create(new NotificationLogEntry(
+            companyId: 10,
+            userId: 20,
+            clientId: 30,
+            channel: NotificationChannel::Push,
+            type: NotificationType::MembershipExpiring7Days,
+            recipient: 'direct-token-xyz',
+            title: 'Old',
+            body: 'Old body',
+            entityType: 'membership',
+            entityId: 789,
+            status: NotificationStatus::Sent
+        ));
+
+        $job->handle($this->sender, $this->deviceTokenRepo, $this->logRepo);
+
+        $this->assertCount(0, $this->pushGateway->sent);
     }
 
     public function test_jobs_can_be_dispatched_to_queue(): void

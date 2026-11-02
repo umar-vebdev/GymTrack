@@ -4,35 +4,31 @@
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
 **Обновлено:** 2026-11-02
-**Этап:** 2 — Client (эпик E2-D Notifications: push и SMS, напоминания об окончании абонемента)
+**Этап:** 2 — Client (завершён эпик E2-D Notifications; переход к E2-E API для приложения клиента: мои абонементы, история)
 **Ветка:** main
 
 ## Текущая задача
 
-- **T2-19** (`[x]`): слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
-- Следующая активная задача: **T2-20** (`[ ]`) — Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`).
+- **E2-D Notifications: push и SMS, напоминания об окончании абонемента** (`T2-16`..`T2-20`) `[x]` — полностью закрыт.
+- Следующий и финальный эпик этапа 2: **E2-E API для приложения клиента: мои абонементы, история** (`[ ]` — перечитать разделы ТЗ, раскрыть в мелкие задачи и согласовать с разработчиком по правилу 4.3 `AGENTS.md`).
 
 ## Последняя сессия: что сделано
 
-- **T2-16** (`7ed2ae7`): каркас модуля `Notifications`, миграция `notifications_logs`, интерфейсы шлюзов `PushGatewayInterface`, `SmsGatewayInterface`, сервис `NotificationSender`.
+- **T2-16** (`7ed2ae7`): модуль `Notifications`, таблица `notifications_logs`, шлюзы `PushGatewayInterface`, `SmsGatewayInterface` с адаптерами `LogPushGateway` и `LogNotificationsSmsGateway`, репозиторий `EloquentNotificationLogRepository` и сервис `NotificationSender`.
 - **T2-17** (`9faf136`): регистрация и отзыв push-токенов (`POST/DELETE /api/v1/client/device-tokens`), таблица `notifications_device_tokens`, Feature-тесты.
-- **T2-18** (`93e6372`): очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
-- **T2-19**:
-  - DTO `ClientRecipientDto` и метод `findRecipient` в `ClientLookupInterface` и `EloquentClientLookup`.
-  - Типизированные геттеры `clientId()`, `gymId()`, `membershipId()` в доменном событии `VisitRegistered`.
-  - Слушатели `SendVisitNotificationListener` и `SendMembershipRequestPaidNotificationListener` с регистрацией в `NotificationsServiceProvider`.
-  - Feature-тесты `NotificationEventListenersTest` (проверка отправки push при наличии аккаунта, SMS при его отсутствии, push при оплате заявки).
-- Всего 255 тестов (1104 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-18** (`93e6372`): очереди и фоновые задачи `SendPushNotificationJob`, `SendSmsNotificationJob` с явной передачей `company_id`.
+- **T2-19** (`0e645b3`): DTO `ClientRecipientDto` и метод `findRecipient` в `ClientLookupInterface`, геттеры в `VisitRegistered`, слушатели `SendVisitNotificationListener` и `SendMembershipRequestPaidNotificationListener`, Feature-тесты.
+- **T2-20**:
+  - DTO `ExpiringMembershipDto` и метод `findExpiringBetween` в `MembershipLookupInterface`, `FindUsableMembership` и `EloquentMembershipRepository`.
+  - Защита от дублей (идемпотентность) в `SendPushNotificationJob` и `SendSmsNotificationJob` через `alreadySent`.
+  - Сценарий `SendExpiringMembershipReminders` (напоминания за 7 и 1 день с push/SMS и проверкой идемпотентности).
+  - Консольная команда `notifications:send-expiring-reminders` и ежедневное расписание в `routes/console.php`.
+  - Feature-тесты `SendExpiringMembershipRemindersTest` (259 тестов, 1113 проверок — все зелёные, `lint`/`analyse`/`deps` чистые).
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Бизнес-ТЗ 5.3 и Технического ТЗ 9.4 для задачи **T2-20**.
-2. Поставить статус `[~]` для **T2-20** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
-3. Создать DTO `ExpiringMembershipDto` в `Memberships/Contracts` и добавить метод `findExpiringOnDay(int $daysAhead): array` в `MembershipLookupInterface`.
-4. Реализовать `findExpiringOnDay` в `EloquentMembershipRepository` / сервисе.
-5. Создать Use Case `SendExpiringMembershipReminders` с проверкой идемпотентности через `alreadySent`.
-6. Создать консольную команду `notifications:send-expiring-reminders` и зарегистрировать расписание в `routes/console.php`.
-7. Написать Feature-тесты `SendExpiringMembershipRemindersTest`.
+1. Перечитать раздел Бизнес-ТЗ (5.2 «Мои абонементы и история») и Технического ТЗ (7.1 маршруты клиента) для эпика **E2-E**.
+2. Детализировать эпик **E2-E** в `docs/TASKS.md` на мелкие задачи и показать список разработчику на подтверждение (правило 4.3 `AGENTS.md`).
 
 ## Окружение: важное про Docker и Git
 
@@ -51,5 +47,5 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- Модули общаются только через `Contracts` и доменные события.
-- Задачи очередей и команды планировщика идемпотентны.
+- `Notifications` подписан на доменные события других модулей и не экспортирует зависимости в ядро.
+- Задачи очередей и команды расписания идемпотентны.

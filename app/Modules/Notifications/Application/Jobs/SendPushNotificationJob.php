@@ -6,6 +6,7 @@ namespace App\Modules\Notifications\Application\Jobs;
 
 use App\Modules\Notifications\Application\NotificationSender;
 use App\Modules\Notifications\Domain\DeviceTokenRepositoryInterface;
+use App\Modules\Notifications\Domain\NotificationLogRepositoryInterface;
 use App\Modules\Notifications\Domain\NotificationType;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -37,8 +38,15 @@ final class SendPushNotificationJob implements ShouldQueue
 
     public function handle(
         NotificationSender $sender,
-        DeviceTokenRepositoryInterface $deviceTokens
+        DeviceTokenRepositoryInterface $deviceTokens,
+        NotificationLogRepositoryInterface $logs
     ): void {
+        if ($this->entityType !== null && $this->entityId !== null && $logs->alreadySent($this->type, $this->entityType, $this->entityId)) {
+            Log::info("Push skipped: already sent for {$this->entityType} #{$this->entityId}");
+
+            return;
+        }
+
         if ($this->recipientToken !== null) {
             $sender->sendPush(
                 companyId: $this->companyId,

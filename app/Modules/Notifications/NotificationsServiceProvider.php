@@ -15,6 +15,7 @@ use App\Modules\Notifications\Infrastructure\EloquentDeviceTokenRepository;
 use App\Modules\Notifications\Infrastructure\EloquentNotificationLogRepository;
 use App\Modules\Notifications\Infrastructure\LogNotificationsSmsGateway;
 use App\Modules\Notifications\Infrastructure\LogPushGateway;
+use App\Modules\Notifications\Presentation\Console\SendExpiringMembershipRemindersCommand;
 use App\Modules\Sales\Domain\Events\MembershipRequestPaid;
 use App\Modules\Visits\Domain\Events\VisitRegistered;
 use Illuminate\Support\Facades\Event;
@@ -46,5 +47,11 @@ final class NotificationsServiceProvider extends ServiceProvider
             MembershipRequestPaid::class,
             SendMembershipRequestPaidNotificationListener::class
         );
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                SendExpiringMembershipRemindersCommand::class,
+            ]);
+        }
     }
 }

@@ -16,4 +16,11 @@ interface MembershipLookupInterface
      * что заканчивается раньше (Бизнес-ТЗ 4.3). Null — подходящего абонемента нет.
      */
     public function findUsableForClient(int $companyId, int $clientId, DateTimeImmutable $at): ?MembershipSummary;
+
+    /**
+     * Абонементы со статусом active, истекающие в указанном временном интервале (сквозной поиск по всем залам).
+     *
+     * @return list<ExpiringMembershipDto>
+     */
+    public function findExpiringBetween(DateTimeImmutable $from, DateTimeImmutable $to): array;
 }
