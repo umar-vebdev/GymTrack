@@ -75,4 +75,3 @@ final class MembershipRequestCancelled implements AuditableEvent, DomainEvent
         return null;
     }
 }
-

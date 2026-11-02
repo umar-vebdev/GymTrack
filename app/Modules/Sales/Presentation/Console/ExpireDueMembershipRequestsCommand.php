@@ -28,4 +28,3 @@ final class ExpireDueMembershipRequestsCommand extends Command
         return self::SUCCESS;
     }
 }
-
