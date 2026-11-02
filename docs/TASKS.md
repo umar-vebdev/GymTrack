@@ -44,7 +44,43 @@
 
 ## Этап 2 — Client (приложение клиента)
 
-4. [ ] **E2-D** Notifications: push и SMS, напоминания об окончании абонемента
+### E2-D Notifications: push и SMS, напоминания об окончании абонемента
+- **Статус:** `[ ]`
+- **Цель:** реализовать модуль `Notifications` с очередями для push и SMS, подпиской на события (`VisitRegistered`, `MembershipRequestPaid`), управлением push-токенами клиентских устройств и ежедневной отправкой напоминаний об окончании абонементов (за 7 и 1 день) с идемпотентностью.
+- **ТЗ:** Бизнес-ТЗ 5.3, 5.4, 10, 11, 12.1, 12.5; Тех. ТЗ 3.6, 3.7, 4.1, 4.4, 9.4.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+### T2-16 Каркас модуля `Notifications`, журнал `notifications_logs`, шлюзы `PushGateway`, `SmsGateway` и сервис `NotificationSender`
+- **Статус:** `[ ]`
+- **Цель:** создать структуру модуля `Notifications` (Domain, Application, Infrastructure, Presentation, `NotificationsServiceProvider`), таблицу `notifications_logs`, интерфейсы шлюзов и адаптеры логирования (`LogPushGateway`, `LogNotificationsSmsGateway`), сервис отправки `NotificationSender`.
+- **ТЗ:** Тех. ТЗ 3.6, 4.1, 4.4; Бизнес-ТЗ 5.3.
+- **Файлы:**
+  - `app/Modules/Notifications/NotificationsServiceProvider.php`
+  - `app/Modules/Notifications/Infrastructure/Migrations/2026_11_02_000000_create_notifications_logs_table.php`
+  - `app/Modules/Notifications/Domain/NotificationChannel.php`
+  - `app/Modules/Notifications/Domain/NotificationType.php`
+  - `app/Modules/Notifications/Domain/PushGatewayInterface.php`
+  - `app/Modules/Notifications/Domain/NotificationsSmsGatewayInterface.php`
+  - `app/Modules/Notifications/Infrastructure/LogPushGateway.php`
+  - `app/Modules/Notifications/Infrastructure/LogNotificationsSmsGateway.php`
+  - `app/Modules/Notifications/Infrastructure/Persistence/NotificationLogModel.php`
+  - `app/Modules/Notifications/Application/NotificationSender.php`
+  - `bootstrap/providers.php`
+  - `tests/Unit/Notifications/NotificationSenderTest.php`
+- **Шаги:**
+  1. Создать миграцию `notifications_logs` (`id`, `company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `message`, `status`, `sent_at`, `created_at`, `updated_at`).
+  2. Создать перечисления `NotificationChannel` (`push`, `sms`) и `NotificationType` (`visit_registered`, `membership_request_paid`, `membership_expiring_7_days`, `membership_expiring_1_day`).
+  3. Создать интерфейсы `PushGatewayInterface`, `NotificationsSmsGatewayInterface` и реализации-адаптеры `LogPushGateway`, `LogNotificationsSmsGateway`.
+  4. Создать сервис `NotificationSender` с записью результата в `notification_logs`.
+  5. Зарегистрировать `NotificationsServiceProvider` в `bootstrap/providers.php`.
+  6. Написать Unit-тесты на отправку через `NotificationSender`.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
+
+- [ ] **T2-17** Регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`, Feature-тесты).
+- [ ] **T2-18** Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явной передачей `companyId`).
+- [ ] **T2-19** Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
+- [ ] **T2-20** Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`, Feature-тесты).
+
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
 
 ## Этапы 3–5 (не раскрывать до завершения предыдущего этапа)

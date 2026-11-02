@@ -3,31 +3,32 @@
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 > Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
-**Обновлено:** 2026-10-31
-**Этап:** 2 — Client (завершён эпик E2-C Заявки на абонемент; переход к E2-D Notifications)
+**Обновлено:** 2026-11-02
+**Этап:** 2 — Client (эпик E2-D Notifications: push и SMS, напоминания об окончании абонемента)
 **Ветка:** main
 
 ## Текущая задача
 
-- **E2-C Заявки на абонемент (Sales) и их автоотмена** (`T2-11`..`T2-15`) `[x]` — полностью закрыт.
-- Следующий эпик этапа 2: **E2-D Notifications: push и SMS, напоминания об окончании абонемента** (`[ ]` — перечитать разделы ТЗ, раскрыть в мелкие задачи и согласовать с разработчиком по правилу 4.3 `AGENTS.md`).
+- Эпик **E2-D Notifications** раскрыт в задачи `T2-16`..`T2-20` в `docs/TASKS.md`.
+- Активная задача: **T2-16** (`[ ]`) — Каркас модуля `Notifications`, журнал `notifications_logs`, шлюзы `PushGatewayInterface`, `NotificationsSmsGatewayInterface` и сервис `NotificationSender`.
 
 ## Последняя сессия: что сделано
 
-- **T2-11** (`fcd69b1`): миграция `sales_membership_requests`, доменная модель `MembershipRequest` и `MembershipRequestStatus`, `EloquentMembershipRequestRepository` с блокировкой `lockForUpdate`, Unit-тесты.
-- **T2-12** (`da3198b`): метод `findOrCreateForUser` в `ClientLookupInterface`, событие `MembershipRequestCreated`, сценарии создания и просмотра заявок клиентом (`POST /api/v1/client/membership-requests` со сроком жизни 24 часа и `Idempotency-Key`, `GET /api/v1/client/membership-requests`), Feature-тесты.
-- **T2-13** (`bab6f16`): сценарий `ListCompanyMembershipRequests`, эндпоинт зала `GET /api/v1/business/membership-requests` с фильтром по статусу и мультиарендной изоляцией, Feature-тесты.
-- **T2-14** (`c0c040d`): сценарий `PayMembershipRequest`, эндпоинт оплаты `POST /api/v1/business/membership-requests/{id}/pay` с атомарным созданием `PaymentMark` и выпуском абонемента через `MembershipIssuerInterface`, события `PaymentMarked` и `MembershipRequestPaid`, Feature-тесты.
-- **T2-15**:
-  - Консольная команда `sales:expire-requests` (сценарий `ExpireDueMembershipRequests`), автоматическая отмена просроченных заявок `pending` с `expires_at <= now()`, расписание в `routes/console.php`.
-  - Сценарий `CancelMembershipRequest`, эндпоинт `POST /api/v1/business/membership-requests/{id}/cancel` и событие `MembershipRequestCancelled`.
-  - Feature-тесты `CancelMembershipRequestTest` и `ExpireDueMembershipRequestsCommandTest`.
-- Всего 234 теста (1016 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- Проверены и закрыты все задачи эпика **E2-C** (`T2-11`..`T2-15`): заявки на абонементы, оплата с атомарной выдачей и чеком, автоотмена просроченных заявок.
+- Устранены замечания линтера Pint (EOF blank lines в модуле `Sales`, коммит `62ec0e7`).
+- Проанализированы разделы Бизнес-ТЗ (5.3, 5.4, 10, 11, 12.1, 12.5) и Технического ТЗ (3.6, 3.7, 4.1, 4.4, 9.4) для модуля `Notifications`.
+- Эпик **E2-D Notifications** детализирован на 5 атомарных задач (`T2-16`..`T2-20`) по правилу 4.3 `AGENTS.md`.
+- 234 теста (1016 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать разделы Бизнес-ТЗ (7, 10, 11) и Технического ТЗ (3.6, 9.4) по модулю `Notifications` (очереди, драйверы Push/SMS, напоминания об окончании абонементов).
-2. Детализировать эпик **E2-D Notifications** в `docs/TASKS.md` и показать список задач разработчику на подтверждение (правило 4.3 `AGENTS.md`).
+1. Получить подтверждение разработчика на план эпика **E2-D** и перейти к задаче **T2-16**.
+2. В задаче **T2-16**:
+   - Создать директории `app/Modules/Notifications/{Domain,Application,Infrastructure,Presentation,Contracts}`.
+   - Миграция `notifications_logs` (`id`, `company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `message`, `status`, `sent_at`, `created_at`, `updated_at`).
+   - Перечисления `NotificationChannel` и `NotificationType`, интерфейсы `PushGatewayInterface` и `NotificationsSmsGatewayInterface`, адаптеры `LogPushGateway` и `LogNotificationsSmsGateway`.
+   - Сервис `NotificationSender` с записью в БД, регистрация `NotificationsServiceProvider` в `bootstrap/providers.php`.
+   - Unit-тесты `NotificationSenderTest`.
 
 ## Окружение: важное про Docker и Git
 
@@ -46,5 +47,6 @@
 ## Важные факты, которые легко забыть
 
 - Платежей нет, только `PaymentMark`.
-- Новая функция = новый модуль или расширение через `Contracts` и события (без прямых JOIN между таблицами разных модулей).
-- Заявка на абонемент живёт 24 часа; при оплате выпускается абонемент и создаётся чек продажи с `PaymentMark`.
+- `Notifications` не экспортирует зависимости в другие модули (слушает события `VisitRegistered`, `MembershipRequestPaid` или запускается по расписанию).
+- В джобы очередей `company_id` передаётся явно, без надежды на HTTP-контекст тенанта.
+- Все задачи очередей и команды расписания идемпотентны.
