@@ -76,7 +76,8 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 ### T2-17 Регистрация и отзыв push-токенов клиентских устройств (`POST/DELETE /api/v1/client/device-tokens`)
-- **Статус:** `[ ]`
+- **Статус:** `[x]`
+- **Заметки:** таблица `notifications_device_tokens` использует уникальный составной индекс `(user_id, token)`. Регистрация токена выполняется через upsert (при повторной отправке обновляется платформа и время активности), отзыв удаляет запись для текущего пользователя. Маршруты защищены `auth:sanctum`.
 - **Цель:** реализовать хранение токенов мобильных устройств клиентов для push-уведомлений, эндпоинты `POST /api/v1/client/device-tokens` (сохранение/обновление токена устройства) и `DELETE /api/v1/client/device-tokens` (отзыв токена при выходе).
 - **ТЗ:** Тех. ТЗ 3.6, 7.1; Бизнес-ТЗ 5.3.
 - **Файлы:**
@@ -98,7 +99,20 @@
   4. Создать FormRequests и контроллер `DeviceTokensController` с маршрутами в группе `client`.
   5. Написать Feature-тесты на регистрацию и удаление токенов.
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
-- [ ] **T2-18** Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явной передачей `companyId`).
+
+### T2-18 Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать асинхронную отправку push и SMS через очередь (`ShouldQueue`), с явной передачей `company_id` (Тех. ТЗ 9.4), отправкой push по зарегистрированным токенам пользователя и фиксацией результата в `notifications_logs`.
+- **ТЗ:** Тех. ТЗ 3.6, 9.4.
+- **Файлы:**
+  - `app/Modules/Notifications/Application/Jobs/SendPushNotificationJob.php`
+  - `app/Modules/Notifications/Application/Jobs/SendSmsNotificationJob.php`
+  - `tests/Unit/Notifications/NotificationJobsTest.php`
+- **Шаги:**
+  1. Создать джобу `SendPushNotificationJob` (`ShouldQueue`, явный `companyId`, поиск токенов пользователя через `DeviceTokenRepositoryInterface`, отправка через `NotificationSender::sendPush`).
+  2. Создать джобу `SendSmsNotificationJob` (`ShouldQueue`, явный `companyId`, отправка через `NotificationSender::sendSms`).
+  3. Написать Unit/Feature тесты на выполнение джоб и корректное логирование в `notifications_logs`.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 - [ ] **T2-19** Слушатели доменных событий: подтверждение визита (`VisitRegistered`) и оплата заявки (`MembershipRequestPaid`), контракт `ClientRecipientDto` в `Clients`.
 - [ ] **T2-20** Ежедневные напоминания об окончании абонемента за 7 и 1 день (`notifications:send-expiring-reminders`, контракт `MembershipLookupInterface`, расписание в `routes/console.php`, Feature-тесты).
 

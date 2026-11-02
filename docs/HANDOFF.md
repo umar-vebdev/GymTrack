@@ -9,31 +9,26 @@
 
 ## Текущая задача
 
-- **T2-16** (`[x]`): каркас модуля `Notifications`, миграция `notifications_logs`, шлюзы `PushGatewayInterface`, `SmsGatewayInterface` и сервис `NotificationSender`.
-- Следующая активная задача: **T2-17** (`[ ]`) — Регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`).
+- **T2-17** (`[x]`): регистрация и отзыв push-токенов клиентских устройств (`POST /api/v1/client/device-tokens`, `DELETE /api/v1/client/device-tokens`).
+- Следующая активная задача: **T2-18** (`[ ]`) — Очереди и фоновые задачи отправки уведомлений (`SendPushNotificationJob`, `SendSmsNotificationJob` с явным `company_id`).
 
 ## Последняя сессия: что сделано
 
-- **T2-16**:
-  - Создана архитектура модуля `Notifications` (`Domain`, `Application`, `Infrastructure`, `Presentation`).
-  - Миграция таблицы `notifications_logs` (`company_id`, `user_id`, `client_id`, `channel`, `type`, `recipient`, `title`, `body`, `entity_type`, `entity_id`, `status`, `error`, `sent_at`).
-  - Доменные сущности и перечисления: `NotificationChannel`, `NotificationType`, `NotificationStatus`, `NotificationLogEntry`.
-  - Шлюзы и адаптеры: `PushGatewayInterface`, `SmsGatewayInterface`, `LogPushGateway`, `LogNotificationsSmsGateway`.
-  - Модель `NotificationLogModel` и репозиторий `EloquentNotificationLogRepository` с проверкой `alreadySent()`.
-  - Сервис приложения `NotificationSender` с гарантированной регистрацией статусов отправки и обработкой ошибок.
-  - Провайдер `NotificationsServiceProvider` подключён в `bootstrap/providers.php`.
-  - Unit-тесты: `NotificationSenderTest` и `EloquentNotificationLogRepositoryTest`.
-- Всего 239 тестов (1051 проверка) зелёные, `lint`/`analyse`/`deps` чистые.
+- **T2-16** (`7ed2ae7`): каркас модуля `Notifications`, миграция `notifications_logs`, интерфейсы шлюзов `PushGatewayInterface`, `SmsGatewayInterface`, адаптеры `LogPushGateway`, `LogNotificationsSmsGateway`, репозиторий `EloquentNotificationLogRepository` и сервис `NotificationSender`.
+- **T2-17**:
+  - Миграция `notifications_device_tokens` с уникальным индексом `(user_id, token)`.
+  - Модель `DeviceTokenModel`, интерфейс `DeviceTokenRepositoryInterface` и репозиторий `EloquentDeviceTokenRepository`.
+  - Сценарии `RegisterDeviceToken` и `UnregisterDeviceToken`.
+  - Запросы валидации `RegisterDeviceTokenRequest`, `UnregisterDeviceTokenRequest`, контроллер `DeviceTokensController` и клиентские маршруты под `auth:sanctum`.
+  - Feature-тесты `DeviceTokensEndpointTest` (7 проверок: неавторизованный доступ, успешная регистрация, идемпотентный upsert, валидация 422, удаление токена, изоляция между пользователями).
+- Всего 246 тестов (1073 проверки) зелёные, `lint`/`analyse`/`deps` чистые.
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Технического ТЗ 7.1 и Бизнес-ТЗ 5.3 для задачи **T2-17**.
-2. Поставить статус `[~]` для **T2-17** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
-3. Создать миграцию `notifications_device_tokens` (`id`, `user_id`, `token`, `platform`, `created_at`, `updated_at`).
-4. Создать модель `DeviceTokenModel`, интерфейс `DeviceTokenRepositoryInterface` и репозиторий `EloquentDeviceTokenRepository`.
-5. Создать Use Cases `RegisterDeviceToken` и `UnregisterDeviceToken`.
-6. Реализовать FormRequests (`RegisterDeviceTokenRequest`, `UnregisterDeviceTokenRequest`), контроллер `DeviceTokensController` и подключить маршруты в `Presentation/routes.php`.
-7. Написать Feature-тесты `DeviceTokensEndpointTest`.
+1. Перечитать раздел Технического ТЗ 3.6 и 9.4 для задачи **T2-18**.
+2. Поставить статус `[~]` для **T2-18** в `docs/TASKS.md` и обновить `docs/HANDOFF.md`.
+3. Создать джобы `SendPushNotificationJob` и `SendSmsNotificationJob` (интерфейс `ShouldQueue`, явный `companyId`, отправка через `NotificationSender`).
+4. Написать Unit-тесты `NotificationJobsTest` на успешное выполнение джоб и обработку ошибок.
 
 ## Окружение: важное про Docker и Git
 
@@ -53,4 +48,5 @@
 
 - Платежей нет, только `PaymentMark`.
 - `Notifications` слушает доменные события других модулей и не экспортирует зависимости в ядро.
-- Задачи очередей и консольные команды идемпотентны (проверка через `alreadySent` в `notifications_logs`).
+- Задачи очередей получают `company_id` явно (Тех. ТЗ 9.4).
+- Все операции идемпотентны.
