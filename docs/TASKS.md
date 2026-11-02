@@ -78,7 +78,8 @@
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 ### T2-22 Эндпоинт истории посещений клиента (`GET /api/v1/client/visits`)
-- **Статус:** `[ ]`
+- **Статус:** `[x]`
+- **Заметки:** DTO `ClientVisitItemDto` в `Visits/Contracts`, метод `listForClients` с пагинацией и фильтрами по `company_id` и `status` в `VisitRepositoryInterface` и `EloquentVisitRepository`, Use Case `ListMyVisits` через `ClientLookupInterface::findAllClientIdsByUser`, контроллер `ListMyVisitsController` возвращает `data` и `meta: {page, per_page, total}`, маршрут `GET /api/v1/client/visits` под `auth:sanctum`.
 - **Цель:** реализовать клиентский эндпоинт `GET /api/v1/client/visits` для мобильного приложения, возвращающий историю визитов пользователя по всем залам (с пагинацией, фильтром по залу/компании и статусу `completed` / `cancelled`).
 - **ТЗ:** Бизнес-ТЗ 5.2; Тех. ТЗ 7.1.
 - **Файлы:**
@@ -99,7 +100,26 @@
   6. Написать Feature-тесты `ListMyVisitsTest`.
 - **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
-- [ ] **T2-23** Эндпоинт истории покупок клиента (`GET /api/v1/client/purchases`, позиции чека, отметка оплаты `PaymentMark`, Feature-тесты).
+### T2-23 Эндпоинт истории покупок клиента (`GET /api/v1/client/purchases`)
+- **Статус:** `[ ]`
+- **Цель:** реализовать клиентский эндпоинт `GET /api/v1/client/purchases` для мобильного приложения, возвращающий историю покупок пользователя по всем его карточкам клиента во всех залах (с пагинацией, позициями чека `SaleItem`, отметкой об оплате `PaymentMark`, фильтрами по компании и статусу `completed` / `refunded`).
+- **ТЗ:** Бизнес-ТЗ 5.2; Тех. ТЗ 7.1.
+- **Файлы:**
+  - `app/Modules/Sales/Domain/SaleRepositoryInterface.php`
+  - `app/Modules/Sales/Infrastructure/EloquentSaleRepository.php`
+  - `app/Modules/Sales/Application/ListMyPurchases.php`
+  - `app/Modules/Sales/Presentation/Requests/ListMyPurchasesRequest.php`
+  - `app/Modules/Sales/Presentation/ListMyPurchasesController.php`
+  - `app/Modules/Sales/Presentation/routes.php`
+  - `tests/Feature/Sales/ListMyPurchasesTest.php`
+- **Шаги:**
+  1. Добавить метод `listForClients(array $clientIds, ?int $companyId, ?string $status, int $page, int $perPage): array{items: list<Sale>, total: int}` в `SaleRepositoryInterface` и реализовать в `EloquentSaleRepository`.
+  2. Создать Use Case `ListMyPurchases` (агрегирует ID клиентов через `ClientLookupInterface::findAllClientIdsByUser`, вызывает `listForClients`).
+  3. Создать `ListMyPurchasesRequest` (валидация `page`, `per_page`, `company_id`, `status: in:completed,refunded`).
+  4. Создать `ListMyPurchasesController` с сериализацией покупок через `RegisterSaleController::serializeSale` и мета-информацией пагинации.
+  5. Зарегистрировать маршрут `GET /api/v1/client/purchases` в `Sales/Presentation/routes.php` под `auth:sanctum`.
+  6. Написать Feature-тесты `ListMyPurchasesTest`.
+- **Критерий готовности:** `composer lint`, `composer analyse`, `composer deps`, `php artisan test` зелёные.
 
 5. [ ] **E2-E** API для приложения клиента: мои абонементы, история
 

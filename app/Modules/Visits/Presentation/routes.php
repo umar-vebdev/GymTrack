@@ -7,6 +7,7 @@ use App\Modules\Visits\Presentation\CheckInByQrController;
 use App\Modules\Visits\Presentation\GetGymQrController;
 use App\Modules\Visits\Presentation\ListClientVisitsController;
 use App\Modules\Visits\Presentation\ListCompanyVisitsController;
+use App\Modules\Visits\Presentation\ListMyVisitsController;
 use App\Modules\Visits\Presentation\ManualCheckInController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +25,5 @@ Route::prefix('api/v1/client')
     ->middleware(['auth:sanctum', 'throttle:30,1'])
     ->group(function () {
         Route::post('/visits/check-in', CheckInByQrController::class);
+        Route::get('/visits', ListMyVisitsController::class);
     });

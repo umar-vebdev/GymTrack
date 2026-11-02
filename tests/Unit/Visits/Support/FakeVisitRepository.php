@@ -57,4 +57,21 @@ final class FakeVisitRepository implements VisitRepositoryInterface
     {
         return [];
     }
+
+    /**
+     * @param  list<int>  $clientIds
+     * @return array{items: list<Visit>, total: int}
+     */
+    public function listForClients(
+        array $clientIds,
+        ?int $companyId = null,
+        ?string $status = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array {
+        return [
+            'items' => [],
+            'total' => 0,
+        ];
+    }
 }

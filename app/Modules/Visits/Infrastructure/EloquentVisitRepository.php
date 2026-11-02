@@ -117,6 +117,51 @@ final class EloquentVisitRepository implements VisitRepositoryInterface
         );
     }
 
+    /**
+     * @param  list<int>  $clientIds
+     * @return array{items: list<Visit>, total: int}
+     */
+    public function listForClients(
+        array $clientIds,
+        ?int $companyId = null,
+        ?string $status = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array {
+        if ($clientIds === []) {
+            return [
+                'items' => [],
+                'total' => 0,
+            ];
+        }
+
+        $query = VisitModel::withoutGlobalScopes()
+            ->whereIn('client_id', $clientIds);
+
+        if ($companyId !== null) {
+            $query->where('company_id', $companyId);
+        }
+
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        $total = (clone $query)->count();
+
+        $models = $query
+            ->orderByDesc('visited_at')
+            ->orderByDesc('id')
+            ->forPage($page, $perPage)
+            ->get();
+
+        return [
+            'items' => array_values(
+                $models->map(fn (VisitModel $m): Visit => $this->mapToDomain($m))->all()
+            ),
+            'total' => $total,
+        ];
+    }
+
     private function mapToDomain(VisitModel $model): Visit
     {
         return new Visit(
