@@ -21,3 +21,4 @@ final readonly class ClientVisitItemDto
         public ?DateTimeImmutable $cancelledAt
     ) {}
 }
+
