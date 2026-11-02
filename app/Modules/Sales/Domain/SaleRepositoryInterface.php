@@ -36,5 +36,17 @@ interface SaleRepositoryInterface
      */
     public function listByClient(int $companyId, int $clientId): array;
 
+    /**
+     * @param  list<int>  $clientIds
+     * @return array{items: list<Sale>, total: int}
+     */
+    public function listForClients(
+        array $clientIds,
+        ?int $companyId = null,
+        ?string $status = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array;
+
     public function save(Sale $sale): void;
 }

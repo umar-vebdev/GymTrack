@@ -120,6 +120,50 @@ final class EloquentSaleRepository implements SaleRepositoryInterface
         return array_values($models->map(fn (SaleModel $m): Sale => $this->toEntity($m))->all());
     }
 
+    /**
+     * @param  list<int>  $clientIds
+     * @return array{items: list<Sale>, total: int}
+     */
+    public function listForClients(
+        array $clientIds,
+        ?int $companyId = null,
+        ?string $status = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array {
+        if ($clientIds === []) {
+            return [
+                'items' => [],
+                'total' => 0,
+            ];
+        }
+
+        $query = SaleModel::withoutGlobalScopes()
+            ->with('items')
+            ->whereIn('client_id', $clientIds);
+
+        if ($companyId !== null) {
+            $query->where('company_id', $companyId);
+        }
+
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        $total = (clone $query)->count();
+
+        $models = $query
+            ->orderByDesc('paid_at')
+            ->orderByDesc('id')
+            ->forPage($page, $perPage)
+            ->get();
+
+        return [
+            'items' => array_values($models->map(fn (SaleModel $m): Sale => $this->toEntity($m))->all()),
+            'total' => $total,
+        ];
+    }
+
     public function save(Sale $sale): void
     {
         SaleModel::withoutGlobalScopes()
