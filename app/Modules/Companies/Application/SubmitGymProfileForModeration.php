@@ -32,3 +32,4 @@ final class SubmitGymProfileForModeration
         return $profile;
     }
 }
+
