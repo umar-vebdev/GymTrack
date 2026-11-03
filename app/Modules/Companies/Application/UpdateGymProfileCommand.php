@@ -22,3 +22,4 @@ final class UpdateGymProfileCommand
         public readonly array $amenities,
     ) {}
 }
+

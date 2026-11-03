@@ -40,3 +40,4 @@ final class UpdateGymProfile
         return $profile;
     }
 }
+
