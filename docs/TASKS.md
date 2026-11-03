@@ -55,7 +55,7 @@
 - [x] **T3-00** Привести к стилю Pint 10 файлов, оставшихся после T2-21…T2-23 (`braces_position`, `single_line_empty_body`, `single_blank_line_at_eof`): `composer lint` должен проходить. Только форматирование.
 - [x] **T3-02** (заметка: `save()` — upsert, `company_id` берётся из `gyms` без `CompanyScope`, чтобы админ платформы мог сохранять чужие витрины в T3-05) `GymProfileRepositoryInterface` + Eloquent-реализация + тест.
 - [x] **T3-03** (заметка: зал чужой компании → 404 `NOT_FOUND` через `GymNotFound`; широта и долгота — только вместе; `PUT` на `pending` → 400) `UpdateGymProfile` + `PUT /business/gyms/{id}/profile` (только владелец; правка одобренной витрины → draft).
-- [ ] **T3-04** `SubmitGymProfileForModeration` + эндпоинт отправки (статус pending).
+- [x] **T3-04** (заметка: профиль без записи в БД трактуется как пустой draft → «заполните данные» 400) `SubmitGymProfileForModeration` + эндпоинт отправки (статус pending).
 - [ ] **T3-05** `ModerateGymProfile` + `POST /platform/gyms/{id}/moderate` + `GET /platform/gym-profiles?status=pending`; события `GymProfileApproved`/`GymProfileRejected`.
 - [ ] **T3-06** Фото зала: `companies_gym_photos`, загрузка/удаление (диск `public`, лимиты).
 - [ ] **T3-07** Аудит событий модерации (слушатели в `Audit`).

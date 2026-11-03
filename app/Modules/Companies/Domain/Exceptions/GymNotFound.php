@@ -13,4 +13,3 @@ final class GymNotFound extends DomainException
         return new self(sprintf('Зал #%d не найден.', $gymId));
     }
 }
-
