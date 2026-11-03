@@ -12,10 +12,12 @@
 - **T3-01** (`[x]`): миграция `companies_gym_profiles` (с `latitude`/`longitude` — решение разработчика), enum `ModerationStatus`, сущность `GymProfile` (переходы draft→pending→approved/rejected, `update` сбрасывает в draft), исключение `InvalidGymProfileTransition`, `GymProfileTest`.
 - Тесты: 285 зелёные, `analyse` и `deps` чистые.
 - **T3-00** (`[x]`): проект отформатирован Pint, `composer lint` чистый.
+- **T3-02** (`[x]`): `GymProfileRepositoryInterface` (`findByGymId`, `save` = upsert), `EloquentGymProfileRepository`, `GymProfileModel`, биндинг в `CompaniesServiceProvider`, `GymProfileRepositoryTest`. Тесты: 288 зелёные, lint/analyse/deps чистые.
 
 ## Точный следующий шаг
 
-1. **T3-02**: `GymProfileRepositoryInterface` + `EloquentGymProfileRepository` + `GymProfileModel` (таблица `companies_gym_profiles`, поле `company_id` брать из `gyms`) + биндинг в `CompaniesServiceProvider` + тест.
+1. **T3-03**: Use Case `UpdateGymProfile` (если витрины нет, создать через `GymProfile::draft`) + `PUT /api/v1/business/gyms/{id}/profile`, только владелец, проверка принадлежности зала компании, FormRequest (широта −90..90, долгота −180..180). Feature-тесты, включая изоляцию компаний. Образец: `UpdateCompanyCurrency` + его контроллер/маршрут.
+2. Потом T3-04.
 
 ## Окружение: важное про Docker и Git
 
