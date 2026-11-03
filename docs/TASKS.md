@@ -46,8 +46,19 @@
 
 ## Этап 3 — Публичный каталог залов и модерация витрин
 
-**Статус этапа:** подготовка к планированию задач.
-**ТЗ:** Бизнес-ТЗ 7; Тех. ТЗ 3.1, 7.1, 14.
+**Статус этапа:** E3-A раскрыт (подтверждён разработчиком 2026-11-03), E3-B и E3-C — эпики.
+**ТЗ:** Бизнес-ТЗ 4.2, 7; Тех. ТЗ 3.1, 7.1, 14.
+
+### E3-A — задачи (модуль Companies)
+
+- [x] **T3-01** (заметка: сущность содержит проверку полноты `isComplete()` для `submit`; `composer lint` падает на 10 чужих файлах — см. T3-00) Миграция `companies_gym_profiles` (`gym_id` unique, `description`, `address`, `latitude`, `longitude` nullable, `phone`, `working_hours` JSON, `amenities` JSON, `moderation_status`, `rejection_reason`, `published_at`), enum `ModerationStatus`, сущность `GymProfile` с переходами статусов (`update`→draft, `submit` с проверкой полноты, `approve`, `reject`), unit-тест. Проверка: `php artisan test --filter=GymProfileTest`.
+- [ ] **T3-00** Привести к стилю Pint 10 файлов, оставшихся после T2-21…T2-23 (`braces_position`, `single_line_empty_body`, `single_blank_line_at_eof`): `composer lint` должен проходить. Только форматирование.
+- [ ] **T3-02** `GymProfileRepositoryInterface` + Eloquent-реализация + тест.
+- [ ] **T3-03** `UpdateGymProfile` + `PUT /business/gyms/{id}/profile` (только владелец; правка одобренной витрины → draft).
+- [ ] **T3-04** `SubmitGymProfileForModeration` + эндпоинт отправки (статус pending).
+- [ ] **T3-05** `ModerateGymProfile` + `POST /platform/gyms/{id}/moderate` + `GET /platform/gym-profiles?status=pending`; события `GymProfileApproved`/`GymProfileRejected`.
+- [ ] **T3-06** Фото зала: `companies_gym_photos`, загрузка/удаление (диск `public`, лимиты).
+- [ ] **T3-07** Аудит событий модерации (слушатели в `Audit`).
 
 ### Эпики этапа 3 (предложение для подтверждения разработчиком)
 - **E3-A Модерация залов и публичные витрины (Companies & Platform)**: витрина зала (`gym_profiles` / статус модерации: `draft`, `pending`, `approved`, `rejected`), подача заявки владельцем, одобрение/отклонение админом платформы (`/api/v1/platform/gyms/{id}/moderate`), загрузка/управление фото зала.

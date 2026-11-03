@@ -1,54 +1,38 @@
 # HANDOFF — состояние проекта для продолжения работы
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
-> Цель: новая сессия без истории чата продолжает ровно с этого места. Держать в пределах ~100 строк.
 
-**Обновлено:** 2026-11-02
-**Этап:** 3 — Каталог (публичный каталог залов, модерация витрин платформой, поиск и карта)
+**Обновлено:** 2026-11-03
+**Этап:** 3 — Каталог (витрины залов, модерация, публичный каталог, карта)
 **Ветка:** main
 
 ## Текущее состояние
 
-- **Этап 2 (Client) полностью завершён!** Все эпики (E2-A, E2-B, T2-00, E2-C, E2-D, E2-E) реализованы и закрыты.
-- **T2-23** (`[x]`): эндпоинт истории покупок клиента (`GET /api/v1/client/purchases`) с пагинацией, фильтрами по компании и статусу.
-- Следующий шаг: согласование с разработчиком декомпозиции первого эпика Этапа 3 (**E3-A Модерация залов и публичные витрины**) на мелкие атомарные задачи `T3-01`…`T3-xx`.
-
-## Последняя сессия: что сделано
-
-- **T2-21** (`e32c813`): эндпоинт `GET /api/v1/client/memberships` со статусом active/past, компанией и DTO `ClientMembershipItemDto`.
-- **T2-22** (`856b7e7`): эндпоинт `GET /api/v1/client/visits` с пагинацией, фильтрами по статусу и залу/компании.
-- **T2-23**:
-  - Метод `listForClients` в `SaleRepositoryInterface` и `EloquentSaleRepository` с фильтрами по `company_id` и `status`, пагинацией и сортировкой `paid_at` desc.
-  - Use Case `ListMyPurchases` через `ClientLookupInterface::findAllClientIdsByUser`.
-  - Запрос `ListMyPurchasesRequest` и контроллер `ListMyPurchasesController` с метаданными пагинации `meta: {page, per_page, total}`.
-  - Маршрут `GET /api/v1/client/purchases` под `auth:sanctum`.
-  - Feature-тесты `ListMyPurchasesTest` (7 проверок).
-- Завершён эпик **E2-E** и весь **Этап 2 (Client)**.
-- Всего 279 тестов (1209 проверок) зелёные, `lint`/`analyse`/`deps` чистые.
+- Этапы 0–2 завершены. Эпик **E3-A** раскрыт и подтверждён разработчиком (T3-01…T3-07 в `docs/TASKS.md`).
+- **T3-01** (`[x]`): миграция `companies_gym_profiles` (с `latitude`/`longitude` — решение разработчика), enum `ModerationStatus`, сущность `GymProfile` (переходы draft→pending→approved/rejected, `update` сбрасывает в draft), исключение `InvalidGymProfileTransition`, `GymProfileTest`.
+- Тесты: 285 зелёные, `analyse` и `deps` чистые.
+- `composer lint` падает на 10 файлах, оставшихся с T2-21…T2-23 (только форматирование) — задача **T3-00**.
 
 ## Точный следующий шаг
 
-1. Перечитать раздел Бизнес-ТЗ 7 и Тех. ТЗ 3.1, 7.1, 14 для **Этапа 3 (Каталог)**.
-2. Обсудить с разработчиком структуру модуля `Catalog` и схему витрин залов / модерации (`E3-A`).
-3. Детализировать задачи первого эпика Этапа 3 (`T3-01`…`T3-xx`) в `docs/TASKS.md`.
-4. Начать реализацию первой задачи `T3-01`.
+1. Выполнить **T3-00** (Pint-форматирование 10 файлов) отдельным коммитом.
+2. Затем **T3-02**: `GymProfileRepositoryInterface` + `EloquentGymProfileRepository` + `GymProfileModel` (таблица `companies_gym_profiles`, поле `company_id` брать из `gyms`) + биндинг в `CompaniesServiceProvider` + тест.
 
 ## Окружение: важное про Docker и Git
 
-- Из песочницы агента сокет Docker не виден и `.git` открыт только на чтение: команды `docker compose ...` и `git commit` запускать с `BypassSandbox: true`.
+- Из песочницы агента сокет Docker не виден и `.git` открыт только на чтение: `docker compose ...` и `git commit` запускать с `BypassSandbox: true`.
 
-## Окружение и команды
+## Команды
 
 | Действие | Команда |
 |---|---|
 | Запуск окружения | `docker compose up -d` |
-| Стиль | `composer lint` |
-| Статический анализ | `composer analyse` |
-| Границы модулей | `composer deps` |
+| Стиль / анализ / границы | `composer lint` / `composer analyse` / `composer deps` |
 | Тесты | `docker compose exec -T app php artisan test --compact` |
 
-## Важные факты, которые легко забыть
+## Важные факты
 
 - Платежей нет, только `PaymentMark`.
-- У одного аккаунта клиента (`users.id`) может быть несколько карточек (`clients.id`) в разных залах (мультиарендность).
-- Каталог доступен публично без авторизации (`/api/v1/public/...`), а модерация — через `/api/v1/platform/...`.
+- У одного аккаунта (`users.id`) может быть несколько карточек клиента в разных залах.
+- Каталог публичный (`/api/v1/public/...`), модерация через `/api/v1/platform/...`.
+- Витрина — таблица `companies_gym_profiles` (1:1 с `gyms`), в модуле Companies.
