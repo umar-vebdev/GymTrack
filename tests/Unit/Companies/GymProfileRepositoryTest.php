@@ -73,4 +73,3 @@ final class GymProfileRepositoryTest extends TestCase
         $this->assertSame('Новое', $repo->findByGymId($gymId)?->description());
     }
 }
-

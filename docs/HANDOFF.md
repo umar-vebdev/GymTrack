@@ -9,15 +9,15 @@
 ## Текущее состояние
 
 - Этапы 0–2 завершены. Эпик **E3-A** раскрыт и подтверждён разработчиком (T3-01…T3-07 в `docs/TASKS.md`).
-- **T3-01** (`[x]`): миграция `companies_gym_profiles` (с `latitude`/`longitude` — решение разработчика), enum `ModerationStatus`, сущность `GymProfile` (переходы draft→pending→approved/rejected, `update` сбрасывает в draft), исключение `InvalidGymProfileTransition`, `GymProfileTest`.
-- Тесты: 285 зелёные, `analyse` и `deps` чистые.
 - **T3-00** (`[x]`): проект отформатирован Pint, `composer lint` чистый.
-- **T3-02** (`[x]`): `GymProfileRepositoryInterface` (`findByGymId`, `save` = upsert), `EloquentGymProfileRepository`, `GymProfileModel`, биндинг в `CompaniesServiceProvider`, `GymProfileRepositoryTest`. Тесты: 288 зелёные, lint/analyse/deps чистые.
+- **T3-01** (`[x]`): миграция `companies_gym_profiles` (с `latitude`/`longitude`), enum `ModerationStatus`, сущность `GymProfile` (draft→pending→approved/rejected, `update` сбрасывает в draft), `InvalidGymProfileTransition`.
+- **T3-02** (`[x]`): `GymProfileRepositoryInterface` (`findByGymId`, `save` = upsert), `EloquentGymProfileRepository`, `GymProfileModel`, биндинг в `CompaniesServiceProvider`.
+- **T3-03** (`[x]`): `UpdateGymProfile` + `UpdateGymProfileCommand`, `PUT /api/v1/business/gyms/{gym}/profile` (только владелец, чужой зал → 404, `pending` → 400, координаты только парой), `GymProfileResource`, `GymNotFound`, `UpdateGymProfileTest` (7). Тесты: 295 зелёные, lint/analyse/deps чистые.
 
 ## Точный следующий шаг
 
-1. **T3-03**: Use Case `UpdateGymProfile` (если витрины нет, создать через `GymProfile::draft`) + `PUT /api/v1/business/gyms/{id}/profile`, только владелец, проверка принадлежности зала компании, FormRequest (широта −90..90, долгота −180..180). Feature-тесты, включая изоляцию компаний. Образец: `UpdateCompanyCurrency` + его контроллер/маршрут.
-2. Потом T3-04.
+1. **T3-04**: Use Case `SubmitGymProfileForModeration` (проверка зала компании как в `UpdateGymProfile`, профиль не найден → `GymNotFound`; `profile->submit()`, `save`) + `POST /api/v1/business/gyms/{gym}/profile/submit` (только владелец; использовать `GymProfileResource`). Тесты: успех, неполная витрина → 400, повтор на pending → 400, чужая компания → 404, админ → 403.
+2. Потом T3-05.
 
 ## Окружение: важное про Docker и Git
 

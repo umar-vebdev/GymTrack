@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Companies\Presentation\ListCurrenciesController;
 use App\Modules\Companies\Presentation\RegisterCompanyController;
 use App\Modules\Companies\Presentation\UpdateCompanyCurrencyController;
+use App\Modules\Companies\Presentation\UpdateGymProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api/v1/business')
@@ -13,4 +14,5 @@ Route::prefix('api/v1/business')
         Route::post('/companies', RegisterCompanyController::class);
         Route::get('/currencies', ListCurrenciesController::class);
         Route::patch('/company/currency', UpdateCompanyCurrencyController::class);
+        Route::put('/gyms/{gym}/profile', UpdateGymProfileController::class)->whereNumber('gym');
     });
