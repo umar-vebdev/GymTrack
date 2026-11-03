@@ -60,3 +60,4 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
         );
     }
 }
+

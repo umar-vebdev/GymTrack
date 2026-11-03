@@ -11,3 +11,4 @@ interface GymProfileRepositoryInterface
     /** Создаёт или обновляет витрину зала (company_id берётся из самого зала). */
     public function save(GymProfile $profile): void;
 }
+
