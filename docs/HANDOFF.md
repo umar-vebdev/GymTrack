@@ -11,12 +11,11 @@
 - Этапы 0–2 завершены. Эпик **E3-A** раскрыт и подтверждён разработчиком (T3-01…T3-07 в `docs/TASKS.md`).
 - **T3-01** (`[x]`): миграция `companies_gym_profiles` (с `latitude`/`longitude` — решение разработчика), enum `ModerationStatus`, сущность `GymProfile` (переходы draft→pending→approved/rejected, `update` сбрасывает в draft), исключение `InvalidGymProfileTransition`, `GymProfileTest`.
 - Тесты: 285 зелёные, `analyse` и `deps` чистые.
-- `composer lint` падает на 10 файлах, оставшихся с T2-21…T2-23 (только форматирование) — задача **T3-00**.
+- **T3-00** (`[x]`): проект отформатирован Pint, `composer lint` чистый.
 
 ## Точный следующий шаг
 
-1. Выполнить **T3-00** (Pint-форматирование 10 файлов) отдельным коммитом.
-2. Затем **T3-02**: `GymProfileRepositoryInterface` + `EloquentGymProfileRepository` + `GymProfileModel` (таблица `companies_gym_profiles`, поле `company_id` брать из `gyms`) + биндинг в `CompaniesServiceProvider` + тест.
+1. **T3-02**: `GymProfileRepositoryInterface` + `EloquentGymProfileRepository` + `GymProfileModel` (таблица `companies_gym_profiles`, поле `company_id` брать из `gyms`) + биндинг в `CompaniesServiceProvider` + тест.
 
 ## Окружение: важное про Docker и Git
 

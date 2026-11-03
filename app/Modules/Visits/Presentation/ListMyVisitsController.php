@@ -57,4 +57,3 @@ final class ListMyVisitsController extends Controller
         ]);
     }
 }
-

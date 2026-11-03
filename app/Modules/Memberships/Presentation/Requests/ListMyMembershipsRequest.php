@@ -24,4 +24,3 @@ final class ListMyMembershipsRequest extends FormRequest
         ];
     }
 }
-

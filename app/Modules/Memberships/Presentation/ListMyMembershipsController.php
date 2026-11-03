@@ -53,4 +53,3 @@ final class ListMyMembershipsController extends Controller
         ]);
     }
 }
-

@@ -26,4 +26,3 @@ final class ListMyPurchasesRequest extends FormRequest
         ];
     }
 }
-

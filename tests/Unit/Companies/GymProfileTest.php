@@ -97,4 +97,3 @@ final class GymProfileTest extends TestCase
         $profile->approve(new DateTimeImmutable);
     }
 }
-

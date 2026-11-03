@@ -24,4 +24,3 @@ final class InvalidGymProfileTransition extends DomainException
         return new self('Укажите причину отклонения витрины.');
     }
 }
-

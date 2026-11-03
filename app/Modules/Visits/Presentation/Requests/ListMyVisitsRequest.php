@@ -26,4 +26,3 @@ final class ListMyVisitsRequest extends FormRequest
         ];
     }
 }
-
