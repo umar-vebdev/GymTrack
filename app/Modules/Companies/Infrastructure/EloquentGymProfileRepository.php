@@ -21,21 +21,30 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
             return null;
         }
 
-        return new GymProfile(
-            gymId: $model->gym_id,
-            description: $model->description,
-            address: $model->address,
-            latitude: $model->latitude !== null ? (float) $model->latitude : null,
-            longitude: $model->longitude !== null ? (float) $model->longitude : null,
-            phone: $model->phone,
-            workingHours: $model->working_hours ?? [],
-            amenities: $model->amenities ?? [],
-            status: ModerationStatus::from($model->moderation_status),
-            rejectionReason: $model->rejection_reason,
-            publishedAt: $model->published_at !== null
-                ? DateTimeImmutable::createFromInterface($model->published_at)
-                : null,
-        );
+        return $this->toDomain($model);
+    }
+
+    public function paginateByStatus(ModerationStatus $status, int $page, int $perPage): array
+    {
+        $query = GymProfileModel::query()
+            ->withoutGlobalScopes()
+            ->where('moderation_status', $status->value)
+            ->orderBy('updated_at', 'asc');
+
+        $total = $query->count();
+
+        /** @var list<GymProfile> $items */
+        $items = $query
+            ->forPage($page, $perPage)
+            ->get()
+            ->map(fn (GymProfileModel $model): GymProfile => $this->toDomain($model))
+            ->values()
+            ->all();
+
+        return [
+            'items' => $items,
+            'total' => $total,
+        ];
     }
 
     public function save(GymProfile $profile): void
@@ -57,6 +66,25 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
                 'rejection_reason' => $profile->rejectionReason(),
                 'published_at' => $profile->publishedAt(),
             ],
+        );
+    }
+
+    private function toDomain(GymProfileModel $model): GymProfile
+    {
+        return new GymProfile(
+            gymId: $model->gym_id,
+            description: $model->description,
+            address: $model->address,
+            latitude: $model->latitude !== null ? (float) $model->latitude : null,
+            longitude: $model->longitude !== null ? (float) $model->longitude : null,
+            phone: $model->phone,
+            workingHours: $model->working_hours ?? [],
+            amenities: $model->amenities ?? [],
+            status: ModerationStatus::from($model->moderation_status),
+            rejectionReason: $model->rejection_reason,
+            publishedAt: $model->published_at !== null
+                ? DateTimeImmutable::createFromInterface($model->published_at)
+                : null,
         );
     }
 }

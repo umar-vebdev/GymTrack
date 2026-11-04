@@ -72,4 +72,40 @@ final class GymProfileRepositoryTest extends TestCase
         $this->assertSame(1, DB::table('companies_gym_profiles')->count());
         $this->assertSame('Новое', $repo->findByGymId($gymId)?->description());
     }
+
+    public function test_it_paginates_profiles_by_status(): void
+    {
+        $repo = $this->app->make(GymProfileRepositoryInterface::class);
+
+        $gym1 = $this->createGym();
+        $profile1 = GymProfile::draft($gym1);
+        $profile1->update('G1', 'Address 1', 38.0, 68.0, '+992900000001', [], []);
+        $profile1->submit();
+        $repo->save($profile1);
+
+        $gym2 = $this->createGym();
+        $profile2 = GymProfile::draft($gym2);
+        $profile2->update('G2', 'Address 2', 38.0, 68.0, '+992900000002', [], []);
+        $profile2->submit();
+        $repo->save($profile2);
+
+        $gym3 = $this->createGym();
+        $profile3 = GymProfile::draft($gym3);
+        $repo->save($profile3); // remains draft
+
+        $pendingPage1 = $repo->paginateByStatus(ModerationStatus::PENDING, 1, 1);
+        $this->assertSame(2, $pendingPage1['total']);
+        $this->assertCount(1, $pendingPage1['items']);
+        $this->assertSame($gym1, $pendingPage1['items'][0]->gymId());
+
+        $pendingPage2 = $repo->paginateByStatus(ModerationStatus::PENDING, 2, 1);
+        $this->assertSame(2, $pendingPage2['total']);
+        $this->assertCount(1, $pendingPage2['items']);
+        $this->assertSame($gym2, $pendingPage2['items'][0]->gymId());
+
+        $drafts = $repo->paginateByStatus(ModerationStatus::DRAFT, 1, 10);
+        $this->assertSame(1, $drafts['total']);
+        $this->assertCount(1, $drafts['items']);
+        $this->assertSame($gym3, $drafts['items'][0]->gymId());
+    }
 }

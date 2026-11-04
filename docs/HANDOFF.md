@@ -15,11 +15,12 @@
 - **T3-03** (`[x]`): `UpdateGymProfile` + `UpdateGymProfileCommand`, `PUT /api/v1/business/gyms/{gym}/profile` (только владелец, чужой зал → 404, `pending` → 400, координаты только парой), `GymProfileResource`, `GymNotFound`, `UpdateGymProfileTest` (7). Тесты: 295 зелёные, lint/analyse/deps чистые.
 - **T3-04** (`[x]`): `SubmitGymProfileForModeration`, `POST /api/v1/business/gyms/{gym}/profile/submit` (только владелец, чужой зал → 404, неполная/повтор → 400), `SubmitGymProfileTest` (6). Тесты: 301 зелёные, lint/analyse/deps чистые.
 - **T3-05a** (`[x]`): Use Case `ModerateGymProfile`, аудируемые события `GymProfileApproved` / `GymProfileRejected` в `Companies/Contracts`, `POST /api/v1/platform/gyms/{gym}/moderate` (`is_platform_admin`, approve/reject, reason при reject), `ModerateGymProfileTest` (8). Тесты: 309 зелёные, lint/analyse/deps чистые.
+- **T3-05b** (`[x]`): Очередь витрин для платформы: `GymProfileRepositoryInterface::paginateByStatus`, `EloquentGymProfileRepository::paginateByStatus`, Use Case `ListGymProfilesForModeration`, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending` (проверка `is_platform_admin`, фильтрация по статусу, пагинация), `ListGymProfilesTest` (6), `GymProfileRepositoryTest` (+1). Тесты: 316 зелёные, lint/analyse/deps чистые.
 
 ## Точный следующий шаг
 
-1. **T3-05b**: Очередь витрин для платформы: метод `findByStatus` с пагинацией в `GymProfileRepositoryInterface` + `EloquentGymProfileRepository`, Use Case / Query `ListGymProfilesForModeration`, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending` (доступен только админу платформы).
-2. Потом T3-06 (фото зала).
+1. **T3-06**: Фото зала: таблица `companies_gym_photos` (`id`, `company_id`, `gym_id`, `path`, `order`, `created_at`), сущность `GymPhoto`, репозиторий, загрузка файла (диск `public`, валидация mime: jpeg, png, webp; макс. размер 5 МБ; лимит до 10 фото на зал), удаление фото владельцем зала, эндпоинты `POST /api/v1/business/gyms/{gym}/photos` и `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`. Правка фото одобренной витрины переводит статус витрины в `draft`.
+2. Потом T3-07 (аудит событий модерации).
 
 ## Окружение: важное про Docker и Git
 

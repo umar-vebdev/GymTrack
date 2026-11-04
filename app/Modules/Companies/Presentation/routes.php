@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Companies\Presentation\ListCurrenciesController;
+use App\Modules\Companies\Presentation\ListGymProfilesController;
 use App\Modules\Companies\Presentation\ModerateGymProfileController;
 use App\Modules\Companies\Presentation\RegisterCompanyController;
 use App\Modules\Companies\Presentation\SubmitGymProfileController;
@@ -23,5 +24,6 @@ Route::prefix('api/v1/business')
 Route::prefix('api/v1/platform')
     ->middleware('auth:sanctum')
     ->group(function () {
+        Route::get('/gym-profiles', ListGymProfilesController::class);
         Route::post('/gyms/{gym}/moderate', ModerateGymProfileController::class)->whereNumber('gym');
     });
