@@ -22,3 +22,4 @@ final class ListGymProfilesForModeration
         return $this->profiles->paginateByStatus($status, $page, $perPage);
     }
 }
+

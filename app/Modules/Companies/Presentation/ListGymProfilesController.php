@@ -56,3 +56,4 @@ final class ListGymProfilesController extends Controller
         ]);
     }
 }
+
