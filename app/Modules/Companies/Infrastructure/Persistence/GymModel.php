@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Companies\Infrastructure\Persistence;
 
 use App\Shared\Infrastructure\Eloquent\BelongsToCompany;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
+ * @property string $public_id
  * @property int $company_id
  * @property string $name
  * @property string|null $address
@@ -17,6 +19,13 @@ use Illuminate\Database\Eloquent\Model;
 final class GymModel extends Model
 {
     use BelongsToCompany;
+    use HasUlids;
+
+    /** @return list<string> */
+    public function uniqueIds(): array
+    {
+        return ['public_id'];
+    }
 
     protected $table = 'gyms';
 
