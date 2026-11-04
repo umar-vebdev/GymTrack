@@ -60,10 +60,11 @@
 - [x] **T3-05a** Use Case `ModerateGymProfile`, события `GymProfileApproved`/`GymProfileRejected` в `Companies/Contracts`, эндпоинт `POST /api/v1/platform/gyms/{gym}/moderate` (`decision: approve|reject`, `reason` при reject, проверка `is_platform_admin`).
 - [x] **T3-05b** Очередь витрин для платформы: метод в `GymProfileRepositoryInterface` для выборки по статусу с пагинацией, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending`.
 - [x] **T3-06a** Хранение фото: `companies_gym_photos`, неизменяемый `GymPhoto`, репозиторий и модель с `CompanyScope`; явная фильтрация по компании и залу, стабильный порядок (`order`, `id`), создание только для зала указанной компании. Четыре теста; lint/analyse/deps чистые, 320 тестов зелёные.
-- [ ] **T3-06b — Загрузка фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2, 8](specs/GymTrack_Technical_TZ.md).
-  - Файлы: сценарий загрузки в `Companies/Application`, запрос, контроллер и представление фотографии в `Companies/Presentation`, маршруты, тест загрузки; при превышении лимита размера задачи выделить подзадачу.
-  - Шаги: 1. Добавить `POST /api/v1/business/gyms/{gym}/photos`, доступ только владельцу своего зала. 2. Хранить на диске `public`, разрешить jpeg/png/webp до 5 МБ, максимум 10 фото с защитой от параллельных загрузок. 3. Изменение одобренной витрины переводит её в draft; проверить очистку файлов при ошибках.
-  - Готовность: тест загрузки проходит, включая права, чужой зал, ограничения и сброс модерации; lint/analyse/test/deps проходят.
+- [x] **T3-06b1** Сценарий загрузки на public: блокировка строки зала, лимит 10 фото, порядок после последнего, единое правило сброса модерации в draft; pending запрещён; сбой БД откатывает запись и удаляет новый файл. 7 тестов сценария, полный набор 327; lint/analyse/deps зелёные.
+- [ ] **T3-06b2 — HTTP-загрузка фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2, 8](specs/GymTrack_Technical_TZ.md).
+  - Файлы: запрос, контроллер, Policy в `Companies/Presentation`, `Presentation/routes.php`, тест эндпоинта.
+  - Шаги: 1. Добавить `POST /api/v1/business/gyms/{gym}/photos`, доступ только владельцу своего зала через Policy (класс проверки прав). 2. Проверить файл: jpeg/png/webp до 5 МБ. 3. Вернуть 201 и данные фотографии; проверить права, ограничения и состояние витрины.
+  - Готовность: `docker compose exec -T app php artisan test --filter=UploadGymPhotoEndpointTest` — зелёный; lint/analyse/test/deps проходят.
 - [ ] **T3-06c — Удаление фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1, 8](specs/GymTrack_Technical_TZ.md).
   - Файлы: сценарий удаления, контроллер/запрос, маршруты, тест удаления.
   - Шаги: 1. Добавить `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`. 2. Проверить владельца, компанию и принадлежность фото залу. 3. Удалить файл и запись, вернуть одобренную витрину в draft.

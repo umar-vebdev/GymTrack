@@ -8,5 +8,7 @@ interface GymRepositoryInterface
 {
     public function findById(int $id): ?Gym;
 
+    public function findByIdForUpdate(int $id): ?Gym;
+
     public function create(int $companyId, string $name, ?string $address): int;
 }

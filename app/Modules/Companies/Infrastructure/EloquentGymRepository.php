@@ -32,4 +32,11 @@ final class EloquentGymRepository implements GymRepositoryInterface
 
         return $model->id;
     }
+
+    public function findByIdForUpdate(int $id): ?Gym
+    {
+        $model = GymModel::query()->lockForUpdate()->find($id);
+
+        return $model ? new Gym($model->id, $model->company_id, $model->name, $model->address) : null;
+    }
 }

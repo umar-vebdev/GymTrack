@@ -47,9 +47,7 @@ final class GymProfile
         array $workingHours,
         array $amenities,
     ): void {
-        if ($this->status === ModerationStatus::PENDING) {
-            throw InvalidGymProfileTransition::from($this->status, 'update');
-        }
+        $this->markContentChanged();
 
         $this->description = $description;
         $this->address = $address;
@@ -58,6 +56,14 @@ final class GymProfile
         $this->phone = $phone;
         $this->workingHours = $workingHours;
         $this->amenities = $amenities;
+    }
+
+    public function markContentChanged(): void
+    {
+        if ($this->status === ModerationStatus::PENDING) {
+            throw InvalidGymProfileTransition::from($this->status, 'update');
+        }
+
         $this->status = ModerationStatus::DRAFT;
         $this->rejectionReason = null;
         $this->publishedAt = null;
