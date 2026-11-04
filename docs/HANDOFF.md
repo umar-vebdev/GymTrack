@@ -17,16 +17,23 @@
 - **T3-05a** (`[x]`): Use Case `ModerateGymProfile`, аудируемые события `GymProfileApproved` / `GymProfileRejected` в `Companies/Contracts`, `POST /api/v1/platform/gyms/{gym}/moderate` (`is_platform_admin`, approve/reject, reason при reject), `ModerateGymProfileTest` (8). Тесты: 309 зелёные, lint/analyse/deps чистые.
 - **T3-05b** (`[x]`): Очередь витрин для платформы: `GymProfileRepositoryInterface::paginateByStatus`, `EloquentGymProfileRepository::paginateByStatus`, Use Case `ListGymProfilesForModeration`, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending` (проверка `is_platform_admin`, фильтрация по статусу, пагинация), `ListGymProfilesTest` (6), `GymProfileRepositoryTest` (+1). Тесты: 316 зелёные, lint/analyse/deps чистые.
 
-## Точный следующий шаг
+## Последняя сессия
 
-0. **T3-00b [x]**: исправлены лишние пустые строки в четырёх файлах очереди модерации после 31b6283. lint/analyse/test/deps зелёные.
-1. **Текущая задача T3-06a [~]**: хранение фото (`companies_gym_photos`, объект, репозиторий), тесты порядка и изоляции компаний. T3-06 разделена из-за размера на T3-06a/b/c.
-2. Затем T3-06b (загрузка) и T3-06c (удаление): диск `public`, jpeg/png/webp до 5 МБ, до 10 фото; только владелец своего зала. Правка фото одобренной витрины переводит её в `draft`.
-3. Потом T3-07 (аудит событий модерации).
+- **T3-00b [x]**: после сверки обнаружено, что 31b6283 нарушил Pint в четырёх файлах очереди модерации. Исправлено отдельным коммитом.
+- **T3-06a [x]**: добавлены таблица `companies_gym_photos`, неизменяемый `GymPhoto`, `GymPhotoRepositoryInterface`, Eloquent-реализация, модель с `CompanyScope`, привязка в провайдере.
+- Хранение: создание проверяет компанию зала; чтение/удаление фильтруются по `company_id` и `gym_id`; порядок — `order`, затем `id`. Репозиторий удаляет только запись: файлом управляет будущий сценарий удаления.
+- Добавлено 4 теста хранения, порядка, изоляции компаний и ограничения текущей компании. Полный набор: **320 тестов, 1353 проверки**; lint/analyse/deps проходят.
+- T3-06 разбита на T3-06a/b/c по правилу размера задачи. Новых зависимостей нет.
+
+## Текущая задача и точный следующий шаг
+
+1. **T3-06b [ ]**: реализовать загрузку `POST /api/v1/business/gyms/{gym}/photos`, только владелец своего зала; диск `public`, jpeg/png/webp до 5 МБ, максимум 10 фото с защитой от параллельных загрузок.
+2. Правка фото одобренной витрины возвращает её в `draft`; учесть существующий запрет правки витрины в `pending`. До реализации перечитать бизнес-ТЗ 4.2, 7 и тех-ТЗ 7–8; проверить согласованность переходов с `GymProfile::update`.
+3. Далее T3-06c: удаление фото и файла владельцем своего зала, затем T3-07 — аудит событий модерации.
 
 ## Окружение: важное про Docker и Git
 
-- Из песочницы агента сокет Docker не виден и `.git` открыт только на чтение: `docker compose ...` и `git commit` запускать с `BypassSandbox: true`.
+- Из песочницы сокет Docker недоступен, `.git` доступен только для чтения: Docker и запись git требуют `sandbox_permissions=require_escalated`. PHPStan вне песочницы нужен локальный сокет рабочих процессов; использовать тот же режим.
 
 ## Команды
 
@@ -34,7 +41,7 @@
 |---|---|
 | Запуск окружения | `docker compose up -d` |
 | Стиль / анализ / границы | `composer lint` / `composer analyse` / `composer deps` |
-| Тесты | `docker compose exec -T app php artisan test --compact` |
+| Тесты | `docker compose exec -T app composer test -- --compact --colors=never` |
 
 ## Важные факты
 
@@ -42,3 +49,8 @@
 - У одного аккаунта (`users.id`) может быть несколько карточек клиента в разных залах.
 - Каталог публичный (`/api/v1/public/...`), модерация через `/api/v1/platform/...`.
 - Витрина — таблица `companies_gym_profiles` (1:1 с `gyms`), в модуле Companies.
+
+## Известные особенности окружения
+
+- Composer в контейнере печатает предупреждение Git о владельце `/var/www`; проверки завершаются успешно. Глобальную конфигурацию Git не меняли.
+- `rg` отсутствует: для поиска использовались `find` и стандартные команды.

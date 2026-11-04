@@ -9,12 +9,14 @@ use App\Modules\Companies\Contracts\GymQrLookupInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\CurrencyRepositoryInterface;
+use App\Modules\Companies\Domain\GymPhotoRepositoryInterface;
 use App\Modules\Companies\Domain\GymProfileRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Companies\Infrastructure\EloquentCompanyCurrencyLookup;
 use App\Modules\Companies\Infrastructure\EloquentCompanyRepository;
 use App\Modules\Companies\Infrastructure\EloquentCurrencyRepository;
+use App\Modules\Companies\Infrastructure\EloquentGymPhotoRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymProfileRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymQrLookup;
 use App\Modules\Companies\Infrastructure\EloquentGymRepository;
@@ -26,6 +28,8 @@ final class CompaniesServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(GymPhotoRepositoryInterface::class, EloquentGymPhotoRepository::class);
+
         $this->app->bind(
             CompanyRepositoryInterface::class,
             EloquentCompanyRepository::class
