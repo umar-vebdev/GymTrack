@@ -1,0 +1,73 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — загрузка фотографий зала
+  version: 1.0.0
+paths:
+  /api/v1/business/gyms/{gym}/photos:
+    post:
+      summary: Загрузить фотографию своего зала (только владелец)
+      description: |
+        Не более 10 фотографий зала. Форматы jpeg, png, webp; размер до 5 МБ.
+        Загрузка возвращает витрину в draft. Для pending загрузка запрещена.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Фотография сохранена
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [id, gym_id, url, order, created_at]
+                    properties:
+                      id:
+                        type: integer
+                      gym_id:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+                      order:
+                        type: integer
+                        minimum: 0
+                      created_at:
+                        type: string
+                        format: date-time
+        '400':
+          description: BAD_REQUEST — лимит фото или витрина в pending
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец компании
+        '404':
+          description: NOT_FOUND — зал отсутствует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — отсутствует файл, неверный формат или размер
+        '500':
+          description: INTERNAL_ERROR — сохранение не выполнено
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

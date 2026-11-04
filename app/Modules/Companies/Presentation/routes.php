@@ -9,6 +9,7 @@ use App\Modules\Companies\Presentation\RegisterCompanyController;
 use App\Modules\Companies\Presentation\SubmitGymProfileController;
 use App\Modules\Companies\Presentation\UpdateCompanyCurrencyController;
 use App\Modules\Companies\Presentation\UpdateGymProfileController;
+use App\Modules\Companies\Presentation\UploadGymPhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api/v1/business')
@@ -19,6 +20,7 @@ Route::prefix('api/v1/business')
         Route::patch('/company/currency', UpdateCompanyCurrencyController::class);
         Route::put('/gyms/{gym}/profile', UpdateGymProfileController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/profile/submit', SubmitGymProfileController::class)->whereNumber('gym');
+        Route::post('/gyms/{gym}/photos', UploadGymPhotoController::class)->whereNumber('gym');
     });
 
 Route::prefix('api/v1/platform')

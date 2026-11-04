@@ -61,10 +61,7 @@
 - [x] **T3-05b** Очередь витрин для платформы: метод в `GymProfileRepositoryInterface` для выборки по статусу с пагинацией, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending`.
 - [x] **T3-06a** Хранение фото: `companies_gym_photos`, неизменяемый `GymPhoto`, репозиторий и модель с `CompanyScope`; явная фильтрация по компании и залу, стабильный порядок (`order`, `id`), создание только для зала указанной компании. Четыре теста; lint/analyse/deps чистые, 320 тестов зелёные.
 - [x] **T3-06b1** Сценарий загрузки на public: блокировка строки зала, лимит 10 фото, порядок после последнего, единое правило сброса модерации в draft; pending запрещён; сбой БД откатывает запись и удаляет новый файл. 7 тестов сценария, полный набор 327; lint/analyse/deps зелёные.
-- [ ] **T3-06b2 — HTTP-загрузка фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2, 8](specs/GymTrack_Technical_TZ.md).
-  - Файлы: запрос, контроллер, Policy в `Companies/Presentation`, `Presentation/routes.php`, тест эндпоинта.
-  - Шаги: 1. Добавить `POST /api/v1/business/gyms/{gym}/photos`, доступ только владельцу своего зала через Policy (класс проверки прав). 2. Проверить файл: jpeg/png/webp до 5 МБ. 3. Вернуть 201 и данные фотографии; проверить права, ограничения и состояние витрины.
-  - Готовность: `docker compose exec -T app php artisan test --filter=UploadGymPhotoEndpointTest` — зелёный; lint/analyse/test/deps проходят.
+- [x] **T3-06b2** `POST /api/v1/business/gyms/{gym}/photos`: Policy проверяет владельца и компанию зала; FormRequest принимает jpeg/png/webp до 5 МБ; ответ 201 с id/gym_id/url/order/created_at. Чужой зал → 404, без прав → 403, лимит/pending → 400. OpenAPI: `docs/api/gym-photos.yaml`. 10 HTTP-тестов; полный набор 337 тестов, lint/analyse/deps зелёные.
 - [ ] **T3-06c — Удаление фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1, 8](specs/GymTrack_Technical_TZ.md).
   - Файлы: сценарий удаления, контроллер/запрос, маршруты, тест удаления.
   - Шаги: 1. Добавить `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`. 2. Проверить владельца, компанию и принадлежность фото залу. 3. Удалить файл и запись, вернуть одобренную витрину в draft.
