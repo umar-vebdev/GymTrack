@@ -165,4 +165,3 @@ final class ListGymProfilesTest extends TestCase
             ->assertJsonPath('error.code', 'VALIDATION_FAILED');
     }
 }
-

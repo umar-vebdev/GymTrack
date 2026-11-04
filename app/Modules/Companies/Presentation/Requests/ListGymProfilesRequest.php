@@ -27,4 +27,3 @@ final class ListGymProfilesRequest extends FormRequest
         ];
     }
 }
-

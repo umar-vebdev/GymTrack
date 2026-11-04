@@ -51,6 +51,7 @@
 
 ### E3-A — задачи (модуль Companies)
 
+- [x] **T3-00b** Восстановлен стиль четырёх файлов очереди модерации после 31b6283; lint/analyse/test/deps зелёные.
 - [x] **T3-01** (заметка: сущность содержит проверку полноты `isComplete()` для `submit`; `composer lint` падает на 10 чужих файлах — см. T3-00) Миграция `companies_gym_profiles` (`gym_id` unique, `description`, `address`, `latitude`, `longitude` nullable, `phone`, `working_hours` JSON, `amenities` JSON, `moderation_status`, `rejection_reason`, `published_at`), enum `ModerationStatus`, сущность `GymProfile` с переходами статусов (`update`→draft, `submit` с проверкой полноты, `approve`, `reject`), unit-тест. Проверка: `php artisan test --filter=GymProfileTest`.
 - [x] **T3-00** Привести к стилю Pint 10 файлов, оставшихся после T2-21…T2-23 (`braces_position`, `single_line_empty_body`, `single_blank_line_at_eof`): `composer lint` должен проходить. Только форматирование.
 - [x] **T3-02** (заметка: `save()` — upsert, `company_id` берётся из `gyms` без `CompanyScope`, чтобы админ платформы мог сохранять чужие витрины в T3-05) `GymProfileRepositoryInterface` + Eloquent-реализация + тест.
@@ -58,8 +59,22 @@
 - [x] **T3-04** (заметка: профиль без записи в БД трактуется как пустой draft → «заполните данные» 400) `SubmitGymProfileForModeration` + эндпоинт отправки (статус pending).
 - [x] **T3-05a** Use Case `ModerateGymProfile`, события `GymProfileApproved`/`GymProfileRejected` в `Companies/Contracts`, эндпоинт `POST /api/v1/platform/gyms/{gym}/moderate` (`decision: approve|reject`, `reason` при reject, проверка `is_platform_admin`).
 - [x] **T3-05b** Очередь витрин для платформы: метод в `GymProfileRepositoryInterface` для выборки по статусу с пагинацией, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending`.
-- [ ] **T3-06** Фото зала: `companies_gym_photos`, загрузка/удаление (диск `public`, лимиты).
-- [ ] **T3-07** Аудит событий модерации (слушатели в `Audit`).
+- [~] **T3-06a — Хранение фотографий зала.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 3.3, 6.1, 8](specs/GymTrack_Technical_TZ.md).
+  - Файлы: `Companies/Domain/GymPhoto.php`, `GymPhotoRepositoryInterface.php`, `Infrastructure/Persistence/GymPhotoModel.php`, `Infrastructure/EloquentGymPhotoRepository.php`, `CompaniesServiceProvider.php`, миграция и `tests/Unit/Companies/GymPhotoRepositoryTest.php`.
+  - Шаги: 1. Создать `companies_gym_photos` (`id`, `company_id`, `gym_id`, `path`, `order`, `created_at`). 2. Добавить объект фотографии и операции создания, списка и удаления с фильтрацией по компании и залу. 3. Проверить порядок и изоляцию компаний.
+  - Готовность: `docker compose exec -T app php artisan test --filter=GymPhotoRepositoryTest` — все тесты зелёные; lint/analyse/test/deps проходят.
+- [ ] **T3-06b — Загрузка фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2, 8](specs/GymTrack_Technical_TZ.md).
+  - Файлы: сценарий загрузки в `Companies/Application`, запрос, контроллер и представление фотографии в `Companies/Presentation`, маршруты, тест загрузки; при превышении лимита размера задачи выделить подзадачу.
+  - Шаги: 1. Добавить `POST /api/v1/business/gyms/{gym}/photos`, доступ только владельцу своего зала. 2. Хранить на диске `public`, разрешить jpeg/png/webp до 5 МБ, максимум 10 фото с защитой от параллельных загрузок. 3. Изменение одобренной витрины переводит её в draft; проверить очистку файлов при ошибках.
+  - Готовность: тест загрузки проходит, включая права, чужой зал, ограничения и сброс модерации; lint/analyse/test/deps проходят.
+- [ ] **T3-06c — Удаление фотографии владельцем.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1, 8](specs/GymTrack_Technical_TZ.md).
+  - Файлы: сценарий удаления, контроллер/запрос, маршруты, тест удаления.
+  - Шаги: 1. Добавить `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`. 2. Проверить владельца, компанию и принадлежность фото залу. 3. Удалить файл и запись, вернуть одобренную витрину в draft.
+  - Готовность: тест удаления проходит, чужие фото и файлы сохранены; lint/analyse/test/deps проходят.
+- [ ] **T3-07 — Аудит событий модерации.** ТЗ: [Техническое 3.5, 8](specs/GymTrack_Technical_TZ.md).
+  - Файлы: слушатели в `Audit/Application`, `AuditServiceProvider.php`, тест слушателей.
+  - Шаги: 1. Подписать Audit на `GymProfileApproved` / `GymProfileRejected`. 2. Записать автора, компанию, зал и причину отклонения. 3. Проверить обе записи в журнале.
+  - Готовность: тест слушателей проходит; lint/analyse/test/deps проходят.
 
 ### Эпики этапа 3 (предложение для подтверждения разработчиком)
 - **E3-A Модерация залов и публичные витрины (Companies & Platform)**: витрина зала (`gym_profiles` / статус модерации: `draft`, `pending`, `approved`, `rejected`), подача заявки владельцем, одобрение/отклонение админом платформы (`/api/v1/platform/gyms/{id}/moderate`), загрузка/управление фото зала.
