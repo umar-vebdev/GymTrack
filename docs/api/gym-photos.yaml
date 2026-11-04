@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: GymTrack — загрузка фотографий зала
+  title: GymTrack — фотографии зала
   version: 1.0.0
 paths:
   /api/v1/business/gyms/{gym}/photos:
@@ -66,6 +66,39 @@ paths:
           description: VALIDATION_FAILED — отсутствует файл, неверный формат или размер
         '500':
           description: INTERNAL_ERROR — сохранение не выполнено
+  /api/v1/business/gyms/{gym}/photos/{photo}:
+    delete:
+      summary: Удалить фотографию своего зала (только владелец)
+      description: Удаляет файл и запись, возвращает витрину в draft. Для pending запрещено.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: photo
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Фотография удалена
+          content:
+            application/json:
+              example: {data: null}
+        '400':
+          description: BAD_REQUEST — витрина в pending
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец компании
+        '404':
+          description: NOT_FOUND — зал или его фотография не найдены
+        '500':
+          description: INTERNAL_ERROR — удаление не выполнено
 components:
   securitySchemes:
     bearerAuth:

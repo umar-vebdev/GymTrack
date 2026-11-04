@@ -19,7 +19,7 @@ final class GymPhotoPolicy
     public function upload(User $user, int $companyId, int $gymId): Response
     {
         if (!$this->staff->isOwner($user->id, $companyId)) {
-            return Response::deny('Загружать фотографии может только владелец компании.');
+            return Response::deny('Управлять фотографиями может только владелец компании.');
         }
 
         $gym = $this->gyms->findById($gymId);
@@ -28,5 +28,10 @@ final class GymPhotoPolicy
         }
 
         return Response::allow();
+    }
+
+    public function delete(User $user, int $companyId, int $gymId): Response
+    {
+        return $this->upload($user, $companyId, $gymId);
     }
 }

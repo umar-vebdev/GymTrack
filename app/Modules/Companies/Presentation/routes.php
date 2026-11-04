@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Companies\Presentation\DeleteGymPhotoController;
 use App\Modules\Companies\Presentation\ListCurrenciesController;
 use App\Modules\Companies\Presentation\ListGymProfilesController;
 use App\Modules\Companies\Presentation\ModerateGymProfileController;
@@ -21,6 +22,7 @@ Route::prefix('api/v1/business')
         Route::put('/gyms/{gym}/profile', UpdateGymProfileController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/profile/submit', SubmitGymProfileController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/photos', UploadGymPhotoController::class)->whereNumber('gym');
+        Route::delete('/gyms/{gym}/photos/{photo}', DeleteGymPhotoController::class)->whereNumber(['gym', 'photo']);
     });
 
 Route::prefix('api/v1/platform')
