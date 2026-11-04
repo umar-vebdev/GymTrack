@@ -97,4 +97,3 @@ final class SubmitGymProfileTest extends TestCase
         $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $foreignGymId, 'moderation_status' => 'draft']);
     }
 }
-

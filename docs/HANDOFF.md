@@ -2,7 +2,7 @@
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 
-**Обновлено:** 2026-11-03
+**Обновлено:** 2026-11-04
 **Этап:** 3 — Каталог (витрины залов, модерация, публичный каталог, карта)
 **Ветка:** main
 
@@ -14,11 +14,12 @@
 - **T3-02** (`[x]`): `GymProfileRepositoryInterface` (`findByGymId`, `save` = upsert), `EloquentGymProfileRepository`, `GymProfileModel`, биндинг в `CompaniesServiceProvider`.
 - **T3-03** (`[x]`): `UpdateGymProfile` + `UpdateGymProfileCommand`, `PUT /api/v1/business/gyms/{gym}/profile` (только владелец, чужой зал → 404, `pending` → 400, координаты только парой), `GymProfileResource`, `GymNotFound`, `UpdateGymProfileTest` (7). Тесты: 295 зелёные, lint/analyse/deps чистые.
 - **T3-04** (`[x]`): `SubmitGymProfileForModeration`, `POST /api/v1/business/gyms/{gym}/profile/submit` (только владелец, чужой зал → 404, неполная/повтор → 400), `SubmitGymProfileTest` (6). Тесты: 301 зелёные, lint/analyse/deps чистые.
+- **T3-05a** (`[x]`): Use Case `ModerateGymProfile`, аудируемые события `GymProfileApproved` / `GymProfileRejected` в `Companies/Contracts`, `POST /api/v1/platform/gyms/{gym}/moderate` (`is_platform_admin`, approve/reject, reason при reject), `ModerateGymProfileTest` (8). Тесты: 309 зелёные, lint/analyse/deps чистые.
 
 ## Точный следующий шаг
 
-1. **T3-05**: Use Case `ModerateGymProfile` (одобрить/отклонить с причиной; `Clock` для `approve`) + `POST /api/v1/platform/gyms/{gym}/moderate` (`decision: approve|reject`, `reason` обязателен при reject) + `GET /api/v1/platform/gym-profiles?status=pending` (очередь с пагинацией). События `GymProfileApproved`/`GymProfileRejected` в `Companies/Contracts`. Админ платформы: посмотреть, как сделан `POST /platform/companies/{id}/subscription/activate` в Billing (проверка платформенной роли) и повторить. Нужен метод репозитория для списка по статусу.
-2. Потом T3-06.
+1. **T3-05b**: Очередь витрин для платформы: метод `findByStatus` с пагинацией в `GymProfileRepositoryInterface` + `EloquentGymProfileRepository`, Use Case / Query `ListGymProfilesForModeration`, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending` (доступен только админу платформы).
+2. Потом T3-06 (фото зала).
 
 ## Окружение: важное про Docker и Git
 

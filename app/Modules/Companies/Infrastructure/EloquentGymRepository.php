@@ -12,7 +12,7 @@ final class EloquentGymRepository implements GymRepositoryInterface
 {
     public function findById(int $id): ?Gym
     {
-        $model = GymModel::find($id);
+        $model = GymModel::query()->withoutGlobalScopes()->find($id);
 
         return $model ? new Gym(
             id: $model->id,

@@ -15,7 +15,7 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
 {
     public function findByGymId(int $gymId): ?GymProfile
     {
-        $model = GymProfileModel::query()->where('gym_id', $gymId)->first();
+        $model = GymProfileModel::query()->withoutGlobalScopes()->where('gym_id', $gymId)->first();
 
         if ($model === null) {
             return null;

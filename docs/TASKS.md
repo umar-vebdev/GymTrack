@@ -56,7 +56,8 @@
 - [x] **T3-02** (заметка: `save()` — upsert, `company_id` берётся из `gyms` без `CompanyScope`, чтобы админ платформы мог сохранять чужие витрины в T3-05) `GymProfileRepositoryInterface` + Eloquent-реализация + тест.
 - [x] **T3-03** (заметка: зал чужой компании → 404 `NOT_FOUND` через `GymNotFound`; широта и долгота — только вместе; `PUT` на `pending` → 400) `UpdateGymProfile` + `PUT /business/gyms/{id}/profile` (только владелец; правка одобренной витрины → draft).
 - [x] **T3-04** (заметка: профиль без записи в БД трактуется как пустой draft → «заполните данные» 400) `SubmitGymProfileForModeration` + эндпоинт отправки (статус pending).
-- [ ] **T3-05** `ModerateGymProfile` + `POST /platform/gyms/{id}/moderate` + `GET /platform/gym-profiles?status=pending`; события `GymProfileApproved`/`GymProfileRejected`.
+- [x] **T3-05a** Use Case `ModerateGymProfile`, события `GymProfileApproved`/`GymProfileRejected` в `Companies/Contracts`, эндпоинт `POST /api/v1/platform/gyms/{gym}/moderate` (`decision: approve|reject`, `reason` при reject, проверка `is_platform_admin`).
+- [ ] **T3-05b** Очередь витрин для платформы: метод в `GymProfileRepositoryInterface` для выборки по статусу с пагинацией, эндпоинт `GET /api/v1/platform/gym-profiles?status=pending`.
 - [ ] **T3-06** Фото зала: `companies_gym_photos`, загрузка/удаление (диск `public`, лимиты).
 - [ ] **T3-07** Аудит событий модерации (слушатели в `Audit`).
 
