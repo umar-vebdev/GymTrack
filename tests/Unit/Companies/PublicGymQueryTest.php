@@ -269,4 +269,3 @@ final class PublicGymQueryTest extends TestCase
         $this->assertLessThanOrEqual(3, $queriesExecuted);
     }
 }
-

@@ -55,4 +55,3 @@ final class PublicGymFilter
         $this->perPage = min(100, max(1, $perPage));
     }
 }
-

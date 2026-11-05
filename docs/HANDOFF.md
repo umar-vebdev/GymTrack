@@ -20,16 +20,17 @@
 ## Последняя сессия
 
 - **T3-09d [x]**: сценарии `UpdateGymProfile`, `SubmitGymProfileForModeration` и `ModerateGymProfile` переведены на выполнение в `DB::transaction` с блокировкой строки зала через `findByIdForUpdate` до чтения витрины (`findByGymId`), события аудита модерации отправляются после фиксации транзакции.
-- **T3-10 [x]**: в `Companies/Contracts` добавлены `PublicGymQueryInterface`, `PublicGymProfile` и `PublicGymFilter`, реализован `EloquentPublicGymQuery` и зарегистрирован в `CompaniesServiceProvider`.
-- Контракт возвращает только витрины со статусом `approved` и `is_public = true` независимо от `CompanyScope`, поддерживает карточку по `public_id` (ULID) и поиск с фильтрами `query` (подстрока названия без регистра, спецсимволы `%`, `_`, `\` экранируются), `district` (точное совпадение без регистра с `trim`, `null`/пустой не совпадает), `amenities` (все указанные удобства присутствуют), `companyIds` (при `[]` возвращает пустой результат без запросов к БД), пагинацию по `gyms.public_id ASC` (по умолчанию 20, максимум 100) и пакетную подгрузку URL фотографий в порядке `(order, id)` без N+1 (не более 3 запросов на страницу) и без приватных полей (`qr_secret`, `rejection_reason`).
-- Добавлено 6 тестов в `PublicGymQueryTest`. **401 тест, 1887 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T3-10 [x]**: в `Companies/Contracts` добавлены `PublicGymQueryInterface`, `PublicGymProfile` и `PublicGymFilter`, реализован `EloquentPublicGymQuery` и зарегистрирован в `CompaniesServiceProvider` (чтение только `approved` + `is_public = true` без `CompanyScope`, карточка по ULID, поиск по подстроке названия с экранированием `%`/`_`/`\`, фильтры района, всех удобств и `companyIds`, пагинация по `gyms.public_id ASC` и пакетная загрузка фото без N+1).
+- **T3-11 [x]**: в `Memberships/Contracts` добавлены `MembershipCatalogQueryInterface` и `PublicMembershipType` (только публичный `public_id` ULID, название, цена в минимальных единицах, валюта и действующие правила без внутренних `id`/`company_id`), реализован `EloquentMembershipCatalogQuery` и зарегистрирован в `MembershipsServiceProvider`.
+- Контракт `MembershipCatalogQueryInterface` возвращает активные типы абонементов компании по `public_id ASC` и выбирает уникальные `company_id`, у которых есть хотя бы один активный тип указанной валюты во включительном диапазоне `[price_min, price_max]` без смешивания валют и без `CompanyScope`. Добавлены 3 теста в `MembershipCatalogQueryTest`.
+- **404 теста, 1922 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. **T3-11 [ ] — Контракт актуальных абонементов Memberships.** Перечитать Бизнес-ТЗ 4.3, 7, Техническое ТЗ 3.5, 3.7, 6.1 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
-2. Создать `Memberships/Contracts/MembershipCatalogQueryInterface.php`, DTO `PublicMembershipType.php`, реализацию в `Memberships/Infrastructure`, зарегистрировать биндинг в `MembershipsServiceProvider.php`.
-3. Поддержать два метода: список активных типов абонементов компании (публичный ID `public_id`, название, цена в минимальных единицах, валюта, тип и действующие правила) и выборку `company_id`, у которых есть хотя бы один активный тип абонемента нужной валюты в указанном включительном диапазоне цен (`price_min`/`price_max`).
-4. Написать `MembershipCatalogQueryTest` (проверить деактивацию, смену цены, границы диапазона, разные валюты и игнорирование `CompanyScope`), прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
+1. **T3-12 [ ] — Модуль Catalog и поиск залов.** Перечитать Бизнес-ТЗ 7, Техническое ТЗ 3.3–3.7, 14 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
+2. Подключить `CatalogServiceProvider` в `bootstrap/providers.php`, создать `Catalog/Application/SearchGyms.php`, `SearchGymsQuery.php` и заготовку `Catalog/Presentation/routes.php`.
+3. В `SearchGyms` при наличии фильтра по цене/валюте получать подходящие `companyIds` через `MembershipCatalogQueryInterface::findCompanyIdsByPriceRange`, затем запрашивать страницу витрин через `PublicGymQueryInterface::search` (при пустом списке подходящих компаний возвращать пустой результат без утечки всех залов).
+4. Написать `SearchGymsTest` (включая проверку архитектурных границ модуля `Catalog`), прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
 
 ## Ранее реализовано: фотографии
 

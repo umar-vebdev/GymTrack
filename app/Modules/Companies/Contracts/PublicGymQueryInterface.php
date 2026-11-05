@@ -21,4 +21,3 @@ interface PublicGymQueryInterface
      */
     public function findByPublicId(string $publicId): ?PublicGymProfile;
 }
-
