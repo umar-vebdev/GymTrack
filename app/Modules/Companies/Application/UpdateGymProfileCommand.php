@@ -20,5 +20,6 @@ final class UpdateGymProfileCommand
         public readonly ?string $phone,
         public readonly array $workingHours,
         public readonly array $amenities,
+        public readonly ?string $district = null,
     ) {}
 }

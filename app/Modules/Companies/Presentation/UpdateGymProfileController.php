@@ -50,6 +50,7 @@ final class UpdateGymProfileController extends Controller
                 phone: $data['phone'] ?? null,
                 workingHours: $data['working_hours'] ?? [],
                 amenities: array_values($data['amenities'] ?? []),
+                district: $data['district'] ?? null,
             ));
         } catch (GymNotFound $e) {
             return response()->json([

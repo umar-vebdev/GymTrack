@@ -34,6 +34,7 @@ final class UpdateGymProfileTest extends TestCase
         return [
             'description' => 'Лучший зал',
             'address' => 'ул. Рудаки, 1',
+            'district' => 'Сино',
             'latitude' => 38.5598,
             'longitude' => 68.787,
             'phone' => '+992900000000',
@@ -56,12 +57,16 @@ final class UpdateGymProfileTest extends TestCase
             ->assertStatus(200)
             ->assertJsonPath('data.moderation_status', 'draft')
             ->assertJsonPath('data.latitude', 38.5598)
+            ->assertJsonPath('data.district', 'Сино')
+            ->assertJsonPath('data.is_public', false)
             ->assertJsonPath('data.amenities', ['shower', 'parking']);
 
         $this->assertDatabaseHas('companies_gym_profiles', [
             'gym_id' => $gymId,
             'company_id' => $companyId,
             'address' => 'ул. Рудаки, 1',
+            'district' => 'Сино',
+            'is_public' => false,
         ]);
     }
 
@@ -74,13 +79,22 @@ final class UpdateGymProfileTest extends TestCase
         $profile = $repo->findByGymId($gymId) ?? $this->fail('Витрина не найдена');
         $profile->submit();
         $profile->approve(new \DateTimeImmutable);
+        $profile->setPublication(true);
         $repo->save($profile);
 
         $this->actingAs($owner, 'sanctum')
-            ->putJson("/api/v1/business/gyms/{$gymId}/profile", $this->payload())
+            ->putJson("/api/v1/business/gyms/{$gymId}/profile", array_replace($this->payload(), [
+                'district' => 'Исмоили Сомони', 'is_public' => true,
+            ]))
             ->assertStatus(200)
             ->assertJsonPath('data.moderation_status', 'draft')
+            ->assertJsonPath('data.district', 'Исмоили Сомони')
+            ->assertJsonPath('data.is_public', false)
             ->assertJsonPath('data.published_at', null);
+
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gymId, 'district' => 'Исмоили Сомони', 'is_public' => false,
+        ]);
     }
 
     public function test_profile_on_moderation_cannot_be_edited(): void
@@ -94,9 +108,13 @@ final class UpdateGymProfileTest extends TestCase
         $repo->save($profile);
 
         $this->actingAs($owner, 'sanctum')
-            ->putJson("/api/v1/business/gyms/{$gymId}/profile", $this->payload())
+            ->putJson("/api/v1/business/gyms/{$gymId}/profile", array_replace($this->payload(), ['district' => 'Другой район']))
             ->assertStatus(400)
             ->assertJsonPath('error.code', 'BAD_REQUEST');
+
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gymId, 'district' => 'Сино', 'moderation_status' => 'pending',
+        ]);
     }
 
     public function test_admin_cannot_update_profile(): void
@@ -135,5 +153,50 @@ final class UpdateGymProfileTest extends TestCase
         $this->actingAs($owner, 'sanctum')
             ->putJson("/api/v1/business/gyms/{$gymId}/profile", ['latitude' => 38.5])
             ->assertStatus(422);
+    }
+
+    public function test_optional_district_is_cleared_when_missing_null_or_blank(): void
+    {
+        [$owner, , $gym] = $this->createOwnerWithGym();
+        foreach ([[], ['district' => null], ['district' => '   ']] as $district) {
+            $this->actingAs($owner, 'sanctum')
+                ->putJson("/api/v1/business/gyms/{$gym}/profile", $this->payload())->assertOk();
+            $payload = $this->payload();
+            unset($payload['district']);
+            $this->putJson("/api/v1/business/gyms/{$gym}/profile", array_replace($payload, $district))
+                ->assertOk()->assertJsonPath('data.district', null);
+            $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'district' => null]);
+        }
+    }
+
+    public function test_district_accepts_one_hundred_unicode_characters_and_trims_spaces(): void
+    {
+        [$owner, , $gym] = $this->createOwnerWithGym();
+        $district = str_repeat('я', 100);
+        $this->actingAs($owner, 'sanctum')
+            ->putJson("/api/v1/business/gyms/{$gym}/profile", array_replace($this->payload(), [
+                'district' => "  {$district}  ",
+            ]))->assertOk()->assertJsonPath('data.district', $district);
+        $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'district' => $district]);
+    }
+
+    public function test_invalid_district_does_not_change_published_profile(): void
+    {
+        [$owner, , $gym] = $this->createOwnerWithGym();
+        $this->actingAs($owner, 'sanctum')->putJson("/api/v1/business/gyms/{$gym}/profile", $this->payload())->assertOk();
+        $repo = $this->app->make(GymProfileRepositoryInterface::class);
+        $profile = $repo->findByGymId($gym) ?? $this->fail('Profile not found');
+        $profile->submit();
+        $profile->approve(new \DateTimeImmutable);
+        $profile->setPublication(true);
+        $repo->save($profile);
+        foreach ([str_repeat('я', 101), ['Сино'], 123] as $district) {
+            $this->putJson("/api/v1/business/gyms/{$gym}/profile", array_replace($this->payload(), ['district' => $district]))
+                ->assertUnprocessable()->assertJsonPath('error.code', 'VALIDATION_FAILED')
+                ->assertJsonStructure(['error' => ['details' => ['district']]]);
+            $this->assertDatabaseHas('companies_gym_profiles', [
+                'gym_id' => $gym, 'district' => 'Сино', 'moderation_status' => 'approved', 'is_public' => true,
+            ]);
+        }
     }
 }

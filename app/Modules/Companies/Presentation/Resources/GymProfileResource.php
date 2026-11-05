@@ -17,6 +17,8 @@ final class GymProfileResource
             'gym_id' => $profile->gymId(),
             'description' => $profile->description(),
             'address' => $profile->address(),
+            'district' => $profile->district(),
+            'is_public' => $profile->isPublic(),
             'latitude' => $profile->latitude(),
             'longitude' => $profile->longitude(),
             'phone' => $profile->phone(),

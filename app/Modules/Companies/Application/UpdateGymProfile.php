@@ -33,6 +33,7 @@ final class UpdateGymProfile
             $command->phone,
             $command->workingHours,
             $command->amenities,
+            $command->district,
         );
 
         $this->profiles->save($profile);

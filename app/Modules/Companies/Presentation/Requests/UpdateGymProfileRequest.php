@@ -21,6 +21,7 @@ final class UpdateGymProfileRequest extends FormRequest
         return [
             'description' => ['nullable', 'string', 'max:5000'],
             'address' => ['nullable', 'string', 'max:255'],
+            'district' => ['nullable', 'string', 'max:100'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
             'phone' => ['nullable', 'string', 'max:32'],

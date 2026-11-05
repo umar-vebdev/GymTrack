@@ -1,0 +1,122 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — редактирование витрины
+  version: 1.0.0
+paths:
+  /api/v1/business/gyms/{gym}/profile:
+    put:
+      summary: Заменить содержимое витрины своего зала (только владелец)
+      description: |
+        Отсутствующие необязательные поля очищаются. Район может быть null,
+        пробелы по краям удаляются, пустая строка превращается в null.
+        Успешная правка переводит витрину в draft и отключает публикацию.
+        is_public в запросе не управляет публикацией. В pending правка запрещена.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GymProfileUpdate'
+      responses:
+        '200':
+          description: Витрина сохранена
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GymProfile'
+        '400':
+          description: BAD_REQUEST — витрина находится в pending
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец
+        '404':
+          description: NOT_FOUND — зал отсутствует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — неверные поля, включая district
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    GymProfileUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+          maxLength: 5000
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+        district:
+          type: string
+          nullable: true
+          maxLength: 100
+          example: Сино
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Указывается вместе с longitude
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Указывается вместе с latitude
+        phone:
+          type: string
+          nullable: true
+          maxLength: 32
+        working_hours:
+          anyOf:
+            - type: object
+              nullable: true
+            - type: array
+              nullable: true
+              items: {}
+        amenities:
+          type: array
+          nullable: true
+          maxItems: 30
+          items:
+            type: string
+            maxLength: 50
+    GymProfile:
+      allOf:
+        - $ref: '#/components/schemas/GymProfileUpdate'
+        - type: object
+          required: [gym_id, district, is_public, moderation_status]
+          properties:
+            gym_id:
+              type: integer
+            is_public:
+              type: boolean
+              readOnly: true
+              example: false
+            moderation_status:
+              type: string
+              enum: [draft, pending, approved, rejected]
+            rejection_reason:
+              type: string
+              nullable: true
+            published_at:
+              type: string
+              format: date-time
+              nullable: true
