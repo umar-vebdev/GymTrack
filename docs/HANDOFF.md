@@ -19,18 +19,17 @@
 
 ## Последняя сессия
 
-- **T3-09d [x]**: сценарии `UpdateGymProfile`, `SubmitGymProfileForModeration` и `ModerateGymProfile` переведены на выполнение в `DB::transaction` с блокировкой строки зала через `findByIdForUpdate` до чтения витрины (`findByGymId`), по аналогии с `SetGymPublication` и операциями над фото.
-- В `EloquentGymRepository::findByIdForUpdate` добавлен `withoutGlobalScopes()` для единообразия с `findById` (позволяет сценарию платформенной модерации блокировать зал независимо от `CompanyScope`, тогда как сценарии кабинета явно проверяют `companyId`).
-- В `ModerateGymProfile` отправка событий `GymProfileApproved` / `GymProfileRejected` выполняется после завершения транзакции, чтобы при сбое сохранения не создавалась ложная запись аудита.
-- Добавлено 6 тестов (порядок блокировки и чтения витрины, сохранность `is_public` при повторной отправке/модерации, откат частичных изменений БД и отсутствие записи аудита при сбое сохранения).
-- **395 тестов, 1828 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T3-09d [x]**: сценарии `UpdateGymProfile`, `SubmitGymProfileForModeration` и `ModerateGymProfile` переведены на выполнение в `DB::transaction` с блокировкой строки зала через `findByIdForUpdate` до чтения витрины (`findByGymId`), события аудита модерации отправляются после фиксации транзакции.
+- **T3-10 [x]**: в `Companies/Contracts` добавлены `PublicGymQueryInterface`, `PublicGymProfile` и `PublicGymFilter`, реализован `EloquentPublicGymQuery` и зарегистрирован в `CompaniesServiceProvider`.
+- Контракт возвращает только витрины со статусом `approved` и `is_public = true` независимо от `CompanyScope`, поддерживает карточку по `public_id` (ULID) и поиск с фильтрами `query` (подстрока названия без регистра, спецсимволы `%`, `_`, `\` экранируются), `district` (точное совпадение без регистра с `trim`, `null`/пустой не совпадает), `amenities` (все указанные удобства присутствуют), `companyIds` (при `[]` возвращает пустой результат без запросов к БД), пагинацию по `gyms.public_id ASC` (по умолчанию 20, максимум 100) и пакетную подгрузку URL фотографий в порядке `(order, id)` без N+1 (не более 3 запросов на страницу) и без приватных полей (`qr_secret`, `rejection_reason`).
+- Добавлено 6 тестов в `PublicGymQueryTest`. **401 тест, 1887 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. **T3-10 [ ] — Контракт публичных витрин Companies.** Перечитать Бизнес-ТЗ 7, Техническое ТЗ 3.5, 3.7 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
-2. Создать `Companies/Contracts/PublicGymQueryInterface.php`, DTO `PublicGymProfile.php` и `PublicGymFilter.php`, реализацию в `Companies/Infrastructure`, зарегистрировать биндинг в `CompaniesServiceProvider.php`.
-3. Читать только витрины со статусом `approved` и `is_public = true` (без `CompanyScope`); поддержать поиск по `public_id` (ULID), фильтры `q` (подстрока названия зала без учёта регистра, спецсимволы буквально), `district` (точное совпадение без регистра с `trim`), `amenities` (все указанные удобства присутствуют), фильтр по списку `companyIds` (для ценового фильтра), пагинацию (сортировка по `public_id`, по умолчанию 20, максимум 100) и загрузку фото в порядке `(order, id)`.
-4. Написать `PublicGymQueryTest`, прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
+1. **T3-11 [ ] — Контракт актуальных абонементов Memberships.** Перечитать Бизнес-ТЗ 4.3, 7, Техническое ТЗ 3.5, 3.7, 6.1 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
+2. Создать `Memberships/Contracts/MembershipCatalogQueryInterface.php`, DTO `PublicMembershipType.php`, реализацию в `Memberships/Infrastructure`, зарегистрировать биндинг в `MembershipsServiceProvider.php`.
+3. Поддержать два метода: список активных типов абонементов компании (публичный ID `public_id`, название, цена в минимальных единицах, валюта, тип и действующие правила) и выборку `company_id`, у которых есть хотя бы один активный тип абонемента нужной валюты в указанном включительном диапазоне цен (`price_min`/`price_max`).
+4. Написать `MembershipCatalogQueryTest` (проверить деактивацию, смену цены, границы диапазона, разные валюты и игнорирование `CompanyScope`), прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
 
 ## Ранее реализовано: фотографии
 
