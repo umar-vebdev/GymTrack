@@ -46,6 +46,51 @@ paths:
           description: NOT_FOUND — зал отсутствует или принадлежит другой компании
         '422':
           description: VALIDATION_FAILED — неверные поля, включая district
+  /api/v1/business/gyms/{gym}/publication:
+    patch:
+      summary: Включить или выключить публикацию своего зала (только владелец)
+      description: |
+        Включение доступно только для approved, выключение — в любом статусе.
+        Повторное одинаковое значение допустимо. Содержимое и решение модерации
+        сохраняются. Изменение выполняется с блокировкой строки зала.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_public]
+              properties:
+                is_public:
+                  type: boolean
+      responses:
+        '200':
+          description: Состояние публикации сохранено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GymProfile'
+        '400':
+          description: BAD_REQUEST — включение до одобрения витрины запрещено
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец
+        '404':
+          description: NOT_FOUND — зал отсутствует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — is_public отсутствует или не является boolean
 components:
   securitySchemes:
     bearerAuth:

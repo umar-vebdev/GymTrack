@@ -7,6 +7,7 @@ use App\Modules\Companies\Presentation\ListCurrenciesController;
 use App\Modules\Companies\Presentation\ListGymProfilesController;
 use App\Modules\Companies\Presentation\ModerateGymProfileController;
 use App\Modules\Companies\Presentation\RegisterCompanyController;
+use App\Modules\Companies\Presentation\SetGymPublicationController;
 use App\Modules\Companies\Presentation\SubmitGymProfileController;
 use App\Modules\Companies\Presentation\UpdateCompanyCurrencyController;
 use App\Modules\Companies\Presentation\UpdateGymProfileController;
@@ -20,6 +21,7 @@ Route::prefix('api/v1/business')
         Route::get('/currencies', ListCurrenciesController::class);
         Route::patch('/company/currency', UpdateCompanyCurrencyController::class);
         Route::put('/gyms/{gym}/profile', UpdateGymProfileController::class)->whereNumber('gym');
+        Route::patch('/gyms/{gym}/publication', SetGymPublicationController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/profile/submit', SubmitGymProfileController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/photos', UploadGymPhotoController::class)->whereNumber('gym');
         Route::delete('/gyms/{gym}/photos/{photo}', DeleteGymPhotoController::class)->whereNumber(['gym', 'photo']);
