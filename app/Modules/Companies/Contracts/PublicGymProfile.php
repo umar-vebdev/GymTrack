@@ -29,3 +29,4 @@ final class PublicGymProfile
         public readonly array $photos,
     ) {}
 }
+
