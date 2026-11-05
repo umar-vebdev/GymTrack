@@ -24,3 +24,4 @@ interface MembershipCatalogQueryInterface
      */
     public function findCompanyIdsByPriceRange(string $currency, ?int $priceMin = null, ?int $priceMax = null): array;
 }
+

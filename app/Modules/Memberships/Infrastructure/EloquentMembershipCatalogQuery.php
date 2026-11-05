@@ -78,3 +78,4 @@ final class EloquentMembershipCatalogQuery implements MembershipCatalogQueryInte
         return $companyIds;
     }
 }
+
