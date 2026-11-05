@@ -8,6 +8,7 @@ use App\Modules\Companies\Domain\Exceptions\GymNotFound;
 use App\Modules\Companies\Domain\GymProfile;
 use App\Modules\Companies\Domain\GymProfileRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use Illuminate\Support\Facades\DB;
 
 final class SubmitGymProfileForModeration
 {
@@ -18,17 +19,19 @@ final class SubmitGymProfileForModeration
 
     public function execute(int $companyId, int $gymId): GymProfile
     {
-        $gym = $this->gyms->findById($gymId);
-        if ($gym === null || $gym->companyId() !== $companyId) {
-            throw GymNotFound::withId($gymId);
-        }
+        return DB::transaction(function () use ($companyId, $gymId): GymProfile {
+            $gym = $this->gyms->findByIdForUpdate($gymId);
+            if ($gym === null || $gym->companyId() !== $companyId) {
+                throw GymNotFound::withId($gymId);
+            }
 
-        $profile = $this->profiles->findByGymId($gymId) ?? GymProfile::draft($gymId);
+            $profile = $this->profiles->findByGymId($gymId) ?? GymProfile::draft($gymId);
 
-        $profile->submit();
+            $profile->submit();
 
-        $this->profiles->save($profile);
+            $this->profiles->save($profile);
 
-        return $profile;
+            return $profile;
+        });
     }
 }

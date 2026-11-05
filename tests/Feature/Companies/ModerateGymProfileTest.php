@@ -8,13 +8,18 @@ use App\Models\User;
 use App\Modules\Companies\Contracts\GymProfileApproved;
 use App\Modules\Companies\Contracts\GymProfileRejected;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
+use App\Modules\Companies\Domain\Gym;
 use App\Modules\Companies\Domain\GymProfile;
 use App\Modules\Companies\Domain\GymProfileRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\Role;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Mockery;
+use RuntimeException;
 use Tests\TestCase;
 
 final class ModerateGymProfileTest extends TestCase
@@ -179,5 +184,72 @@ final class ModerateGymProfileTest extends TestCase
             ])
             ->assertStatus(404)
             ->assertJsonPath('error.code', 'NOT_FOUND');
+    }
+
+    public function test_moderation_reads_profile_after_locking_gym_and_preserves_newer_publication(): void
+    {
+        $admin = $this->createPlatformAdmin();
+        [, , $gymId] = $this->createPendingProfile();
+        $realGyms = $this->app->make(GymRepositoryInterface::class);
+        $realProfiles = $this->app->make(GymProfileRepositoryInterface::class);
+        $published = $realProfiles->findByGymId($gymId) ?? $this->fail('Profile not found');
+        $published->approve(new DateTimeImmutable);
+        $published->setPublication(true);
+        $realProfiles->save($published);
+
+        $locked = false;
+        $gyms = Mockery::mock(GymRepositoryInterface::class);
+        $gyms->shouldReceive('findByIdForUpdate')->once()->with($gymId)->andReturnUsing(
+            function (int $id) use ($realGyms, &$locked): ?Gym {
+                $this->assertGreaterThan(1, DB::transactionLevel());
+                $locked = true;
+
+                return $realGyms->findByIdForUpdate($id);
+            }
+        );
+        $profiles = Mockery::mock(GymProfileRepositoryInterface::class);
+        $profiles->shouldReceive('findByGymId')->once()->with($gymId)->andReturnUsing(
+            function (int $id) use ($realProfiles, &$locked): ?GymProfile {
+                $this->assertTrue($locked, 'Profile must be read only after locking the gym row.');
+
+                return $realProfiles->findByGymId($id);
+            }
+        );
+        $this->app->instance(GymRepositoryInterface::class, $gyms);
+        $this->app->instance(GymProfileRepositoryInterface::class, $profiles);
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/platform/gyms/{$gymId}/moderate", ['decision' => 'approve'])
+            ->assertBadRequest()->assertJsonPath('error.code', 'BAD_REQUEST');
+
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gymId, 'moderation_status' => 'approved', 'is_public' => true,
+        ]);
+        $this->assertDatabaseCount('audit_entries', 0);
+    }
+
+    public function test_moderation_rolls_back_and_does_not_dispatch_audit_event_on_save_failure(): void
+    {
+        $admin = $this->createPlatformAdmin();
+        [, , $gymId] = $this->createPendingProfile();
+        $pending = $this->app->make(GymProfileRepositoryInterface::class)->findByGymId($gymId);
+
+        $profiles = Mockery::mock(GymProfileRepositoryInterface::class);
+        $profiles->shouldReceive('findByGymId')->once()->with($gymId)->andReturn($pending);
+        $profiles->shouldReceive('save')->once()->andReturnUsing(function (GymProfile $changed): void {
+            DB::table('companies_gym_profiles')->where('gym_id', $changed->gymId())->update(['moderation_status' => 'approved']);
+            throw new RuntimeException('Database failure');
+        });
+        $this->app->instance(GymProfileRepositoryInterface::class, $profiles);
+        config(['app.debug' => false]);
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/platform/gyms/{$gymId}/moderate", ['decision' => 'approve'])
+            ->assertStatus(500)->assertJsonPath('error.code', 'INTERNAL_ERROR');
+
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gymId, 'moderation_status' => 'pending',
+        ]);
+        $this->assertDatabaseCount('audit_entries', 0);
     }
 }

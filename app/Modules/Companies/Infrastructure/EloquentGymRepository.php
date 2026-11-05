@@ -35,7 +35,7 @@ final class EloquentGymRepository implements GymRepositoryInterface
 
     public function findByIdForUpdate(int $id): ?Gym
     {
-        $model = GymModel::query()->lockForUpdate()->find($id);
+        $model = GymModel::query()->withoutGlobalScopes()->lockForUpdate()->find($id);
 
         return $model ? new Gym($model->id, $model->company_id, $model->name, $model->address) : null;
     }
