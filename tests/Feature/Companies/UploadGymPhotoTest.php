@@ -70,12 +70,14 @@ final class UploadGymPhotoTest extends TestCase
         $profile->update('Description', 'Address', null, null, '+992900000000', [], ['shower']);
         $profile->submit();
         $profile->approve(new DateTimeImmutable);
+        $profile->setPublication(true);
         $this->app->make(GymProfileRepositoryInterface::class)->save($profile);
         $this->upload($company, $gym);
 
         $this->assertDatabaseHas('companies_gym_profiles', [
             'gym_id' => $gym, 'moderation_status' => 'draft', 'published_at' => null,
             'description' => 'Description', 'rejection_reason' => null,
+            'is_public' => false,
         ]);
     }
 

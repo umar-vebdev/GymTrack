@@ -58,6 +58,7 @@ final class DeleteGymPhotoTest extends TestCase
         $profile->submit();
         if ($approved) {
             $profile->approve(new DateTimeImmutable);
+            $profile->setPublication(true);
         }
         $this->app->make(GymProfileRepositoryInterface::class)->save($profile);
 
@@ -79,6 +80,7 @@ final class DeleteGymPhotoTest extends TestCase
         $this->assertDatabaseHas('companies_gym_profiles', [
             'gym_id' => $gym, 'moderation_status' => 'draft', 'published_at' => null,
             'rejection_reason' => null, 'description' => 'Description',
+            'is_public' => false,
         ]);
     }
 
@@ -177,7 +179,7 @@ final class DeleteGymPhotoTest extends TestCase
             ->assertStatus(500)->assertJsonPath('error.code', 'INTERNAL_ERROR');
         Storage::disk('public')->assertExists($photo->path);
         $this->assertDatabaseHas('companies_gym_photos', ['id' => $photo->id]);
-        $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'moderation_status' => 'approved']);
+        $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'moderation_status' => 'approved', 'is_public' => true]);
     }
 
     public function test_partial_storage_failure_restores_file_and_rolls_back_database_changes(): void
@@ -203,6 +205,6 @@ final class DeleteGymPhotoTest extends TestCase
             ->assertStatus(500)->assertJsonPath('error.code', 'INTERNAL_ERROR');
         $this->assertSame('photo contents', $disk->get($photo->path));
         $this->assertDatabaseHas('companies_gym_photos', ['id' => $photo->id]);
-        $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'moderation_status' => 'approved']);
+        $this->assertDatabaseHas('companies_gym_profiles', ['gym_id' => $gym, 'moderation_status' => 'approved', 'is_public' => true]);
     }
 }

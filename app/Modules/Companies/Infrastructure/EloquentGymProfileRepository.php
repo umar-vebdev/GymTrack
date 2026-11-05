@@ -57,6 +57,8 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
                 'company_id' => $companyId,
                 'description' => $profile->description(),
                 'address' => $profile->address(),
+                'district' => $profile->district(),
+                'is_public' => $profile->isPublic(),
                 'latitude' => $profile->latitude(),
                 'longitude' => $profile->longitude(),
                 'phone' => $profile->phone(),
@@ -85,6 +87,8 @@ final class EloquentGymProfileRepository implements GymProfileRepositoryInterfac
             publishedAt: $model->published_at !== null
                 ? DateTimeImmutable::createFromInterface($model->published_at)
                 : null,
+            district: $model->district,
+            isPublic: $model->is_public,
         );
     }
 }

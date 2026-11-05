@@ -46,6 +46,7 @@ final class GymProfileTest extends TestCase
 
         $this->assertSame(ModerationStatus::APPROVED, $profile->status());
         $this->assertSame($at, $profile->publishedAt());
+        $this->assertFalse($profile->isPublic());
     }
 
     public function test_reject_requires_reason_and_allows_resubmit(): void

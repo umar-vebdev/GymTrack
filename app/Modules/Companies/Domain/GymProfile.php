@@ -25,7 +25,13 @@ final class GymProfile
         private ModerationStatus $status,
         private ?string $rejectionReason,
         private ?DateTimeImmutable $publishedAt,
-    ) {}
+        private ?string $district = null,
+        private bool $isPublic = false,
+    ) {
+        if ($this->isPublic && $this->status !== ModerationStatus::APPROVED) {
+            throw InvalidGymProfileTransition::from($this->status, 'publish');
+        }
+    }
 
     public static function draft(int $gymId): self
     {
@@ -46,6 +52,7 @@ final class GymProfile
         ?string $phone,
         array $workingHours,
         array $amenities,
+        ?string $district = null,
     ): void {
         $this->markContentChanged();
 
@@ -56,6 +63,7 @@ final class GymProfile
         $this->phone = $phone;
         $this->workingHours = $workingHours;
         $this->amenities = $amenities;
+        $this->district = $district;
     }
 
     public function markContentChanged(): void
@@ -65,6 +73,7 @@ final class GymProfile
         }
 
         $this->status = ModerationStatus::DRAFT;
+        $this->isPublic = false;
         $this->rejectionReason = null;
         $this->publishedAt = null;
     }
@@ -111,6 +120,25 @@ final class GymProfile
     public function gymId(): int
     {
         return $this->gymId;
+    }
+
+    public function setPublication(bool $isPublic): void
+    {
+        if ($isPublic && $this->status !== ModerationStatus::APPROVED) {
+            throw InvalidGymProfileTransition::from($this->status, 'publish');
+        }
+
+        $this->isPublic = $isPublic;
+    }
+
+    public function isPublic(): bool
+    {
+        return $this->isPublic;
+    }
+
+    public function district(): ?string
+    {
+        return $this->district;
     }
 
     public function description(): ?string

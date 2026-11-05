@@ -14,6 +14,8 @@ use Illuminate\Support\Carbon;
  * @property int $gym_id
  * @property string|null $description
  * @property string|null $address
+ * @property string|null $district
+ * @property bool $is_public
  * @property string|null $latitude
  * @property string|null $longitude
  * @property string|null $phone
@@ -32,11 +34,13 @@ final class GymProfileModel extends Model
     protected $fillable = [
         'company_id', 'gym_id', 'description', 'address', 'latitude', 'longitude', 'phone',
         'working_hours', 'amenities', 'moderation_status', 'rejection_reason', 'published_at',
+        'district', 'is_public',
     ];
 
     protected $casts = [
         'working_hours' => 'array',
         'amenities' => 'array',
         'published_at' => 'datetime',
+        'is_public' => 'boolean',
     ];
 }

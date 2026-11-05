@@ -13,6 +13,7 @@ use App\Modules\Companies\Domain\ModerationStatus;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 final class GymProfileRepositoryTest extends TestCase
@@ -71,6 +72,63 @@ final class GymProfileRepositoryTest extends TestCase
 
         $this->assertSame(1, DB::table('companies_gym_profiles')->count());
         $this->assertSame('Новое', $repo->findByGymId($gymId)?->description());
+    }
+
+    public function test_it_persists_district_and_publication_changes(): void
+    {
+        $gym = $this->createGym();
+        $repo = $this->app->make(GymProfileRepositoryInterface::class);
+        $profile = GymProfile::draft($gym);
+        $profile->update('Description', 'Address', null, null, '+992900000000', [], [], 'Сино');
+        $profile->submit();
+        $profile->approve(new DateTimeImmutable);
+        $profile->setPublication(true);
+        $repo->save($profile);
+        $restored = $repo->findByGymId($gym) ?? $this->fail('Profile not found');
+        $this->assertSame('Сино', $restored->district());
+        $this->assertTrue($restored->isPublic());
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gym, 'district' => 'Сино', 'is_public' => true,
+        ]);
+
+        $restored->setPublication(false);
+        $repo->save($restored);
+        $private = $repo->findByGymId($gym) ?? $this->fail('Profile not found');
+        $this->assertFalse($private->isPublic());
+        $this->assertSame(ModerationStatus::APPROVED, $private->status());
+        $this->assertSame('Сино', $private->district());
+    }
+
+    private function runCatalogFieldsMigration(string $direction): void
+    {
+        $migration = require base_path('app/Modules/Companies/Infrastructure/Migrations/2026_11_05_000000_add_catalog_fields_to_gym_profiles_table.php');
+        $callback = [$migration, $direction];
+        if (!is_callable($callback)) {
+            $this->fail('Migration lifecycle method is missing');
+        }
+        $callback();
+    }
+
+    public function test_catalog_fields_migration_keeps_existing_profiles_private_and_can_be_rolled_back(): void
+    {
+        $gym = $this->createGym();
+        $repo = $this->app->make(GymProfileRepositoryInterface::class);
+        $profile = GymProfile::draft($gym);
+        $profile->update('Legacy description', 'Address', null, null, '+992900000000', [], []);
+        $profile->submit();
+        $profile->approve(new DateTimeImmutable);
+        $repo->save($profile);
+        $this->runCatalogFieldsMigration('down');
+        $this->assertFalse(Schema::hasColumn('companies_gym_profiles', 'district'));
+        $this->assertFalse(Schema::hasColumn('companies_gym_profiles', 'is_public'));
+        $this->assertDatabaseHas('companies_gym_profiles', [
+            'gym_id' => $gym, 'description' => 'Legacy description', 'moderation_status' => 'approved',
+        ]);
+        $this->runCatalogFieldsMigration('up');
+        $restored = $repo->findByGymId($gym) ?? $this->fail('Profile not found');
+        $this->assertFalse($restored->isPublic());
+        $this->assertNull($restored->district());
+        $this->assertSame(ModerationStatus::APPROVED, $restored->status());
     }
 
     public function test_it_paginates_profiles_by_status(): void
