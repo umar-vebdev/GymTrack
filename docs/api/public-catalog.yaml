@@ -97,6 +97,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/v1/public/gyms/{publicId}:
+    get:
+      summary: Публичная карточка зала по ULID с активными типами абонементов
+      description: |
+        Доступно без авторизации. Возвращает полную витрину одобренного и опубликованного зала
+        (`approved` + `is_public = true`) вместе со списком активных типов абонементов компании
+        с актуальными ценами и правилами (отсортированных по публичному `id` ULID).
+        Если зал не найден, не одобрен или публикация отключена — возвращается 404.
+      parameters:
+        - in: path
+          name: publicId
+          required: true
+          description: Публичный идентификатор зала (ULID)
+          schema:
+            type: string
+            example: 01JCXYZ0000000000000000000
+      responses:
+        '200':
+          description: Публичная карточка зала
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicGymCard'
+        '404':
+          description: NOT_FOUND — зал не найден или скрыт из каталога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
 components:
   schemas:
     PublicGym:
@@ -152,6 +185,79 @@ components:
           items:
             type: string
             format: uri
+    PublicGymCard:
+      allOf:
+        - $ref: '#/components/schemas/PublicGym'
+        - type: object
+          required:
+            - membership_types
+          properties:
+            membership_types:
+              type: array
+              items:
+                $ref: '#/components/schemas/PublicMembershipType'
+    PublicMembershipType:
+      type: object
+      required:
+        - id
+        - name
+        - kind
+        - start_mode
+        - price_minor
+        - currency
+        - visits_count
+        - duration_days
+        - validity_days
+        - daily_limit
+        - time_from_minute
+        - time_to_minute
+        - freeze_max_days
+        - freeze_max_times
+      properties:
+        id:
+          type: string
+          description: Публичный идентификатор типа абонемента (ULID)
+          example: 01JCXYZ1111111111111111111
+        name:
+          type: string
+          example: 12 занятий
+        kind:
+          type: string
+          enum: [visits, duration, unlimited, single]
+        start_mode:
+          type: string
+          enum: [on_sale, first_visit]
+        price_minor:
+          type: integer
+          minimum: 0
+          example: 25000
+        currency:
+          type: string
+          example: TJS
+        visits_count:
+          type: integer
+          nullable: true
+        duration_days:
+          type: integer
+          nullable: true
+        validity_days:
+          type: integer
+          nullable: true
+        daily_limit:
+          type: integer
+          example: 1
+        time_from_minute:
+          type: integer
+          nullable: true
+        time_to_minute:
+          type: integer
+          nullable: true
+        freeze_max_days:
+          type: integer
+          example: 0
+        freeze_max_times:
+          type: integer
+          example: 0
     PaginationMeta:
       type: object
       required: [page, per_page, total]
@@ -184,4 +290,16 @@ components:
                 type: array
                 items:
                   type: string
-
+    NotFoundErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: NOT_FOUND
+            message:
+              type: string

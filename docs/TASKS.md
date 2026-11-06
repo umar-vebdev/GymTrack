@@ -46,7 +46,7 @@
 
 ## Этап 3 — Публичный каталог залов и модерация витрин
 
-**Статус этапа:** E3-A завершён; E3-B согласован разработчиком 2026-11-04 и выполняется; E3-C — эпик.
+**Статус этапа:** E3-A завершён; E3-B завершён; E3-C ожидает подтверждения плана задач разработчиком.
 **ТЗ:** Бизнес-ТЗ 4.2, 7; Тех. ТЗ 3.1, 7.1, 14.
 
 ### E3-A — задачи (модуль Companies)
@@ -90,14 +90,18 @@
 - [x] **T3-12** Модуль `Catalog` (`CatalogServiceProvider`, `SearchGyms`, `SearchGymsQuery`, `routes.php`): объединение контрактов `MembershipCatalogQueryInterface` и `PublicGymQueryInterface`, защита от утечки залов при пустом ценовом результате и проверка отсутствия зависимостей от внутренних классов чужих модулей (восстановлено форматирование Pint у 3 файлов после `edbf78c`). 5 тестов в `SearchGymsTest`; всего 409 тестов, lint/analyse/test/deps зелёные.
 - [x] **T3-13** `GET /api/v1/public/gyms` без авторизации: `SearchGymsRequest` (валидация `q`, `district`, `amenities[]`, `price_min`, `price_max`, обязательность `currency` при ценовом фильтре, `price_max >= price_min`, `page`/`per_page`), `ListPublicGymsController`, `PublicGymResource` (`id` — ULID, без внутренних `gym_id`/`company_id` и приватных полей), OpenAPI `docs/api/public-catalog.yaml`. 3 теста в `ListPublicGymsTest`; всего 412 тестов, lint/analyse/test/deps зелёные.
 - [x] **T3-14a** Сценарий публичной карточки `GetPublicGym` и DTO `PublicGymCardResult`: поиск опубликованной витрины по ULID через `PublicGymQueryInterface::findByPublicId`, подгрузка активных типов абонементов компании через `MembershipCatalogQueryInterface::listActiveForCompany` только после проверки публикации, мгновенное скрытие карточки при выключении или правке витрины (восстановлено форматирование Pint у 4 файлов после `d3511dc`). 3 теста в `GetPublicGymTest`; всего 415 тестов, lint/analyse/test/deps зелёные.
-- [ ] **T3-14b — Публичная карточка зала.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2, 8](specs/GymTrack_Technical_TZ.md).
-  - Файлы: контроллер карточки, ресурс карточки, маршруты Catalog, OpenAPI, тест карточки.
-  - Шаги: 1. Добавить `GET /api/v1/public/gyms/{publicId}` с ULID без авторизации. 2. Вернуть описание, фото, адрес/район/координаты, часы, контакты, удобства и активные абонементы с ценами и правилами. 3. Непубличный/неизвестный ID → 404; проверить отсутствие секретов и приватных данных.
-  - Готовность: `docker compose exec -T app php artisan test --filter=ShowPublicGymTest` — корректная карточка и 404 для скрытых витрин; OpenAPI соответствует ответу.
+- [x] **T3-14b** `GET /api/v1/public/gyms/{publicId}` без авторизации: `ShowPublicGymController`, `PublicGymCardResource` (поля витрины + `membership_types` с публичными `id` ULID, ценами и правилами без внутренних `gym_id`/`company_id` и секретов; скрытая/неизвестная витрина → `404 NOT_FOUND`), дополнен OpenAPI `docs/api/public-catalog.yaml`. 3 теста в `ShowPublicGymTest`; всего 418 тестов, lint/analyse/test/deps зелёные.
 
-### Следующий эпик этапа 3
+### E3-C — Карта и гео-поиск (предлагаемый план на подтверждение)
 
-- **E3-C Карта и гео-поиск (Catalog)**: координаты залов уже есть; фильтрация по радиусу/области карты и выдача для карты. Раскрыть после E3-B.
+- [ ] **T3-15 — Гео-фильтр прямоугольной области карты (`bounds`) и радиуса (`lat`, `lng`, `radius_km`) в `PublicGymFilter` и `EloquentPublicGymQuery`.** ТЗ: [Бизнес 4.2, 7](specs/GymTrack_TZ_v2.md), [Техническое 3.5, 6.3](specs/GymTrack_Technical_TZ.md).
+  - Файлы: `PublicGymFilter.php`, `EloquentPublicGymQuery.php`, `PublicGymQueryTest.php`.
+  - Шаги: 1. Расширить `PublicGymFilter` параметрами гео-поиска: прямоугольник карты (`swLat`, `swLng`, `neLat`, `neLng`) и/или точка с радиусом (`lat`, `lng`, `radiusKm`). 2. В `EloquentPublicGymQuery` при активном гео-фильтре отбирать только опубликованные витрины с непустыми координатами (`latitude IS NOT NULL AND longitude IS NOT NULL`), попадающие в прямоугольник и/или радиус (формула гаверсинуса). 3. Покрыть unit-тестами в `PublicGymQueryTest`.
+  - Готовность: `docker compose exec -T app php artisan test --filter=PublicGymQueryTest` — залы без координат и за пределами радиуса/области отсекаются, подходящие возвращаются.
+- [ ] **T3-16 — Поддержка гео-параметров в сценарии `SearchGyms` и публичном API `GET /api/v1/public/gyms`.** ТЗ: [Бизнес 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2](specs/GymTrack_Technical_TZ.md).
+  - Файлы: `SearchGymsQuery.php`, `SearchGyms.php`, `SearchGymsRequest.php`, `ListPublicGymsController.php`, `docs/api/public-catalog.yaml`, `ListPublicGymsTest.php`.
+  - Шаги: 1. Пробросить гео-параметры (`lat`, `lng`, `radius_km`, `sw_lat`, `sw_lng`, `ne_lat`, `ne_lng`) через `SearchGymsQuery` и `SearchGyms`. 2. Валидировать комплектность (`lat`/`lng`/`radius_km` передаются вместе; `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` передаются вместе, `sw_lat <= ne_lat`, `sw_lng <= ne_lng`, допустимые диапазоны широт `[-90, 90]`, долгот `[-180, 180]`, `radius_km` `(0, 100]`). 3. Дополнить OpenAPI и проверить тестами в `ListPublicGymsTest`.
+  - Готовность: `docker compose exec -T app php artisan test --filter=ListPublicGymsTest` — фильтрация по радиусу и области карты работает совместно с остальными фильтрами, неполные/неверные гео-параметры дают 422.
 
 ---
 

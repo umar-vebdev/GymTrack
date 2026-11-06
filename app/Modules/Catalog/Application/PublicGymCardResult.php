@@ -20,4 +20,3 @@ final class PublicGymCardResult
         public readonly array $membershipTypes,
     ) {}
 }
-
