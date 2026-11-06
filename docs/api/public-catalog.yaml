@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — публичный каталог залов
+  version: 1.0.0
+paths:
+  /api/v1/public/gyms:
+    get:
+      summary: Поиск и фильтрация опубликованных залов в публичном каталоге
+      description: |
+        Доступно без авторизации. Возвращает только одобренные модерацией (`approved`)
+        и явно опубликованные владельцем (`is_public = true`) витрины залов.
+        Сортировка по публичному идентификатору (`id` — ULID).
+        При указании `price_min` или `price_max` параметр `currency` обязателен.
+      parameters:
+        - in: query
+          name: q
+          required: false
+          description: Поиск по подстроке названия зала без учёта регистра
+          schema:
+            type: string
+            maxLength: 100
+        - in: query
+          name: district
+          required: false
+          description: Точное совпадение района без учёта регистра
+          schema:
+            type: string
+            maxLength: 100
+        - in: query
+          name: amenities
+          required: false
+          description: Все указанные удобства должны присутствовать у зала
+          style: form
+          explode: true
+          schema:
+            type: array
+            maxItems: 30
+            items:
+              type: string
+              maxLength: 50
+        - in: query
+          name: price_min
+          required: false
+          description: Минимальная цена активного абонемента в минимальных единицах (включительно)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: price_max
+          required: false
+          description: Максимальная цена активного абонемента в минимальных единицах (включительно, не меньше price_min)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: currency
+          required: false
+          description: Трёхбуквенный код валюты (обязателен при указании price_min или price_max)
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 3
+            example: TJS
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Постраничный список публичных витрин залов
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicGym'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры поиска, цены или пагинации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+components:
+  schemas:
+    PublicGym:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - address
+        - district
+        - latitude
+        - longitude
+        - phone
+        - working_hours
+        - amenities
+        - photos
+      properties:
+        id:
+          type: string
+          description: Публичный идентификатор зала (ULID)
+          example: 01JCXYZ0000000000000000000
+        name:
+          type: string
+          example: Олимп Фитнес
+        description:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        district:
+          type: string
+          nullable: true
+          example: Сино
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        working_hours:
+          type: object
+          additionalProperties: true
+        amenities:
+          type: array
+          items:
+            type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+    PaginationMeta:
+      type: object
+      required: [page, per_page, total]
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 1
+    ValidationErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_FAILED
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+

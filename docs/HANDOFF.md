@@ -13,27 +13,27 @@
 - **T3-10** (`[x]`): контракт `PublicGymQueryInterface`, DTO `PublicGymProfile` и `PublicGymFilter`, реализация `EloquentPublicGymQuery` в модуле `Companies`.
 - **T3-11** (`[x]`): контракт `MembershipCatalogQueryInterface`, DTO `PublicMembershipType`, реализация `EloquentMembershipCatalogQuery` в модуле `Memberships`.
 - **T3-12** (`[x]`): подключён модуль `Catalog` (`CatalogServiceProvider`, `SearchGyms`, `SearchGymsQuery`, `routes.php`).
+- **T3-13** (`[x]`): публичный список залов `GET /api/v1/public/gyms` (`SearchGymsRequest`, `ListPublicGymsController`, `PublicGymResource`, OpenAPI `docs/api/public-catalog.yaml`).
 
 ## Последняя сессия
 
-- **T3-12 [x]**: создан и зарегистрирован `CatalogServiceProvider` в `bootstrap/providers.php`, добавлены заготовка `Catalog/Presentation/routes.php`, DTO `SearchGymsQuery` (нормализация параметров, проверка неотрицательности цен и обязательности `currency` при наличии `priceMin`/`priceMax`) и Use Case `SearchGyms`.
-- В `SearchGyms` при наличии фильтра по валюте/цене сначала запрашиваются подходящие `companyIds` через `MembershipCatalogQueryInterface::findCompanyIdsByPriceRange` (при пустом результате сразу возвращается `['items' => [], 'total' => 0]` без вызова `PublicGymQueryInterface::search`), затем витрины выбираются через `PublicGymQueryInterface::search`.
-- Восстановлено форматирование Pint у 3 файлов модуля `Memberships` после коммита `edbf78c`. Добавлены 5 тестов в `SearchGymsTest` (включая проверку архитектурных границ модуля `Catalog`).
-- **409 тестов, 1941 проверка**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T3-12 [x]**: создан и зарегистрирован `CatalogServiceProvider`, реализованы `SearchGymsQuery` и `SearchGyms` через контракты `MembershipCatalogQueryInterface` и `PublicGymQueryInterface`, добавлены 5 тестов в `SearchGymsTest`.
+- **T3-13 [x]**: добавлен публичный эндпоинт `GET /api/v1/public/gyms` без авторизации (`SearchGymsRequest`, `ListPublicGymsController`, `PublicGymResource` с `id` = ULID без внутренних `gym_id`/`company_id` и приватных полей), добавлена спецификация `docs/api/public-catalog.yaml` и 3 теста в `ListPublicGymsTest`.
+- **412 тестов, 2034 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. **T3-13 [ ] — Публичный список залов.** Перечитать Бизнес-ТЗ 7, Техническое ТЗ 7.1–7.2, 8 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
-2. Создать `Catalog/Presentation/Http/Requests/SearchGymsRequest.php`, `Catalog/Presentation/Http/Resources/PublicGymSummaryResource.php` (или `PublicGymResource.php`), `Catalog/Presentation/Http/Controllers/ListPublicGymsController.php` и подключить маршрут `GET /api/v1/public/gyms` без авторизации в `Catalog/Presentation/routes.php`.
-3. Валидировать `q`, `amenities`, `district`, `price_min`, `price_max`, `currency` (обязателен при `price_min`/`price_max`), `page`, `per_page`; возвращать `data` + `meta` пагинации без внутренних `companyId` и приватных полей; описать эндпоинт в OpenAPI (`docs/api/public-catalog.yaml`).
-4. Написать `ListPublicGymsTest`, прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
+1. **T3-14a [ ] — Сценарий публичной карточки.** Перечитать Бизнес-ТЗ 7, Техническое ТЗ 3.5, 3.7 и решение D-010. Пометить задачу `[~]` в `docs/TASKS.md`.
+2. Создать `Catalog/Application/GetPublicGym.php` и DTO результата карточки `Catalog/Application/PublicGymCardResult.php` (витрина `PublicGymProfile` + список активных типов абонементов `list<PublicMembershipType>`).
+3. В `GetPublicGym`: сначала искать опубликованную витрину по ULID через `PublicGymQueryInterface::findByPublicId`, и только если она найдена (`!== null`), запрашивать активные типы абонементов компании через `MembershipCatalogQueryInterface::listActiveForCompany`.
+4. Написать `GetPublicGymTest`, прогнать `lint`, `analyse`, `test`, `deps`, обновить `TASKS.md` и `HANDOFF.md`, сделать коммит.
 
 ## Ранее реализовано: фотографии
 
 - `POST /api/v1/business/gyms/{gym}/photos`: jpeg/png/webp до 5 МБ, максимум 10; только владелец, pending запрещён, изменение → draft.
 - `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`: общий с загрузкой lock строки зала, проверка компании/зала/фото, сброс модерации; успех 200 с `data: null`.
 - Удаление восстанавливает файл при перехваченном сбое; аварийное завершение процесса не покрывается. Отсутствующий файл не мешает удалить запись (D-009, допущение ждёт подтверждения).
-- OpenAPI: `docs/api/gym-photos.yaml`, `docs/api/gym-profiles.yaml`.
+- OpenAPI: `docs/api/gym-photos.yaml`, `docs/api/gym-profiles.yaml`, `docs/api/public-catalog.yaml`.
 
 ## Окружение: важное про Docker и Git
 
