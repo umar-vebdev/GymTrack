@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Modules\Analytics\AnalyticsServiceProvider;
 use App\Modules\Audit\AuditServiceProvider;
 use App\Modules\Billing\BillingServiceProvider;
+use App\Modules\Catalog\CatalogServiceProvider;
 use App\Modules\Clients\ClientsServiceProvider;
 use App\Modules\Companies\CompaniesServiceProvider;
 use App\Modules\Identity\IdentityServiceProvider;
@@ -26,4 +27,5 @@ return [
     AnalyticsServiceProvider::class,
     VisitsServiceProvider::class,
     NotificationsServiceProvider::class,
+    CatalogServiceProvider::class,
 ];

@@ -26,4 +26,3 @@ final class PublicMembershipType
         public readonly int $freezeMaxTimes,
     ) {}
 }
-
