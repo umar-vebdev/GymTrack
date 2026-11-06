@@ -257,4 +257,3 @@ final class ListPublicGymsTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['district']]]);
     }
 }
-
