@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Companies\Infrastructure;
 
+use App\Modules\Companies\Contracts\GeoBounds;
+use App\Modules\Companies\Contracts\GeoRadius;
 use App\Modules\Companies\Contracts\PublicGymFilter;
 use App\Modules\Companies\Contracts\PublicGymProfile;
 use App\Modules\Companies\Contracts\PublicGymQueryInterface;
@@ -15,6 +17,8 @@ use Illuminate\Support\Facades\Storage;
 
 final class EloquentPublicGymQuery implements PublicGymQueryInterface
 {
+    private const EARTH_RADIUS_KM = 6371.0;
+
     public function search(PublicGymFilter $filter): array
     {
         if ($filter->companyIds !== null && $filter->companyIds === []) {
@@ -41,6 +45,14 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
 
         foreach ($filter->amenities as $amenity) {
             $query->whereJsonContains('companies_gym_profiles.amenities', $amenity);
+        }
+
+        if ($filter->bounds !== null) {
+            $this->applyBounds($query, $filter->bounds);
+        }
+
+        if ($filter->radius !== null) {
+            $this->applyRadius($query, $filter->radius);
         }
 
         $total = (clone $query)->count();
@@ -91,6 +103,36 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
         $photosByGym = $this->loadPhotosByGymIds([$gymId]);
 
         return $this->toPublicProfile($model, $photosByGym[$gymId] ?? []);
+    }
+
+    /**
+     * @param  Builder<GymProfileModel>  $query
+     */
+    private function applyBounds(Builder $query, GeoBounds $bounds): void
+    {
+        $query->whereNotNull('companies_gym_profiles.latitude')
+            ->whereNotNull('companies_gym_profiles.longitude')
+            ->whereBetween('companies_gym_profiles.latitude', [$bounds->swLat, $bounds->neLat])
+            ->whereBetween('companies_gym_profiles.longitude', [$bounds->swLng, $bounds->neLng]);
+    }
+
+    /**
+     * Расстояние по большому кругу (формула гаверсинуса); LEAST защищает ASIN от погрешности округления > 1.
+     *
+     * @param  Builder<GymProfileModel>  $query
+     */
+    private function applyRadius(Builder $query, GeoRadius $radius): void
+    {
+        $query->whereNotNull('companies_gym_profiles.latitude')
+            ->whereNotNull('companies_gym_profiles.longitude')
+            ->whereRaw(
+                '? * 2 * ASIN(LEAST(1.0, SQRT('
+                .'POWER(SIN(RADIANS(CAST(companies_gym_profiles.latitude AS double precision) - CAST(? AS double precision)) / 2), 2)'
+                .' + COS(RADIANS(CAST(? AS double precision))) * COS(RADIANS(CAST(companies_gym_profiles.latitude AS double precision)))'
+                .' * POWER(SIN(RADIANS(CAST(companies_gym_profiles.longitude AS double precision) - CAST(? AS double precision)) / 2), 2)'
+                .'))) <= ?',
+                [self::EARTH_RADIUS_KM, $radius->lat, $radius->lat, $radius->lng, $radius->radiusKm],
+            );
     }
 
     /**

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Companies;
 
 use App\Models\User;
+use App\Modules\Companies\Contracts\GeoBounds;
+use App\Modules\Companies\Contracts\GeoRadius;
 use App\Modules\Companies\Contracts\PublicGymFilter;
 use App\Modules\Companies\Contracts\PublicGymQueryInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
@@ -19,6 +21,7 @@ use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 use Tests\TestCase;
 
 final class PublicGymQueryTest extends TestCase
@@ -38,6 +41,8 @@ final class PublicGymQueryTest extends TestCase
         array $amenities = ['shower', 'parking'],
         ?int $companyId = null,
         array $workingHours = ['mon' => '08:00-22:00'],
+        ?float $latitude = 38.5598,
+        ?float $longitude = 68.787,
     ): array {
         if ($companyId === null) {
             $owner = User::factory()->create();
@@ -51,8 +56,8 @@ final class PublicGymQueryTest extends TestCase
         $profile->update(
             description: "Описание {$name}",
             address: 'ул. Рудаки, 10',
-            latitude: 38.5598,
-            longitude: 68.787,
+            latitude: $latitude,
+            longitude: $longitude,
             phone: '+992900000000',
             workingHours: $workingHours,
             amenities: $amenities,
@@ -267,5 +272,92 @@ final class PublicGymQueryTest extends TestCase
 
         $this->assertCount(3, $allPage['items']);
         $this->assertLessThanOrEqual(3, $queriesExecuted);
+    }
+
+    public function test_it_filters_by_map_bounds_inclusively_and_skips_profiles_without_coordinates(): void
+    {
+        // Душанбе (центр) и Худжанд (~200 км севернее); у третьего зала нет точки на карте.
+        $dushanbe = $this->createGymWithProfile('Gym Dushanbe', latitude: 38.5598, longitude: 68.787);
+        $khujand = $this->createGymWithProfile('Gym Khujand', latitude: 40.2833, longitude: 69.6222);
+        $this->createGymWithProfile('Gym Without Point', latitude: null, longitude: null);
+
+        $query = $this->app->make(PublicGymQueryInterface::class);
+
+        $dushanbeArea = $query->search(new PublicGymFilter(bounds: new GeoBounds(38.4, 68.6, 38.7, 68.9)));
+        $this->assertSame(1, $dushanbeArea['total']);
+        $this->assertSame($dushanbe['publicId'], $dushanbeArea['items'][0]->publicId);
+
+        $edgeInclusive = $query->search(new PublicGymFilter(bounds: new GeoBounds(40.2833, 69.6222, 41.0, 70.0)));
+        $this->assertSame(1, $edgeInclusive['total']);
+        $this->assertSame($khujand['publicId'], $edgeInclusive['items'][0]->publicId);
+
+        $wholeCountry = $query->search(new PublicGymFilter(bounds: new GeoBounds(36.0, 67.0, 41.5, 75.5)));
+        $this->assertSame(2, $wholeCountry['total']);
+
+        $withoutGeo = $query->search(new PublicGymFilter);
+        $this->assertSame(3, $withoutGeo['total']);
+    }
+
+    public function test_it_filters_by_haversine_radius_and_combines_with_bounds_and_other_filters(): void
+    {
+        // Точка в ~1.1 км севернее центра Душанбе и точка в ~11 км восточнее.
+        $center = $this->createGymWithProfile('Gym Center', latitude: 38.5598, longitude: 68.787, amenities: ['shower']);
+        $near = $this->createGymWithProfile('Gym Near', latitude: 38.5698, longitude: 68.787, amenities: ['pool']);
+        $this->createGymWithProfile('Gym Far', latitude: 38.5598, longitude: 68.9134);
+        $this->createGymWithProfile('Gym Without Point', latitude: null, longitude: null);
+
+        $query = $this->app->make(PublicGymQueryInterface::class);
+
+        $twoKm = $query->search(new PublicGymFilter(radius: new GeoRadius(38.5598, 68.787, 2.0)));
+        $this->assertSame(2, $twoKm['total']);
+        $expected = [$center['publicId'], $near['publicId']];
+        sort($expected);
+        $this->assertSame($expected, array_map(static fn ($item): string => $item->publicId, $twoKm['items']));
+
+        $halfKm = $query->search(new PublicGymFilter(radius: new GeoRadius(38.5598, 68.787, 0.5)));
+        $this->assertSame(1, $halfKm['total']);
+        $this->assertSame($center['publicId'], $halfKm['items'][0]->publicId);
+
+        $fifteenKm = $query->search(new PublicGymFilter(radius: new GeoRadius(38.5598, 68.787, 15.0)));
+        $this->assertSame(3, $fifteenKm['total']);
+
+        $radiusAndAmenity = $query->search(new PublicGymFilter(
+            amenities: ['pool'],
+            radius: new GeoRadius(38.5598, 68.787, 2.0),
+        ));
+        $this->assertSame(1, $radiusAndAmenity['total']);
+        $this->assertSame($near['publicId'], $radiusAndAmenity['items'][0]->publicId);
+
+        $radiusAndBounds = $query->search(new PublicGymFilter(
+            bounds: new GeoBounds(38.565, 68.7, 38.6, 68.8),
+            radius: new GeoRadius(38.5598, 68.787, 15.0),
+        ));
+        $this->assertSame(1, $radiusAndBounds['total']);
+        $this->assertSame($near['publicId'], $radiusAndBounds['items'][0]->publicId);
+    }
+
+    public function test_geo_value_objects_reject_invalid_coordinates_and_radius(): void
+    {
+        $invalid = [
+            static fn (): GeoBounds => new GeoBounds(-91.0, 0.0, 0.0, 0.0),
+            static fn (): GeoBounds => new GeoBounds(0.0, 0.0, 0.0, 181.0),
+            static fn (): GeoBounds => new GeoBounds(10.0, 0.0, 5.0, 1.0),
+            static fn (): GeoBounds => new GeoBounds(0.0, 10.0, 1.0, 5.0),
+            static fn (): GeoRadius => new GeoRadius(90.5, 0.0, 1.0),
+            static fn (): GeoRadius => new GeoRadius(0.0, -180.5, 1.0),
+            static fn (): GeoRadius => new GeoRadius(0.0, 0.0, 0.0),
+            static fn (): GeoRadius => new GeoRadius(0.0, 0.0, 100.01),
+        ];
+
+        foreach ($invalid as $index => $factory) {
+            try {
+                $factory();
+                $this->fail("Case {$index} must be rejected.");
+            } catch (InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+
+        $this->assertSame(100.0, (new GeoRadius(-90.0, 180.0, 100.0))->radiusKm);
     }
 }

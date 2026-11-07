@@ -2,27 +2,23 @@
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 
-**Обновлено:** 2026-11-06
+**Обновлено:** 2026-11-07
 **Этап:** 3 — Каталог (витрины залов, модерация, публичный каталог, карта)
 **Ветка:** main
 
 ## Текущее состояние
 
 - Этапы 0–2 завершены. Эпики **E3-A и E3-B завершены** (`T3-01`…`T3-14b` в `docs/TASKS.md`).
-- Эпик **E3-C (Карта и гео-поиск)** раскрыт в задачи `T3-15` и `T3-16` в `docs/TASKS.md` и предложен разработчику на подтверждение (раздел 4.3 `AGENTS.md`).
+- Эпик **E3-C (Карта и гео-поиск)**: план подтверждён 2026-11-07; `T3-15` готова, следующая `T3-16`.
 
 ## Последняя сессия
 
-- **T3-12 [x]**: создан и зарегистрирован `CatalogServiceProvider`, реализованы `SearchGymsQuery` и `SearchGyms`, добавлены 5 тестов в `SearchGymsTest`.
-- **T3-13 [x]**: добавлен публичный эндпоинт `GET /api/v1/public/gyms` без авторизации (`SearchGymsRequest`, `ListPublicGymsController`, `PublicGymResource`, OpenAPI `docs/api/public-catalog.yaml`) и 3 теста в `ListPublicGymsTest`.
-- **T3-14a [x]**: реализованы `GetPublicGym` и `PublicGymCardResult` в `Catalog/Application`, добавлены 3 теста в `GetPublicGymTest`.
-- **T3-14b [x]**: добавлен публичный эндпоинт карточки зала `GET /api/v1/public/gyms/{publicId}` без авторизации (`ShowPublicGymController`, `PublicGymCardResource`), дополнена OpenAPI-спецификация `docs/api/public-catalog.yaml`, добавлены 3 теста в `ShowPublicGymTest`.
-- **418 тестов, 2114 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T3-15 [x]**: Value Object `GeoBounds` и `GeoRadius` в `Companies/Contracts`, необязательные `bounds`/`radius` в `PublicGymFilter`, фильтрация в `EloquentPublicGymQuery` (`BETWEEN` + гаверсинус, витрины без координат отсекаются только при гео-фильтре). Попутно — только форматирование Pint у `tests/Feature/Catalog/GetPublicGymTest.php`.
+- **421 тест, 2138 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Дождаться подтверждения разработчиком плана эпика **E3-C** (`T3-15`, `T3-16`).
-2. После подтверждения приступить к **T3-15 [ ] — Гео-фильтр прямоугольной области карты (`bounds`) и радиуса (`lat`, `lng`, `radius_km`) в `PublicGymFilter` и `EloquentPublicGymQuery`**: пометить `[~]`, реализовать фильтрацию по прямоугольнику и формуле гаверсинуса с отсечением витрин без координат, покрыть тестами в `PublicGymQueryTest`.
+1. Приступить к **T3-16 [ ] — гео-параметры в `SearchGyms` и `GET /api/v1/public/gyms`**: пометить `[~]`; пробросить `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` через `SearchGymsQuery` → `SearchGyms` → `PublicGymFilter` (создавать `GeoBounds`/`GeoRadius` из запроса); правила комплектности и диапазонов — в `SearchGymsRequest` (422), чтобы `InvalidArgumentException` из Value Object не доходили до 500; OpenAPI `docs/api/public-catalog.yaml`; тесты в `ListPublicGymsTest`.
 
 ## Ранее реализовано: фотографии
 

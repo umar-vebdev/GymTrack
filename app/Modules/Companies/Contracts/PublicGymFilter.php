@@ -34,6 +34,8 @@ final class PublicGymFilter
         ?array $companyIds = null,
         int $page = 1,
         int $perPage = 20,
+        public readonly ?GeoBounds $bounds = null,
+        public readonly ?GeoRadius $radius = null,
     ) {
         $trimmedQuery = $query !== null ? trim($query) : null;
         $this->query = $trimmedQuery !== '' ? $trimmedQuery : null;

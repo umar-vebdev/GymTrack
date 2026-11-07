@@ -207,4 +207,3 @@ final class GetPublicGymTest extends TestCase
         $this->assertNull($useCase->execute($gym['publicId']));
     }
 }
-
