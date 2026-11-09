@@ -9,21 +9,19 @@
 ## Текущее состояние
 
 - Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
-- Эпик **E4-B (Расписание)** в работе: `T4-05a`, `T4-05b`, `T4-06a`, `T4-06b` завершены, следующая задача `T4-06c`.
+- Эпик **E4-B (Расписание)** в работе: `T4-05a`…`T4-06c` завершены, следующая задача `T4-07a`.
 
 ## Последняя сессия
 
 - **T4-01…T4-04 [x]**: эпик E4-A завершён (роль `Role::TRAINER` по D-012, модуль `Trainers`, CRUD и просмотр тренеров зала).
-- **T4-05a [x]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts` + `EloquentTrainerLookup`; сущность `ClassTemplate` и `InvalidClassTemplate` в `Schedule/Domain`, 3 теста.
-- **T4-05b [x]**: миграция `schedule_class_templates`, `ClassTemplateRepositoryInterface` + `EloquentClassTemplateRepository` (`ClassTemplateModel`), `ScheduleServiceProvider` зарегистрирован в `bootstrap/providers.php`, 2 теста в `ClassTemplateRepositoryTest`.
-- **T4-06a [x]**: сценарии `CreateClassTemplate`, `UpdateClassTemplate`, `ListClassTemplates` (`CreateClassTemplateCommand`, `UpdateClassTemplateCommand`, `ScheduleResourceNotFound`), 3 теста в `ClassTemplateUseCasesTest`.
-- **T4-06b [x]**: эндпоинты `POST /api/v1/business/schedule/templates` и `PATCH /api/v1/business/schedule/templates/{template}` (`CreateClassTemplateController`, `UpdateClassTemplateController`, `StoreClassTemplateRequest`, `UpdateClassTemplateRequest`, `ClassTemplateResource`, `routes.php`), 3 теста в `ManageClassTemplatesTest`.
-- **456 тестов, 2514 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-05a [x]**, **T4-05b [x]**: контракт `TrainerLookupInterface::existsActiveInGym`, модуль `Schedule`, таблица `schedule_class_templates`, сущность `ClassTemplate` и репозиторий.
+- **T4-06a [x]**, **T4-06b [x]**, **T4-06c [x]**: сценарии и HTTP-эндпоинты управления шаблонами расписания (`POST`/`PATCH`/`GET /api/v1/business/schedule/templates`).
+- **457 тестов, 2534 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. В работе **T4-06c [~]**: эндпоинт списка шаблонов расписания зала `GET /api/v1/business/schedule/templates?gym_id={id}&only_active=1` (`ListClassTemplatesRequest`, `ListClassTemplatesController`), маршрут и тесты в `ManageClassTemplatesTest`.
-2. После закрытия `T4-06c` перейти к **T4-07**: миграция `schedule_sessions`, сущность `ClassSession`, репозиторий и идемпотентный сценарий `GenerateClassSessions`.
+1. В работе **T4-07a [~]**: миграция `schedule_sessions`, enum `ClassSessionStatus`, сущность `ClassSession`, `ClassSessionRepositoryInterface` + `EloquentClassSessionRepository` (`ClassSessionModel`, `findByIdForUpdate`, идемпотентное создание из шаблона по `(template_id, starts_at)`) и unit-тесты.
+2. После закрытия `T4-07a` перейти к **T4-07b**: сценарии `GenerateClassSessions`, `CancelClassSession`, `ListClassSessions` и тесты.
 
 ## Ранее реализовано: фотографии
 

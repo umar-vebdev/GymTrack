@@ -223,4 +223,61 @@ final class ManageClassTemplatesTest extends TestCase
                 ],
             ]);
     }
+
+    public function test_owner_and_admin_can_list_templates_with_optional_active_filter_and_tenant_isolation(): void
+    {
+        $a = $this->createCompanySetup('A');
+        $b = $this->createCompanySetup('B');
+        $staff = $this->app->make(StaffMemberRepositoryInterface::class);
+        $trainerUser = User::factory()->create();
+        $staff->create($trainerUser->id, $a['companyId'], Role::TRAINER);
+
+        $repo = $this->app->make(ClassTemplateRepositoryInterface::class);
+        $friday = $repo->create($a['companyId'], $a['gymId'], $a['trainerId'], 'Бокс', null, 5, 1140, 90, 12);
+        $friday->deactivate();
+        $repo->save($friday);
+
+        $monday = $repo->create($a['companyId'], $a['gymId'], $a['trainerId'], 'Йога', null, 1, 540, 60, 15);
+        $repo->create($b['companyId'], $b['gymId'], $b['trainerId'], 'Чужой', null, 1, 540, 60, 15);
+
+        $this->getJson('/api/v1/business/schedule/templates?gym_id='.$a['gymId'])->assertStatus(401);
+
+        $all = $this->actingAs($a['admin'], 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates?gym_id='.$a['gymId']);
+
+        $all->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $monday->id())
+            ->assertJsonPath('data.1.id', $friday->id());
+
+        $activeOnly = $this->actingAs($a['owner'], 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates?gym_id='.$a['gymId'].'&only_active=1');
+
+        $activeOnly->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $monday->id());
+
+        $inactiveOnly = $this->actingAs($a['owner'], 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates?gym_id='.$a['gymId'].'&only_active=0');
+
+        $inactiveOnly->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $friday->id());
+
+        $this->actingAs($trainerUser, 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates?gym_id='.$a['gymId'])
+            ->assertStatus(403)
+            ->assertJsonPath('error.code', 'FORBIDDEN');
+
+        $this->actingAs($a['admin'], 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates?gym_id='.$b['gymId'])
+            ->assertStatus(404)
+            ->assertJsonPath('error.code', 'NOT_FOUND');
+
+        $this->actingAs($a['admin'], 'sanctum')
+            ->getJson('/api/v1/business/schedule/templates')
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'VALIDATION_FAILED')
+            ->assertJsonStructure(['error' => ['details' => ['gym_id']]]);
+    }
 }
