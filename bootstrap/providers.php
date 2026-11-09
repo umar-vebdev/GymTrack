@@ -12,6 +12,7 @@ use App\Modules\Identity\IdentityServiceProvider;
 use App\Modules\Memberships\MembershipsServiceProvider;
 use App\Modules\Notifications\NotificationsServiceProvider;
 use App\Modules\Sales\SalesServiceProvider;
+use App\Modules\Schedule\ScheduleServiceProvider;
 use App\Modules\Trainers\TrainersServiceProvider;
 use App\Modules\Visits\VisitsServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -30,4 +31,5 @@ return [
     NotificationsServiceProvider::class,
     CatalogServiceProvider::class,
     TrainersServiceProvider::class,
+    ScheduleServiceProvider::class,
 ];

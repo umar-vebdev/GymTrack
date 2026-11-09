@@ -9,18 +9,19 @@
 ## Текущее состояние
 
 - Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
-- Эпик **E4-B (Расписание)** в работе: `T4-05a` завершена, следующая задача `T4-05b`.
+- Эпик **E4-B (Расписание)** в работе: `T4-05a` и `T4-05b` завершены, следующая задача `T4-06a`.
 
 ## Последняя сессия
 
 - **T4-01…T4-04 [x]**: эпик E4-A завершён (роль `Role::TRAINER` по D-012, модуль `Trainers`, CRUD и просмотр тренеров зала).
-- **T4-05a [x]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts` + `EloquentTrainerLookup`; сущность `ClassTemplate` и `InvalidClassTemplate` в `Schedule/Domain`, 3 новых теста.
-- **448 тестов, 2425 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-05a [x]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts` + `EloquentTrainerLookup`; сущность `ClassTemplate` и `InvalidClassTemplate` в `Schedule/Domain`, 3 теста.
+- **T4-05b [x]**: миграция `schedule_class_templates`, `ClassTemplateRepositoryInterface` + `EloquentClassTemplateRepository` (`ClassTemplateModel`), `ScheduleServiceProvider` зарегистрирован в `bootstrap/providers.php`, 2 теста в `ClassTemplateRepositoryTest`.
+- **450 тестов, 2443 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. В работе **T4-05b [~]**: миграция `schedule_class_templates` (`public_id` ULID, `company_id`, `gym_id`, `trainer_id`, `title`, `description`, `weekday`, `start_time_minute`, `duration_minutes`, `capacity`, `is_active`), `ClassTemplateRepositoryInterface` + `EloquentClassTemplateRepository` (`ClassTemplateModel`), `ScheduleServiceProvider` в `bootstrap/providers.php`, тесты в `ClassTemplateRepositoryTest`.
-2. После закрытия `T4-05b` перейти к **T4-06**: сценарии и эндпоинты управления шаблонами расписания в кабинете зала.
+1. В работе **T4-06a [~]**: сценарии `CreateClassTemplate`, `UpdateClassTemplate`, `ListClassTemplates` в `Schedule/Application` с проверкой принадлежности зала (`GymLookupInterface`) и активного тренера в зале (`TrainerLookupInterface`), доменные исключения и тесты в `ClassTemplateUseCasesTest`.
+2. После закрытия `T4-06a` перейти к **T4-06b**: HTTP-эндпоинты управления шаблонами расписания в кабинете зала (`POST`/`PATCH`/`GET /api/v1/business/schedule/templates`).
 
 ## Ранее реализовано: фотографии
 
