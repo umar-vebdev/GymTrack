@@ -4,6 +4,41 @@ info:
   version: 1.0.0
 paths:
   /api/v1/business/trainers:
+    get:
+      summary: Список тренеров зала компании (владелец и администратор)
+      description: |
+        Возвращает всех тренеров (активных и деактивированных) указанного зала компании,
+        отсортированных по имени и идентификатору.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: gym_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Список тренеров зала
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Trainer'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не сотрудник бэк-офиса (владелец/администратор)
+        '404':
+          description: NOT_FOUND — зал не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — gym_id отсутствует или некорректен
     post:
       summary: Добавить тренера в свой зал (только владелец)
       description: |
@@ -37,6 +72,33 @@ paths:
         '422':
           description: VALIDATION_FAILED — невалидные поля запроса
   /api/v1/business/trainers/{trainer}:
+    get:
+      summary: Просмотр карточки тренера компании (владелец и администратор)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trainer
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Карточка тренера
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Trainer'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не сотрудник бэк-офиса (владелец/администратор)
+        '404':
+          description: NOT_FOUND — тренер не существует или принадлежит другой компании
     patch:
       summary: Обновить профиль и активность тренера (только владелец)
       description: |
@@ -134,3 +196,4 @@ components:
           nullable: true
         is_active:
           type: boolean
+
