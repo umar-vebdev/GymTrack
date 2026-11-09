@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Companies;
 
 use App\Modules\Companies\Contracts\CompanyCurrencyLookupInterface;
+use App\Modules\Companies\Contracts\GymLookupInterface;
 use App\Modules\Companies\Contracts\GymQrLookupInterface;
 use App\Modules\Companies\Contracts\PublicGymQueryInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
@@ -17,6 +18,7 @@ use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Companies\Infrastructure\EloquentCompanyCurrencyLookup;
 use App\Modules\Companies\Infrastructure\EloquentCompanyRepository;
 use App\Modules\Companies\Infrastructure\EloquentCurrencyRepository;
+use App\Modules\Companies\Infrastructure\EloquentGymLookup;
 use App\Modules\Companies\Infrastructure\EloquentGymPhotoRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymProfileRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymQrLookup;
@@ -68,6 +70,7 @@ final class CompaniesServiceProvider extends ServiceProvider
             PublicGymQueryInterface::class,
             EloquentPublicGymQuery::class
         );
+        $this->app->bind(GymLookupInterface::class, EloquentGymLookup::class);
     }
 
     public function boot(): void

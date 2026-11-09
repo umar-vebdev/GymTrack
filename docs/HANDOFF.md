@@ -2,25 +2,25 @@
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 
-**Обновлено:** 2026-11-07
-**Этап:** 4 — Расписание и тренеры (планирование; этап 3 принят)
+**Обновлено:** 2026-11-09
+**Этап:** 4 — Расписание и тренеры (E4-A в работе)
 **Ветка:** main
 
 ## Текущее состояние
 
-- Этапы 0–2 завершены. Этап 3 (каталог): эпики **E3-A, E3-B, E3-C завершены** (`T3-01`…`T3-16`), ждёт приёмки разработчиком.
+- Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры)** в работе: `T4-01`, `T4-02`, `T4-03a` завершены, выполняется `T4-03b`.
 
 ## Последняя сессия
 
-- Этап 3 принят; принят объём этапа 4 (D-011) и доступ тренера (D-012).
-- **T4-01 [x]**: `Role::TRAINER`, `companyIdForUser` только для owner/admin, `companyIdForTrainer`.
+- **T4-01 [x]**: `Role::TRAINER`, `companyIdForUser` только для owner/admin, `companyIdForTrainer` (D-012).
 - **T4-02 [x]**: модуль `Trainers` — миграция `trainers_profiles`, сущность `Trainer`, `TrainerRepositoryInterface` + Eloquent-реализация, 7 тестов.
-- **433 теста, 2257 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-03a [x]**: контракт `GymLookupInterface::existsInCompany` в `Companies/Contracts` + `EloquentGymLookup`; сценарии `CreateTrainer` и `UpdateTrainer`, исключения `TrainerGymNotFound` и `TrainerNotFound`, 5 тестов в `TrainerUseCasesTest`; в `phpunit.xml` добавлен `memory_limit=512M`.
+- **438 тестов, 2281 проверка**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. **T4-03 [ ]** (`docs/TASKS.md`, E4-A): `CreateTrainer`/`UpdateTrainer` + `POST`/`PATCH /api/v1/business/trainers` (только владелец), OpenAPI. Проверка, что зал принадлежит компании, — через **новый контракт в `Companies/Contracts`** (например, `GymLookupInterface::belongsToCompany(gymId, companyId)`), а не через внутренние классы Companies. Если задача превысит ~5 файлов, разбить на T4-03a (контракт + `CreateTrainer`) и T4-03b (`UpdateTrainer` + эндпоинты). Ошибки: чужой зал → 404 `NOT_FOUND`, не владелец → 403, невалидный профиль → 422. Перед стартом посмотреть, как сделаны `UpdateGymProfileController` и `GymProfilePolicy`.
-2. Привязка аккаунта тренера (`user_id`) в T4-03 не реализуется (в проекте нет добавления сотрудников); нужен отдельный вопрос разработчику.
+1. В работе **T4-03b [~]**: реализовать HTTP-слой создания и редактирования тренеров (`POST /api/v1/business/trainers`, `PATCH /api/v1/business/trainers/{id}`, доступ только владельцу компании), `StoreTrainerRequest`, `UpdateTrainerRequest`, `TrainerResource`, маршруты в `app/Modules/Trainers/Presentation/routes.php`, спецификацию `docs/api/trainers.yaml` и feature-тесты.
+2. После закрытия `T4-03b` перейти к **T4-04**: список и просмотр тренеров зала `GET /api/v1/business/trainers` и `GET /api/v1/business/trainers/{id}` (owner/admin).
 
 ## Ранее реализовано: фотографии
 
