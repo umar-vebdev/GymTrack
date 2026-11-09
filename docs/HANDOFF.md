@@ -12,14 +12,14 @@
 
 ## Последняя сессия
 
-- **T3-16 [x]**: гео-параметры `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` в `GET /api/v1/public/gyms` (`SearchGymsRequest` → 422, `SearchGymsQuery`, `SearchGyms`, `ListPublicGymsController`, OpenAPI), 2 новых теста.
-- **423 теста, 2216 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- Этап 3 принят; принят объём этапа 4 (D-011) и решение о доступе тренера (D-012).
+- **T4-01 [x]**: `Role::TRAINER`, `Role::backOffice()`, `companyIdForUser` только для owner/admin, новый `companyIdForTrainer`; тренер получает 403 на эндпоинтах кабинета.
+- **426 тестов, 2225 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Этап 3 **принят** разработчиком 2026-11-09.
-2. Объём этапа 4 принят (D-011): эпики E4-A…E4-D в `docs/TASKS.md`, E4-E отложен.
-3. Следующий шаг: перечитать Бизнес-ТЗ 2, 8 и Тех. ТЗ 3.6–3.8, 14, раскрыть **E4-A «Тренеры»** в мелкие задачи (раздел 4.2 `AGENTS.md`), показать список разработчику на подтверждение и только потом начинать.
+1. Приступить к **T4-02 [ ] — профиль тренера** (`docs/TASKS.md`, эпик E4-A): создать модуль `Trainers` (`TrainersServiceProvider`, регистрация в `bootstrap/providers.php`, правило в `deptrac.yaml`: зависит от Companies), миграция `trainers_profiles` (`company_id`, `gym_id`, `user_id` nullable, `name`, `bio`, `is_active`, публичный `public_id` ULID), сущность, репозиторий, тест. Перед стартом проверить, как устроен `CatalogServiceProvider` и `deptrac.yaml`.
+2. В T4-03 учесть: в проекте нет эндпоинта добавления сотрудников; пользователя-тренера привязывает отдельная задача (вне E4-A или решение в `DECISIONS.md`).
 
 ## Ранее реализовано: фотографии
 

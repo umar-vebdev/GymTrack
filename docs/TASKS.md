@@ -103,7 +103,11 @@
 
 **ТЗ:** Бизнес-ТЗ 2, 8; Тех. ТЗ 3.6, 3.7, 14. Эпики хранятся крупными блоками и раскрываются в задачи перед стартом (4.3 `AGENTS.md`).
 
-- [ ] **E4-A Тренеры**: роль «Тренер» в Companies, профиль тренера, привязка к залу (модуль `Trainers`)
+- [ ] **E4-A Тренеры** (раскрыт 2026-11-09, план подтверждён разработчиком; D-012)
+  - [x] **T4-01** Роль `Role::TRAINER` и `Role::backOffice()`; `companyIdForUser` возвращает компанию только для owner/admin, добавлен `companyIdForTrainer` (D-012). Тренер получает 403 `FORBIDDEN` на эндпоинтах кабинета без правки контроллеров. 3 теста в `StaffCompanyResolverTest`; всего 426 тестов, lint/analyse/test/deps зелёные. Заметка: `EnsureActiveCompanySubscription` на тренера не действует, учесть в E4-B.
+  - [ ] **T4-02** Профиль тренера: миграция `trainers_profiles` (модуль `Trainers`, `company_id`, `gym_id`, `user_id` nullable, `name`, `bio`, `is_active`), сущность, репозиторий + тест.
+  - [ ] **T4-03** `CreateTrainer`/`UpdateTrainer` + `POST`/`PATCH /api/v1/business/trainers` (только владелец), OpenAPI.
+  - [ ] **T4-04** Список и просмотр тренеров зала `GET /business/trainers[/{id}]` (owner/admin), тесты изоляции компаний.
 - [ ] **E4-B Расписание**: шаблоны групповых занятий, повторения, лимит мест (модуль `Schedule`)
 - [ ] **E4-C Запись клиентов**: запись и отмена, лимиты, `Idempotency-Key`, блокировка строки занятия
 - [ ] **E4-D Привязка к абонементам**: занятие списывает посещение через Contracts Memberships

@@ -14,6 +14,18 @@ final class EloquentStaffCompanyResolver implements StaffCompanyResolverInterfac
     {
         $model = StaffMemberModel::query()
             ->where('user_id', $userId)
+            ->whereIn('role', array_map(static fn (Role $role): string => $role->value, Role::backOffice()))
+            ->orderBy('id')
+            ->first();
+
+        return $model?->company_id;
+    }
+
+    public function companyIdForTrainer(int $userId): ?int
+    {
+        $model = StaffMemberModel::query()
+            ->where('user_id', $userId)
+            ->where('role', Role::TRAINER->value)
             ->orderBy('id')
             ->first();
 

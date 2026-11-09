@@ -10,9 +10,15 @@ namespace App\Modules\Companies\Contracts;
 interface StaffCompanyResolverInterface
 {
     /**
-     * Возвращает ID компании сотрудника (пока — первая найденная) или null, если пользователь не сотрудник.
+     * Возвращает ID компании сотрудника бэк-офиса (владелец или администратор; пока — первая найденная)
+     * или null, если пользователь не сотрудник бэк-офиса. Тренер сюда не попадает (D-012).
      */
     public function companyIdForUser(int $userId): ?int;
+
+    /**
+     * Возвращает ID компании, в которой пользователь работает тренером, или null.
+     */
+    public function companyIdForTrainer(int $userId): ?int;
 
     /**
      * Является ли пользователь владельцем указанной компании.
