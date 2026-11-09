@@ -7,6 +7,7 @@ namespace Tests\Unit\Trainers;
 use App\Models\User;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Trainers\Contracts\TrainerLookupInterface;
 use App\Modules\Trainers\Domain\Exceptions\InvalidTrainerProfile;
 use App\Modules\Trainers\Domain\Trainer;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
@@ -113,5 +114,24 @@ final class TrainerRepositoryTest extends TestCase
 
         $this->expectException(QueryException::class);
         $repo->create($a['companyId'], $a['gymId'], 'Дубль', null, $user->id);
+    }
+
+    public function test_trainer_lookup_contract_checks_active_trainer_in_gym_and_company(): void
+    {
+        $a = $this->createCompanyWithGym('A');
+        $b = $this->createCompanyWithGym('B');
+        $repo = $this->app->make(TrainerRepositoryInterface::class);
+        $lookup = $this->app->make(TrainerLookupInterface::class);
+
+        $trainer = $repo->create($a['companyId'], $a['gymId'], 'Иван');
+
+        $this->assertTrue($lookup->existsActiveInGym($trainer->id(), $a['companyId'], $a['gymId']));
+        $this->assertFalse($lookup->existsActiveInGym($trainer->id(), $b['companyId'], $a['gymId']));
+        $this->assertFalse($lookup->existsActiveInGym($trainer->id(), $a['companyId'], $b['gymId']));
+
+        $trainer->deactivate();
+        $repo->save($trainer);
+
+        $this->assertFalse($lookup->existsActiveInGym($trainer->id(), $a['companyId'], $a['gymId']));
     }
 }

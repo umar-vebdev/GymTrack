@@ -9,21 +9,18 @@
 ## Текущее состояние
 
 - Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
-- Эпик **E4-B (Расписание)** раскрыт в задачи `T4-05`…`T4-08` в `docs/TASKS.md` и предложен разработчику на подтверждение (раздел 4.3 `AGENTS.md`).
+- Эпик **E4-B (Расписание)** в работе: `T4-05a` завершена, следующая задача `T4-05b`.
 
 ## Последняя сессия
 
-- **T4-01 [x]**: `Role::TRAINER`, `companyIdForUser` только для owner/admin, `companyIdForTrainer` (D-012).
-- **T4-02 [x]**: модуль `Trainers` — миграция `trainers_profiles`, сущность `Trainer`, `TrainerRepositoryInterface` + Eloquent-реализация, 7 тестов.
-- **T4-03a [x]**: контракт `GymLookupInterface::existsInCompany` в `Companies/Contracts` + `EloquentGymLookup`; сценарии `CreateTrainer` и `UpdateTrainer`, исключения `TrainerGymNotFound` и `TrainerNotFound`, 5 тестов в `TrainerUseCasesTest`; в `phpunit.xml` добавлен `memory_limit=512M`.
-- **T4-03b [x]**: эндпоинты `POST /api/v1/business/trainers` и `PATCH /api/v1/business/trainers/{trainer}`, `StoreTrainerRequest`, `UpdateTrainerRequest`, `TrainerResource`, `routes.php`, OpenAPI `docs/api/trainers.yaml`, 4 теста в `ManageTrainersTest`.
-- **T4-04 [x]**: эндпоинты `GET /api/v1/business/trainers?gym_id={id}` и `GET /api/v1/business/trainers/{trainer}` (`ListGymTrainers`, `GetTrainer`, `ListTrainersRequest`, `ListTrainersController`, `ShowTrainerController`), дополнен `docs/api/trainers.yaml`, 3 теста в `ListAndShowTrainersTest`.
-- **445 тестов, 2392 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-01…T4-04 [x]**: эпик E4-A завершён (роль `Role::TRAINER` по D-012, модуль `Trainers`, CRUD и просмотр тренеров зала).
+- **T4-05a [x]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts` + `EloquentTrainerLookup`; сущность `ClassTemplate` и `InvalidClassTemplate` в `Schedule/Domain`, 3 новых теста.
+- **448 тестов, 2425 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Дождаться подтверждения разработчиком плана эпика **E4-B (Расписание)** (`T4-05`…`T4-08` в `docs/TASKS.md`).
-2. После подтверждения приступить к **T4-05 [ ]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts`, модуль `Schedule` (`ScheduleServiceProvider`), миграция `schedule_class_templates`, сущность `ClassTemplate` и репозиторий с тестами.
+1. В работе **T4-05b [~]**: миграция `schedule_class_templates` (`public_id` ULID, `company_id`, `gym_id`, `trainer_id`, `title`, `description`, `weekday`, `start_time_minute`, `duration_minutes`, `capacity`, `is_active`), `ClassTemplateRepositoryInterface` + `EloquentClassTemplateRepository` (`ClassTemplateModel`), `ScheduleServiceProvider` в `bootstrap/providers.php`, тесты в `ClassTemplateRepositoryTest`.
+2. После закрытия `T4-05b` перейти к **T4-06**: сценарии и эндпоинты управления шаблонами расписания в кабинете зала.
 
 ## Ранее реализовано: фотографии
 
