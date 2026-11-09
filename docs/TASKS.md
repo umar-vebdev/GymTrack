@@ -105,7 +105,7 @@
 
 - [ ] **E4-A Тренеры** (раскрыт 2026-11-09, план подтверждён разработчиком; D-012)
   - [x] **T4-01** Роль `Role::TRAINER` и `Role::backOffice()`; `companyIdForUser` возвращает компанию только для owner/admin, добавлен `companyIdForTrainer` (D-012). Тренер получает 403 `FORBIDDEN` на эндпоинтах кабинета без правки контроллеров. 3 теста в `StaffCompanyResolverTest`; всего 426 тестов, lint/analyse/test/deps зелёные. Заметка: `EnsureActiveCompanySubscription` на тренера не действует, учесть в E4-B.
-  - [ ] **T4-02** Профиль тренера: миграция `trainers_profiles` (модуль `Trainers`, `company_id`, `gym_id`, `user_id` nullable, `name`, `bio`, `is_active`), сущность, репозиторий + тест.
+  - [x] **T4-02** Модуль `Trainers` (`TrainersServiceProvider` зарегистрирован в `bootstrap/providers.php`): миграция `trainers_profiles` (ULID `public_id`, `company_id`, `gym_id`, необязательный `user_id` с уникальностью `(company_id, user_id)`, `name`, `bio`, `is_active`), сущность `Trainer` (инварианты имени ≤100 и описания ≤1000, `updateProfile`, `activate`/`deactivate`), `InvalidTrainerProfile`, `TrainerRepositoryInterface` + `EloquentTrainerRepository` (все выборки и `save` фильтруют по `company_id`). Проверка принадлежности зала компании — в T4-03 через Contracts Companies. 7 тестов (`TrainerTest`, `TrainerRepositoryTest`); всего 433, lint/analyse/test/deps зелёные.
   - [ ] **T4-03** `CreateTrainer`/`UpdateTrainer` + `POST`/`PATCH /api/v1/business/trainers` (только владелец), OpenAPI.
   - [ ] **T4-04** Список и просмотр тренеров зала `GET /business/trainers[/{id}]` (owner/admin), тесты изоляции компаний.
 - [ ] **E4-B Расписание**: шаблоны групповых занятий, повторения, лимит мест (модуль `Schedule`)

@@ -12,14 +12,15 @@
 
 ## Последняя сессия
 
-- Этап 3 принят; принят объём этапа 4 (D-011) и решение о доступе тренера (D-012).
-- **T4-01 [x]**: `Role::TRAINER`, `Role::backOffice()`, `companyIdForUser` только для owner/admin, новый `companyIdForTrainer`; тренер получает 403 на эндпоинтах кабинета.
-- **426 тестов, 2225 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- Этап 3 принят; принят объём этапа 4 (D-011) и доступ тренера (D-012).
+- **T4-01 [x]**: `Role::TRAINER`, `companyIdForUser` только для owner/admin, `companyIdForTrainer`.
+- **T4-02 [x]**: модуль `Trainers` — миграция `trainers_profiles`, сущность `Trainer`, `TrainerRepositoryInterface` + Eloquent-реализация, 7 тестов.
+- **433 теста, 2257 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Приступить к **T4-02 [ ] — профиль тренера** (`docs/TASKS.md`, эпик E4-A): создать модуль `Trainers` (`TrainersServiceProvider`, регистрация в `bootstrap/providers.php`, правило в `deptrac.yaml`: зависит от Companies), миграция `trainers_profiles` (`company_id`, `gym_id`, `user_id` nullable, `name`, `bio`, `is_active`, публичный `public_id` ULID), сущность, репозиторий, тест. Перед стартом проверить, как устроен `CatalogServiceProvider` и `deptrac.yaml`.
-2. В T4-03 учесть: в проекте нет эндпоинта добавления сотрудников; пользователя-тренера привязывает отдельная задача (вне E4-A или решение в `DECISIONS.md`).
+1. **T4-03 [ ]** (`docs/TASKS.md`, E4-A): `CreateTrainer`/`UpdateTrainer` + `POST`/`PATCH /api/v1/business/trainers` (только владелец), OpenAPI. Проверка, что зал принадлежит компании, — через **новый контракт в `Companies/Contracts`** (например, `GymLookupInterface::belongsToCompany(gymId, companyId)`), а не через внутренние классы Companies. Если задача превысит ~5 файлов, разбить на T4-03a (контракт + `CreateTrainer`) и T4-03b (`UpdateTrainer` + эндпоинты). Ошибки: чужой зал → 404 `NOT_FOUND`, не владелец → 403, невалидный профиль → 422. Перед стартом посмотреть, как сделаны `UpdateGymProfileController` и `GymProfilePolicy`.
+2. Привязка аккаунта тренера (`user_id`) в T4-03 не реализуется (в проекте нет добавления сотрудников); нужен отдельный вопрос разработчику.
 
 ## Ранее реализовано: фотографии
 
