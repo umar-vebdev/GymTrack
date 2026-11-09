@@ -9,19 +9,20 @@
 ## Текущее состояние
 
 - Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
-- Эпик **E4-B (Расписание)** в работе: `T4-05a` и `T4-05b` завершены, следующая задача `T4-06a`.
+- Эпик **E4-B (Расписание)** в работе: `T4-05a`, `T4-05b`, `T4-06a` завершены, следующая задача `T4-06b`.
 
 ## Последняя сессия
 
 - **T4-01…T4-04 [x]**: эпик E4-A завершён (роль `Role::TRAINER` по D-012, модуль `Trainers`, CRUD и просмотр тренеров зала).
 - **T4-05a [x]**: контракт `TrainerLookupInterface::existsActiveInGym` в `Trainers/Contracts` + `EloquentTrainerLookup`; сущность `ClassTemplate` и `InvalidClassTemplate` в `Schedule/Domain`, 3 теста.
 - **T4-05b [x]**: миграция `schedule_class_templates`, `ClassTemplateRepositoryInterface` + `EloquentClassTemplateRepository` (`ClassTemplateModel`), `ScheduleServiceProvider` зарегистрирован в `bootstrap/providers.php`, 2 теста в `ClassTemplateRepositoryTest`.
-- **450 тестов, 2443 проверки**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-06a [x]**: сценарии `CreateClassTemplate`, `UpdateClassTemplate`, `ListClassTemplates` (`CreateClassTemplateCommand`, `UpdateClassTemplateCommand`, `ScheduleResourceNotFound`), 3 теста в `ClassTemplateUseCasesTest`.
+- **453 теста, 2465 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. В работе **T4-06a [~]**: сценарии `CreateClassTemplate`, `UpdateClassTemplate`, `ListClassTemplates` в `Schedule/Application` с проверкой принадлежности зала (`GymLookupInterface`) и активного тренера в зале (`TrainerLookupInterface`), доменные исключения и тесты в `ClassTemplateUseCasesTest`.
-2. После закрытия `T4-06a` перейти к **T4-06b**: HTTP-эндпоинты управления шаблонами расписания в кабинете зала (`POST`/`PATCH`/`GET /api/v1/business/schedule/templates`).
+1. В работе **T4-06b [~]**: HTTP-эндпоинты `POST /api/v1/business/schedule/templates`, `PATCH /api/v1/business/schedule/templates/{template}`, `GET /api/v1/business/schedule/templates?gym_id={id}` (доступно владельцу и администратору зала; тренер и посторонние → 403 по D-012; чужой зал/шаблон или неактивный/чужой тренер → 404 `NOT_FOUND`), `StoreClassTemplateRequest`, `UpdateClassTemplateRequest`, `ListClassTemplatesRequest`, `ClassTemplateResource`, маршруты в `Schedule/Presentation/routes.php` и тесты в `ManageClassTemplatesTest`.
+2. После закрытия `T4-06b` перейти к **T4-07**: миграция `schedule_sessions`, сущность `ClassSession`, репозиторий и идемпотентный сценарий `GenerateClassSessions`.
 
 ## Ранее реализовано: фотографии
 
