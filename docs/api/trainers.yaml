@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — управление тренерами зала
+  version: 1.0.0
+paths:
+  /api/v1/business/trainers:
+    post:
+      summary: Добавить тренера в свой зал (только владелец)
+      description: |
+        Создаёт активный профиль тренера в указанном зале компании владельца.
+        Пробелы по краям имени и описания удаляются; пустое описание превращается в null.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainerCreate'
+      responses:
+        '201':
+          description: Тренер создан
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Trainer'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец или подписка истекла
+        '404':
+          description: NOT_FOUND — зал не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — невалидные поля запроса
+  /api/v1/business/trainers/{trainer}:
+    patch:
+      summary: Обновить профиль и активность тренера (только владелец)
+      description: |
+        Заменяет имя и описание тренера (`bio: null` или отсутствие `bio` очищает описание).
+        Поле `is_active` необязательно: если не передано или равно null, активность не меняется.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: trainer
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainerUpdate'
+      responses:
+        '200':
+          description: Профиль тренера обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Trainer'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — пользователь не владелец или подписка истекла
+        '404':
+          description: NOT_FOUND — тренер не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — невалидные поля запроса
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    TrainerCreate:
+      type: object
+      required: [gym_id, name]
+      properties:
+        gym_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 100
+          example: Иван Петров
+        bio:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: Тренер по кроссфиту, стаж 7 лет
+    TrainerUpdate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Иван Петров
+        bio:
+          type: string
+          nullable: true
+          maxLength: 1000
+        is_active:
+          type: boolean
+          nullable: true
+    Trainer:
+      type: object
+      required: [id, public_id, gym_id, user_id, name, bio, is_active]
+      properties:
+        id:
+          type: integer
+        public_id:
+          type: string
+          description: Публичный идентификатор тренера (ULID)
+          example: 01jbtxxxxxxxxxxxxxxxxxxxxx
+        gym_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
