@@ -9,6 +9,8 @@ use App\Modules\Catalog\Application\SearchGyms;
 use App\Modules\Catalog\Application\SearchGymsQuery;
 use App\Modules\Catalog\Presentation\Requests\SearchGymsRequest;
 use App\Modules\Catalog\Presentation\Resources\PublicGymResource;
+use App\Modules\Companies\Contracts\GeoBounds;
+use App\Modules\Companies\Contracts\GeoRadius;
 use App\Modules\Companies\Contracts\PublicGymProfile;
 use Illuminate\Http\JsonResponse;
 
@@ -42,6 +44,17 @@ final class ListPublicGymsController extends Controller
             currency: $currency,
             page: $page,
             perPage: $perPage,
+            bounds: $request->filled('sw_lat') ? new GeoBounds(
+                swLat: (float) $request->validated('sw_lat'),
+                swLng: (float) $request->validated('sw_lng'),
+                neLat: (float) $request->validated('ne_lat'),
+                neLng: (float) $request->validated('ne_lng'),
+            ) : null,
+            radius: $request->filled('lat') ? new GeoRadius(
+                lat: (float) $request->validated('lat'),
+                lng: (float) $request->validated('lng'),
+                radiusKm: (float) $request->validated('radius_km'),
+            ) : null,
         );
 
         $result = $this->searchGyms->execute($query);

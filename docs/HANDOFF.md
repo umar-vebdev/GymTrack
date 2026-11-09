@@ -8,17 +8,17 @@
 
 ## Текущее состояние
 
-- Этапы 0–2 завершены. Эпики **E3-A и E3-B завершены** (`T3-01`…`T3-14b` в `docs/TASKS.md`).
-- Эпик **E3-C (Карта и гео-поиск)**: план подтверждён 2026-11-07; `T3-15` готова, следующая `T3-16`.
+- Этапы 0–2 завершены. Этап 3 (каталог): эпики **E3-A, E3-B, E3-C завершены** (`T3-01`…`T3-16`), ждёт приёмки разработчиком.
 
 ## Последняя сессия
 
-- **T3-15 [x]**: Value Object `GeoBounds` и `GeoRadius` в `Companies/Contracts`, необязательные `bounds`/`radius` в `PublicGymFilter`, фильтрация в `EloquentPublicGymQuery` (`BETWEEN` + гаверсинус, витрины без координат отсекаются только при гео-фильтре). Попутно — только форматирование Pint у `tests/Feature/Catalog/GetPublicGymTest.php`.
-- **421 тест, 2138 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T3-16 [x]**: гео-параметры `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` в `GET /api/v1/public/gyms` (`SearchGymsRequest` → 422, `SearchGymsQuery`, `SearchGyms`, `ListPublicGymsController`, OpenAPI), 2 новых теста.
+- **423 теста, 2216 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Приступить к **T3-16 [ ] — гео-параметры в `SearchGyms` и `GET /api/v1/public/gyms`**: пометить `[~]`; пробросить `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` через `SearchGymsQuery` → `SearchGyms` → `PublicGymFilter` (создавать `GeoBounds`/`GeoRadius` из запроса); правила комплектности и диапазонов — в `SearchGymsRequest` (422), чтобы `InvalidArgumentException` из Value Object не доходили до 500; OpenAPI `docs/api/public-catalog.yaml`; тесты в `ListPublicGymsTest`.
+1. Показать разработчику итог этапа 3 и получить приёмку.
+2. Этап 4 («Расписание и тренеры») **не раскрывать** до приёмки: после неё перечитать ТЗ (Бизнес 8, Тех. 14), разложить эпик на задачи и показать список на подтверждение (раздел 4.3 `AGENTS.md`).
 
 ## Ранее реализовано: фотографии
 

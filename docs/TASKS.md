@@ -46,7 +46,7 @@
 
 ## Этап 3 — Публичный каталог залов и модерация витрин
 
-**Статус этапа:** E3-A завершён; E3-B завершён; E3-C в работе (план подтверждён разработчиком 2026-11-07).
+**Статус этапа:** E3-A завершён; E3-B завершён; E3-A, E3-B и E3-C завершены; этап 3 готов к приёмке.
 **ТЗ:** Бизнес-ТЗ 4.2, 7; Тех. ТЗ 3.1, 7.1, 14.
 
 ### E3-A — задачи (модуль Companies)
@@ -95,10 +95,7 @@
 ### E3-C — Карта и гео-поиск (план подтверждён 2026-11-07)
 
 - [x] **T3-15** Гео-фильтр в контракте витрин: Value Object `GeoBounds` (область карты, включительные границы, без пересечения 180-го меридиана) и `GeoRadius` (центр + радиус `(0, 100]` км) в `Companies/Contracts` с проверкой диапазонов; необязательные `bounds`/`radius` в `PublicGymFilter`; в `EloquentPublicGymQuery` — `BETWEEN` по координатам и формула гаверсинуса (R = 6371 км, `LEAST(1, …)` против погрешности `ASIN`); витрины без координат отсекаются только при активном гео-фильтре; оба фильтра совместимы между собой и с остальными (AND). Восстановлено форматирование Pint у `GetPublicGymTest` после `9ac07df`. 3 теста в `PublicGymQueryTest`; всего 421 тест, lint/analyse/test/deps зелёные.
-- [ ] **T3-16 — Поддержка гео-параметров в сценарии `SearchGyms` и публичном API `GET /api/v1/public/gyms`.** ТЗ: [Бизнес 7](specs/GymTrack_TZ_v2.md), [Техническое 7.1–7.2](specs/GymTrack_Technical_TZ.md).
-  - Файлы: `SearchGymsQuery.php`, `SearchGyms.php`, `SearchGymsRequest.php`, `ListPublicGymsController.php`, `docs/api/public-catalog.yaml`, `ListPublicGymsTest.php`.
-  - Шаги: 1. Пробросить гео-параметры (`lat`, `lng`, `radius_km`, `sw_lat`, `sw_lng`, `ne_lat`, `ne_lng`) через `SearchGymsQuery` и `SearchGyms`. 2. Валидировать комплектность (`lat`/`lng`/`radius_km` передаются вместе; `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` передаются вместе, `sw_lat <= ne_lat`, `sw_lng <= ne_lng`, допустимые диапазоны широт `[-90, 90]`, долгот `[-180, 180]`, `radius_km` `(0, 100]`). 3. Дополнить OpenAPI и проверить тестами в `ListPublicGymsTest`.
-  - Готовность: `docker compose exec -T app php artisan test --filter=ListPublicGymsTest` — фильтрация по радиусу и области карты работает совместно с остальными фильтрами, неполные/неверные гео-параметры дают 422.
+- [x] **T3-16** Гео-параметры в `GET /api/v1/public/gyms`: `lat`/`lng`/`radius_km` (радиус `(0, 100]`) и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng` (`sw <= ne`); комплектность и диапазоны проверяет `SearchGymsRequest` (`required_with` + проверка порядка углов → 422 `VALIDATION_FAILED`, до создания Value Object, поэтому 500 исключено); `SearchGymsQuery` принимает `GeoBounds`/`GeoRadius`, `SearchGyms` передаёт их в `PublicGymFilter`; контроллер собирает объекты из провалидированных данных; OpenAPI `docs/api/public-catalog.yaml` дополнен. 2 теста в `ListPublicGymsTest` (радиус и область вместе с другими фильтрами; 12 неверных наборов параметров); всего 423 теста, lint/analyse/test/deps зелёные. Эпик E3-C завершён.
 
 ---
 

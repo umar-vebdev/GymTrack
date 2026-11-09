@@ -37,6 +37,8 @@ final class ListPublicGymsTest extends TestCase
         ?string $district = 'Сино',
         array $amenities = ['shower', 'parking'],
         ?int $companyId = null,
+        float $latitude = 38.5598,
+        float $longitude = 68.787,
     ): array {
         if ($companyId === null) {
             $owner = User::factory()->create();
@@ -50,8 +52,8 @@ final class ListPublicGymsTest extends TestCase
         $profile->update(
             description: "Описание {$name}",
             address: 'ул. Рудаки, 10',
-            latitude: 38.5598,
-            longitude: 68.787,
+            latitude: $latitude,
+            longitude: $longitude,
             phone: '+992900000000',
             workingHours: ['mon' => '08:00-22:00'],
             amenities: $amenities,
@@ -255,5 +257,59 @@ final class ListPublicGymsTest extends TestCase
             ->assertStatus(422)
             ->assertJsonPath('error.code', 'VALIDATION_FAILED')
             ->assertJsonStructure(['error' => ['details' => ['district']]]);
+    }
+
+    public function test_it_filters_by_radius_and_map_bounds_together_with_other_filters(): void
+    {
+        $center = $this->createGymWithProfile('Центр', amenities: ['pool']);
+        $near = $this->createGymWithProfile('Рядом', amenities: ['sauna'], latitude: 38.5698);
+        $this->createGymWithProfile('Далеко', amenities: ['pool'], latitude: 40.2833, longitude: 69.6222);
+
+        $radius = $this->getJson('/api/v1/public/gyms?lat=38.5598&lng=68.787&radius_km=2');
+        $radius->assertOk()->assertJsonPath('meta.total', 2);
+
+        $this->getJson('/api/v1/public/gyms?lat=38.5598&lng=68.787&radius_km=0.5')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $center['publicId']);
+
+        $this->getJson('/api/v1/public/gyms?lat=38.5598&lng=68.787&radius_km=2&amenities[]=sauna')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $near['publicId']);
+
+        $this->getJson('/api/v1/public/gyms?sw_lat=38.5&sw_lng=68.7&ne_lat=38.7&ne_lng=68.9')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 2);
+
+        $this->getJson('/api/v1/public/gyms?sw_lat=38.565&sw_lng=68.7&ne_lat=38.6&ne_lng=68.9&lat=38.5598&lng=68.787&radius_km=5')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $near['publicId']);
+    }
+
+    public function test_incomplete_or_invalid_geo_parameters_return_422(): void
+    {
+        $cases = [
+            'lat=38.5&lng=68.7' => ['radius_km'],
+            'lat=38.5&radius_km=3' => ['lng'],
+            'radius_km=3' => ['lat', 'lng'],
+            'lat=91&lng=68.7&radius_km=3' => ['lat'],
+            'lat=38.5&lng=181&radius_km=3' => ['lng'],
+            'lat=38.5&lng=68.7&radius_km=0' => ['radius_km'],
+            'lat=38.5&lng=68.7&radius_km=100.5' => ['radius_km'],
+            'lat=abc&lng=68.7&radius_km=3' => ['lat'],
+            'sw_lat=38&sw_lng=68&ne_lat=39' => ['ne_lng'],
+            'sw_lat=39&sw_lng=68&ne_lat=38&ne_lng=69' => ['ne_lat'],
+            'sw_lat=38&sw_lng=69&ne_lat=39&ne_lng=68' => ['ne_lng'],
+            'sw_lat=-91&sw_lng=68&ne_lat=39&ne_lng=69' => ['sw_lat'],
+        ];
+
+        foreach ($cases as $queryString => $fields) {
+            $this->getJson('/api/v1/public/gyms?'.$queryString)
+                ->assertStatus(422)
+                ->assertJsonPath('error.code', 'VALIDATION_FAILED')
+                ->assertJsonStructure(['error' => ['details' => $fields]]);
+        }
     }
 }

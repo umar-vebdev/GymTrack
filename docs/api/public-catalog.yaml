@@ -76,6 +76,41 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - in: query
+          name: lat
+          required: false
+          description: Широта центра поиска по радиусу. Передаётся вместе с lng и radius_km. Залы без координат не возвращаются.
+          schema: {type: number, minimum: -90, maximum: 90, example: 38.5598}
+        - in: query
+          name: lng
+          required: false
+          description: Долгота центра поиска по радиусу (вместе с lat и radius_km)
+          schema: {type: number, minimum: -180, maximum: 180, example: 68.787}
+        - in: query
+          name: radius_km
+          required: false
+          description: Радиус поиска в километрах, (0, 100] (вместе с lat и lng)
+          schema: {type: number, exclusiveMinimum: true, minimum: 0, maximum: 100, example: 5}
+        - in: query
+          name: sw_lat
+          required: false
+          description: Юго-западный угол области карты, широта. sw_lat, sw_lng, ne_lat, ne_lng передаются все вместе; sw_lat <= ne_lat. Границы включаются.
+          schema: {type: number, minimum: -90, maximum: 90}
+        - in: query
+          name: sw_lng
+          required: false
+          description: Юго-западный угол области карты, долгота (sw_lng <= ne_lng; пересечение 180-го меридиана не поддерживается)
+          schema: {type: number, minimum: -180, maximum: 180}
+        - in: query
+          name: ne_lat
+          required: false
+          description: Северо-восточный угол области карты, широта
+          schema: {type: number, minimum: -90, maximum: 90}
+        - in: query
+          name: ne_lng
+          required: false
+          description: Северо-восточный угол области карты, долгота
+          schema: {type: number, minimum: -180, maximum: 180}
       responses:
         '200':
           description: Постраничный список публичных витрин залов

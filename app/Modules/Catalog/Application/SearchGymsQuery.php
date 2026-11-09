@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Application;
 
+use App\Modules\Companies\Contracts\GeoBounds;
+use App\Modules\Companies\Contracts\GeoRadius;
 use InvalidArgumentException;
 
 /**
@@ -40,6 +42,8 @@ final class SearchGymsQuery
         ?string $currency = null,
         int $page = 1,
         int $perPage = 20,
+        public readonly ?GeoBounds $bounds = null,
+        public readonly ?GeoRadius $radius = null,
     ) {
         if ($priceMin !== null && $priceMin < 0) {
             throw new InvalidArgumentException('Минимальная цена не может быть отрицательной.');

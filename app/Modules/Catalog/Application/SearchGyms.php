@@ -48,6 +48,8 @@ final class SearchGyms
             companyIds: $companyIds,
             page: $query->page,
             perPage: $query->perPage,
+            bounds: $query->bounds,
+            radius: $query->radius,
         ));
     }
 }
