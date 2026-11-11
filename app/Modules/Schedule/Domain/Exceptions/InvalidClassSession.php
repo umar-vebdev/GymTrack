@@ -31,4 +31,12 @@ final class InvalidClassSession extends DomainException
     {
         return new self(sprintf('На занятии #%d нет свободных мест.', $sessionId));
     }
+
+    public static function invalidGenerationPeriod(int $maxDays): self
+    {
+        return new self(sprintf(
+            'Период генерации расписания некорректен или превышает %d дн.',
+            $maxDays,
+        ));
+    }
 }

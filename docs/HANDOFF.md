@@ -2,38 +2,30 @@
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 
-**Обновлено:** 2026-11-09
-**Этап:** 4 — Расписание и тренеры (E4-A в работе)
+**Обновлено:** 2026-11-11
+**Этап:** 4 — Расписание и тренеры (E4-B в работе)
 **Ветка:** main
 
 ## Текущее состояние
 
 - Этапы 0–3 завершены и приняты. Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
-- Эпик **E4-B (Расписание)** в работе: `T4-05a`…`T4-07a` завершены, следующая задача `T4-07b`.
+- Эпик **E4-B (Расписание)** в работе: `T4-05a`…`T4-07b` завершены, задача `T4-08` разбита по правилу 4.1 `AGENTS.md` на `T4-08a` и `T4-08b`.
 
 ## Последняя сессия
 
-- **T4-01…T4-04 [x]**: эпик E4-A завершён (роль `Role::TRAINER` по D-012, модуль `Trainers`, CRUD и просмотр тренеров зала).
-- **T4-05a [x]**, **T4-05b [x]**: контракт `TrainerLookupInterface::existsActiveInGym`, модуль `Schedule`, таблица `schedule_class_templates`, сущность `ClassTemplate` и репозиторий.
-- **T4-06a [x]**, **T4-06b [x]**, **T4-06c [x]**: сценарии и HTTP-эндпоинты управления шаблонами расписания (`POST`/`PATCH`/`GET /api/v1/business/schedule/templates`).
-- **T4-07a [x]**: таблица `schedule_sessions`, `ClassSessionStatus`, `ClassSession`, `ClassSessionRepositoryInterface` + `EloquentClassSessionRepository`, 2 теста в `ClassSessionRepositoryTest`; решение D-009 подтверждено разработчиком.
-- **459 тестов, 2555 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **T4-05a…T4-06c [x]**: домен, репозиторий, сценарии и HTTP-эндпоинты шаблонов групповых занятий (`POST`/`PATCH`/`GET /api/v1/business/schedule/templates`).
+- **T4-07a [x]**: таблица `schedule_sessions`, `ClassSessionStatus`, `ClassSession`, `ClassSessionRepositoryInterface` + `EloquentClassSessionRepository`.
+- **T4-07b [x]**: сценарии `GenerateClassSessions` (идемпотентная генерация из активных шаблонов на период до 62 дней в транзакции), `CancelClassSession` (блокировка строки `findByIdForUpdate` в транзакции) и `ListClassSessions` + 3 теста в `ClassSessionUseCasesTest`.
+- **462 теста, 2576 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. В работе **T4-07b [~]**: сценарии `GenerateClassSessions` (идемпотентная генерация занятий из активных шаблонов зала на период дат), `CancelClassSession` (с блокировкой строки `findByIdForUpdate` в транзакции) и `ListClassSessions` + тесты в `ClassSessionUseCasesTest`.
-2. После закрытия `T4-07b` перейти к **T4-08**: HTTP-эндпоинты занятий расписания, OpenAPI `docs/api/schedule.yaml` и feature-тесты.
-
-## Ранее реализовано: фотографии
-
-- `POST /api/v1/business/gyms/{gym}/photos`: jpeg/png/webp до 5 МБ, максимум 10; только владелец, pending запрещён, изменение → draft.
-- `DELETE /api/v1/business/gyms/{gym}/photos/{photo}`: общий с загрузкой lock строки зала, проверка компании/зала/фото, сброс модерации; успех 200 с `data: null`.
-- Удаление восстанавливает файл при перехваченном сбое; аварийное завершение процесса не покрывается. Отсутствующий файл не мешает удалить запись (D-009, принято).
-- OpenAPI: `docs/api/gym-photos.yaml`, `docs/api/gym-profiles.yaml`, `docs/api/public-catalog.yaml`.
+1. В работе **T4-08a [~]**: HTTP-эндпоинты кабинета зала для занятий расписания (`POST /api/v1/business/schedule/sessions/generate`, `POST /api/v1/business/schedule/sessions/{session}/cancel`, `GET /api/v1/business/schedule/sessions` с доступом для `owner`/`admin`) + feature-тесты `ManageClassSessionsTest`.
+2. После закрытия `T4-08a` перейти к **T4-08b**: клиентский эндпоинт `GET /api/v1/client/gyms/{gym}/schedule` и OpenAPI `docs/api/schedule.yaml` (завершение эпика E4-B).
 
 ## Окружение: важное про Docker и Git
 
-- Из песочницы сокет Docker недоступен, `.git` доступен только для чтения: Docker и запись git требуют `BypassSandbox: true`. PHPStan вне песочницы нужен локальный сокет рабочих процессов; использовать тот же режим.
+- Из песочницы сокет Docker недоступен, `.git` доступен только для чтения: Docker и запись git требуют `BypassSandbox: true`. `composer lint`, `composer analyse` и `composer deps` работают внутри песочницы.
 
 ## Команды
 
