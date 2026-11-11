@@ -13,4 +13,9 @@ interface GymLookupInterface
      * Существует ли зал с указанным ID внутри указанной компании.
      */
     public function existsInCompany(int $gymId, int $companyId): bool;
+
+    /**
+     * Возвращает ID компании-владельца зала или null, если зал не существует.
+     */
+    public function findCompanyId(int $gymId): ?int;
 }

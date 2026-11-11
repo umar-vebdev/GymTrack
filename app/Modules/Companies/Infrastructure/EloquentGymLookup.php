@@ -17,4 +17,14 @@ final class EloquentGymLookup implements GymLookupInterface
             ->where('company_id', $companyId)
             ->exists();
     }
+
+    public function findCompanyId(int $gymId): ?int
+    {
+        $companyId = GymModel::query()
+            ->withoutGlobalScopes()
+            ->whereKey($gymId)
+            ->value('company_id');
+
+        return $companyId !== null ? (int) $companyId : null;
+    }
 }

@@ -211,4 +211,44 @@ final class ManageClassSessionsTest extends TestCase
             ->assertJsonPath('error.code', 'VALIDATION_FAILED')
             ->assertJsonStructure(['error' => ['details' => ['to_date']]]);
     }
+
+    public function test_authenticated_client_can_view_gym_schedule_and_missing_gym_returns_404(): void
+    {
+        $setup = $this->createCompanySetup();
+        $client = User::factory()->create();
+
+        $templates = $this->app->make(ClassTemplateRepositoryInterface::class);
+        $template = $templates->create($setup['companyId'], $setup['gymId'], $setup['trainerId'], 'Пилатес', null, 1, 540, 60, 12);
+
+        $sessions = $this->app->make(ClassSessionRepositoryInterface::class);
+        $session = $sessions->createIfNotExistsFromTemplate(
+            $template,
+            new DateTimeImmutable('2026-11-09 09:00:00+00:00'),
+            new DateTimeImmutable('2026-11-09 10:00:00+00:00'),
+        );
+        $this->assertNotNull($session);
+
+        $this->getJson('/api/v1/client/gyms/'.$setup['gymId'].'/schedule?from_date=2026-11-09&to_date=2026-11-15')
+            ->assertStatus(401);
+
+        $response = $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/client/gyms/'.$setup['gymId'].'/schedule?from_date=2026-11-09&to_date=2026-11-15');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $session->id())
+            ->assertJsonPath('data.0.title', 'Пилатес')
+            ->assertJsonPath('data.0.available_seats', 12);
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/client/gyms/999999/schedule?from_date=2026-11-09&to_date=2026-11-15')
+            ->assertStatus(404)
+            ->assertJsonPath('error.code', 'NOT_FOUND');
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/client/gyms/'.$setup['gymId'].'/schedule?from_date=2026-11-15&to_date=2026-11-09')
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'VALIDATION_FAILED')
+            ->assertJsonStructure(['error' => ['details' => ['to_date']]]);
+    }
 }

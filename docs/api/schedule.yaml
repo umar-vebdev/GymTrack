@@ -1,0 +1,437 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — расписание групповых занятий (шаблоны и слоты)
+  version: 1.0.0
+paths:
+  /api/v1/business/schedule/templates:
+    get:
+      summary: Список шаблонов групповых занятий зала (владелец и администратор)
+      description: |
+        Возвращает еженедельные шаблоны расписания зала компании, отсортированные по
+        `(weekday, start_time_minute, id)`. Необязательный параметр `only_active` позволяет
+        отфильтровать только активные или только архивные шаблоны.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: gym_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: only_active
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Список шаблонов зала
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassTemplate'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — зал не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры фильтра
+    post:
+      summary: Создать шаблон группового занятия (владелец и администратор)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassTemplateCreate'
+      responses:
+        '201':
+          description: Шаблон расписания создан
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ClassTemplate'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — зал не найден или тренер не найден / неактивен в этом зале
+        '422':
+          description: VALIDATION_FAILED — невалидные поля запроса
+  /api/v1/business/schedule/templates/{template}:
+    patch:
+      summary: Обновить шаблон группового занятия (владелец и администратор)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: template
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassTemplateUpdate'
+      responses:
+        '200':
+          description: Шаблон расписания обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ClassTemplate'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — шаблон не найден или тренер не активен в зале шаблона
+        '422':
+          description: VALIDATION_FAILED — невалидные поля запроса
+  /api/v1/business/schedule/sessions:
+    get:
+      summary: Список занятий зала за период дат (владелец и администратор)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: gym_id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: from_date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-11-09'
+        - in: query
+          name: to_date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-11-15'
+      responses:
+        '200':
+          description: Занятия зала за указанный период
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassSession'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — зал не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры запроса
+  /api/v1/business/schedule/sessions/generate:
+    post:
+      summary: Идемпотентно сгенерировать занятия из активных шаблонов на период (до 62 дней)
+      description: |
+        Создаёт недостающие слоты расписания для активных шаблонов зала на каждую дату
+        в интервале `[from_date, to_date]` включительно (UTC). Повторный вызов на тот же период
+        пропускает уже созданные пары `(template_id, starts_at)` и возвращает только новые занятия.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gym_id, from_date, to_date]
+              properties:
+                gym_id:
+                  type: integer
+                  minimum: 1
+                from_date:
+                  type: string
+                  format: date
+                  example: '2026-11-09'
+                to_date:
+                  type: string
+                  format: date
+                  example: '2026-11-15'
+      responses:
+        '200':
+          description: Список только что созданных занятий
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassSession'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — зал не существует или принадлежит другой компании
+        '422':
+          description: VALIDATION_FAILED — невалидный диапазон дат или период более 62 дней
+  /api/v1/business/schedule/sessions/{session}/cancel:
+    post:
+      summary: Отменить занятие расписания (владелец и администратор)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Занятие переведено в статус cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ClassSession'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
+        '404':
+          description: NOT_FOUND — занятие не существует или принадлежит другой компании
+  /api/v1/client/gyms/{gym}/schedule:
+    get:
+      summary: Просмотр расписания зала клиентом за период дат
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: from_date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-11-09'
+        - in: query
+          name: to_date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-11-15'
+      responses:
+        '200':
+          description: Занятия расписания зала
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassSession'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '404':
+          description: NOT_FOUND — зал не найден
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры дат
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ClassTemplateCreate:
+      type: object
+      required: [gym_id, trainer_id, title, weekday, start_time_minute, duration_minutes, capacity]
+      properties:
+        gym_id:
+          type: integer
+          minimum: 1
+        trainer_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 100
+          example: Утренняя йога
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: 1 (понедельник) .. 7 (воскресенье)
+        start_time_minute:
+          type: integer
+          minimum: 0
+          maximum: 1439
+          description: Минуты от 00:00 (например, 540 = 09:00)
+        duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+    ClassTemplateUpdate:
+      type: object
+      required: [trainer_id, title, weekday, start_time_minute, duration_minutes, capacity]
+      properties:
+        trainer_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        weekday:
+          type: integer
+          minimum: 1
+          maximum: 7
+        start_time_minute:
+          type: integer
+          minimum: 0
+          maximum: 1439
+        duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+        is_active:
+          type: boolean
+          nullable: true
+    ClassTemplate:
+      type: object
+      required:
+        - id
+        - public_id
+        - gym_id
+        - trainer_id
+        - title
+        - description
+        - weekday
+        - start_time_minute
+        - duration_minutes
+        - capacity
+        - is_active
+      properties:
+        id:
+          type: integer
+        public_id:
+          type: string
+        gym_id:
+          type: integer
+        trainer_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        weekday:
+          type: integer
+        start_time_minute:
+          type: integer
+        duration_minutes:
+          type: integer
+        capacity:
+          type: integer
+        is_active:
+          type: boolean
+    ClassSession:
+      type: object
+      required:
+        - id
+        - public_id
+        - gym_id
+        - template_id
+        - trainer_id
+        - title
+        - capacity
+        - booked_count
+        - available_seats
+        - starts_at
+        - ends_at
+        - status
+      properties:
+        id:
+          type: integer
+        public_id:
+          type: string
+        gym_id:
+          type: integer
+        template_id:
+          type: integer
+        trainer_id:
+          type: integer
+        title:
+          type: string
+        capacity:
+          type: integer
+        booked_count:
+          type: integer
+        available_seats:
+          type: integer
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [scheduled, cancelled]

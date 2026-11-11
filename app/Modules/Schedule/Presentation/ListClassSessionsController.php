@@ -66,4 +66,3 @@ final class ListClassSessionsController extends Controller
         ]);
     }
 }
-
