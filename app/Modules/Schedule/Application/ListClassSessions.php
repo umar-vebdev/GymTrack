@@ -44,4 +44,3 @@ final class ListClassSessions
         return $this->sessions->listForGymInPeriod($companyId, $gymId, $from, $to);
     }
 }
-

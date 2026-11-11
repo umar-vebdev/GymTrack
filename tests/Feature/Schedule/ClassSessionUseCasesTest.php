@@ -222,4 +222,3 @@ final class ClassSessionUseCasesTest extends TestCase
         }
     }
 }
-

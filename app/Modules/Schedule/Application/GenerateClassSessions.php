@@ -98,4 +98,3 @@ final class GenerateClassSessions
         return $created;
     }
 }
-
