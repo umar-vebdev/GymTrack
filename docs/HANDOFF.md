@@ -1,20 +1,18 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-12
-**Текущий этап:** Этап 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-C`)
-**Текущая задача:** `T5-07b` `[~]` — HTTP-эндпоинты тренировочных сессий и прогресса + OpenAPI `docs/api/workouts.yaml` (`E5-C`)
+**Текущий этап:** Этап 5 — Дневник тренировок полностью завершён (`E5-A`, `E5-B`, `E5-C`)
+**Текущая задача:** Все запланированные задачи Этапов 0–5 выполнены.
 
 ## Что сделано в последней сессии
 
-- **D-016 + E5-A (`T5-01`…`T5-04b`)** (`6abd0c0`…`bc94c8e`): Модуль `Workouts`, упражнения платформы и клиента, библиотека готовых планов (`/api/v1/client/workouts/library`).
-- **D-017 + E5-B (`T5-05a`, `T5-05b`)** (`7548f41`, `56ba18a`): Личные планы клиента и копирование планов из библиотеки (`506 passed, 3339 assertions`).
-- **D-018 + T5-06a, T5-06b** (`216fbd9`, `ba2bc64`): Домен и хранение тренировочных сессий (`workouts_sessions`, `workouts_sets`, `EloquentWorkoutSessionRepository`).
-- **T5-07a:** Реализованы Use Cases `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress`, `WorkoutSessionAssembler`/`WorkoutSessionView`/`ExerciseProgressView` и тесты `WorkoutSessionUseCasesTest` (`1 passed, 14 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **D-016 + E5-A (`T5-01`…`T5-04b`)** (`6abd0c0`…`bc94c8e`): Модуль `Workouts`, упражнения платформы и клиента, библиотека готовых планов платформы (`/api/v1/platform/workouts/plans`, `/api/v1/client/workouts/library`).
+- **D-017 + E5-B (`T5-05a`, `T5-05b`)** (`7548f41`, `56ba18a`): Личные планы клиента (`/api/v1/client/workouts/plans`), мягкое архивирование и копирование планов из библиотеки (`506 passed, 3339 assertions`).
+- **D-018 + E5-C (`T5-06a`…`T5-07b`)** (`216fbd9`, `ba2bc64`, `c600a56`, HEAD): Тренировочные сессии (`workouts_sessions`), подходы с весом и повторениями под транзакционной блокировкой строки (`workouts_sets`), история прогресса по упражнениям (`GET /api/v1/client/workouts/exercises/{exercise}/progress`), обновление `docs/api/workouts.yaml` и тесты (`511 passed, 3424 assertions`, `lint`/`analyse`/`deps`/YAML зелёные).
 
 ## Точный следующий шаг
 
-1. Выполнить **T5-07b**: создать `ClientWorkoutSessionsController`, `ClientExerciseProgressController`, `FormRequest`, `WorkoutSessionResource`, `ExerciseProgressResource`, подключить маршруты в `routes.php`, обновить `docs/api/workouts.yaml`, написать `WorkoutSessionsEndpointsTest` и прогнать полный `composer test`.
-2. Закрыть `E5-C` и весь **Этап 5** в `docs/TASKS.md` и `docs/HANDOFF.md`.
+1. Согласовать с разработчиком дальнейший вектор: деплой/релизная подготовка, наполнение сидеров библиотеки упражнений/планов или новые фичи поверх ТЗ.
 
 ## Команды проверки
 

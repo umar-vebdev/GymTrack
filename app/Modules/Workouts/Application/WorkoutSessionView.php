@@ -20,3 +20,4 @@ final readonly class WorkoutSessionView
         public array $exercisesById,
     ) {}
 }
+

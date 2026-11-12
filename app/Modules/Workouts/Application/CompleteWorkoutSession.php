@@ -39,3 +39,4 @@ final class CompleteWorkoutSession
         return $this->assembler->buildView($saved);
     }
 }
+

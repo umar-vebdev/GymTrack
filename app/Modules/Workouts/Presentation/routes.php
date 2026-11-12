@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Modules\Workouts\Presentation\ClientExerciseProgressController;
 use App\Modules\Workouts\Presentation\ClientExercisesController;
 use App\Modules\Workouts\Presentation\ClientWorkoutLibraryController;
 use App\Modules\Workouts\Presentation\ClientWorkoutPlansController;
+use App\Modules\Workouts\Presentation\ClientWorkoutSessionsController;
 use App\Modules\Workouts\Presentation\PlatformExercisesController;
 use App\Modules\Workouts\Presentation\PlatformWorkoutPlansController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +30,7 @@ Route::prefix('api/v1/client/workouts')
         Route::get('/exercises', [ClientExercisesController::class, 'index']);
         Route::post('/exercises', [ClientExercisesController::class, 'store']);
         Route::patch('/exercises/{exercise}', [ClientExercisesController::class, 'update'])->whereNumber('exercise');
+        Route::get('/exercises/{exercise}/progress', [ClientExerciseProgressController::class, 'show'])->whereNumber('exercise');
 
         Route::get('/library', [ClientWorkoutLibraryController::class, 'index']);
         Route::get('/library/{plan}', [ClientWorkoutLibraryController::class, 'show'])->whereNumber('plan');
@@ -38,4 +41,10 @@ Route::prefix('api/v1/client/workouts')
         Route::get('/plans/{plan}', [ClientWorkoutPlansController::class, 'show'])->whereNumber('plan');
         Route::patch('/plans/{plan}', [ClientWorkoutPlansController::class, 'update'])->whereNumber('plan');
         Route::delete('/plans/{plan}', [ClientWorkoutPlansController::class, 'destroy'])->whereNumber('plan');
+
+        Route::get('/sessions', [ClientWorkoutSessionsController::class, 'index']);
+        Route::post('/sessions', [ClientWorkoutSessionsController::class, 'store']);
+        Route::get('/sessions/{session}', [ClientWorkoutSessionsController::class, 'show'])->whereNumber('session');
+        Route::post('/sessions/{session}/sets', [ClientWorkoutSessionsController::class, 'logSet'])->whereNumber('session');
+        Route::post('/sessions/{session}/complete', [ClientWorkoutSessionsController::class, 'complete'])->whereNumber('session');
     });

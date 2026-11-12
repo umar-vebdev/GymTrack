@@ -494,6 +494,164 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/v1/client/workouts/exercises/{exercise}/progress:
+    get:
+      summary: История подходов и динамика прогресса клиента по выбранному упражнению
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: exercise
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Агрегированная история прогресса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseProgressResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/client/workouts/sessions:
+    get:
+      summary: История тренировочных сессий клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/WorkoutSessionStatus'
+      responses:
+        '200':
+          description: Список тренировочных сессий
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Старт новой тренировочной сессии клиента (по плану или свободной)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartWorkoutSessionRequest'
+      responses:
+        '201':
+          description: Тренировка начата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/workouts/sessions/{session}:
+    get:
+      summary: Детали тренировочной сессии клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Детали сессии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/client/workouts/sessions/{session}/sets:
+    post:
+      summary: Фиксация подхода с весом и повторениями в активной сессии
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogWorkoutSetRequest'
+      responses:
+        '201':
+          description: Подход записан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/workouts/sessions/{session}/complete:
+    post:
+      summary: Завершение или отмена активной тренировочной сессии
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteWorkoutSessionRequest'
+      responses:
+        '200':
+          description: Сессия завершена или отменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -708,6 +866,182 @@ components:
       properties:
         data:
           nullable: true
+    WorkoutSessionStatus:
+      type: string
+      enum: [in_progress, completed, cancelled]
+    WorkoutSet:
+      type: object
+      required: [id, exercise_id, exercise, set_number, weight_grams, reps, volume_grams, performed_at]
+      properties:
+        id:
+          type: integer
+        exercise_id:
+          type: integer
+        exercise:
+          type: object
+          nullable: true
+          required: [id, public_id, name, muscle_group, is_active]
+          properties:
+            id:
+              type: integer
+            public_id:
+              type: string
+            name:
+              type: string
+            muscle_group:
+              $ref: '#/components/schemas/MuscleGroup'
+            is_active:
+              type: boolean
+        set_number:
+          type: integer
+        weight_grams:
+          type: integer
+        reps:
+          type: integer
+        volume_grams:
+          type: integer
+        performed_at:
+          type: string
+          format: date-time
+    WorkoutSession:
+      type: object
+      required: [id, public_id, plan_id, title, status, started_at, finished_at, notes, sets]
+      properties:
+        id:
+          type: integer
+        public_id:
+          type: string
+        plan_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        status:
+          $ref: '#/components/schemas/WorkoutSessionStatus'
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkoutSet'
+    StartWorkoutSessionRequest:
+      type: object
+      properties:
+        plan_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        title:
+          type: string
+          maxLength: 100
+          nullable: true
+    LogWorkoutSetRequest:
+      type: object
+      required: [exercise_id, weight_grams, reps]
+      properties:
+        exercise_id:
+          type: integer
+          minimum: 1
+        weight_grams:
+          type: integer
+          minimum: 0
+        reps:
+          type: integer
+          minimum: 1
+          maximum: 500
+    CompleteWorkoutSessionRequest:
+      type: object
+      properties:
+        cancel:
+          type: boolean
+        notes:
+          type: string
+          maxLength: 1000
+          nullable: true
+    WorkoutSessionListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkoutSession'
+    WorkoutSessionItemResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/WorkoutSession'
+    ExerciseProgressResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [exercise, sessions_count, best_weight_grams, total_sets, total_volume_grams, entries]
+          properties:
+            exercise:
+              $ref: '#/components/schemas/Exercise'
+            sessions_count:
+              type: integer
+            best_weight_grams:
+              type: integer
+            total_sets:
+              type: integer
+            total_volume_grams:
+              type: integer
+            entries:
+              type: array
+              items:
+                type: object
+                required: [session_id, session_public_id, session_title, session_status, started_at, sets_count, total_reps, max_weight_grams, total_volume_grams, sets]
+                properties:
+                  session_id:
+                    type: integer
+                  session_public_id:
+                    type: string
+                  session_title:
+                    type: string
+                  session_status:
+                    $ref: '#/components/schemas/WorkoutSessionStatus'
+                  started_at:
+                    type: string
+                    format: date-time
+                  sets_count:
+                    type: integer
+                  total_reps:
+                    type: integer
+                  max_weight_grams:
+                    type: integer
+                  total_volume_grams:
+                    type: integer
+                  sets:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, set_number, weight_grams, reps, volume_grams, performed_at]
+                      properties:
+                        id:
+                          type: integer
+                        set_number:
+                          type: integer
+                        weight_grams:
+                          type: integer
+                        reps:
+                          type: integer
+                        volume_grams:
+                          type: integer
+                        performed_at:
+                          type: string
+                          format: date-time
     WorkoutPlanListResponse:
       type: object
       required: [data]

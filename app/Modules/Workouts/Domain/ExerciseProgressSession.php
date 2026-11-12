@@ -23,3 +23,4 @@ final readonly class ExerciseProgressSession
         public array $sets,
     ) {}
 }
+

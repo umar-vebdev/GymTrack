@@ -203,3 +203,4 @@ final class WorkoutSession
         }
     }
 }
+

@@ -13,3 +13,4 @@ final readonly class CompleteWorkoutSessionCommand
         public ?string $notes = null,
     ) {}
 }
+

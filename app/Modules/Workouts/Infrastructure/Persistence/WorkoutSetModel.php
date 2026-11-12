@@ -38,3 +38,4 @@ final class WorkoutSetModel extends Model
         'performed_at' => 'immutable_datetime',
     ];
 }
+

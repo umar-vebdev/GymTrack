@@ -12,3 +12,4 @@ final readonly class StartWorkoutSessionCommand
         public ?string $title = null,
     ) {}
 }
+

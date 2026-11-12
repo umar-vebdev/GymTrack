@@ -14,3 +14,4 @@ final readonly class LogWorkoutSetCommand
         public int $reps,
     ) {}
 }
+
