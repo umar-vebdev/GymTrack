@@ -7,6 +7,8 @@ namespace Tests\Feature\Schedule;
 use App\Models\User;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Companies\Domain\Role;
+use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Modules\Schedule\Application\CancelClassSession;
 use App\Modules\Schedule\Domain\ClassSession;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
@@ -310,5 +312,93 @@ final class ClientClassBookingsTest extends TestCase
             ->postJson("/api/v1/client/schedule/sessions/{$startedSetup['session']->id()}/book")
             ->assertStatus(422)
             ->assertJsonPath('error.code', 'CLASS_SESSION_UNAVAILABLE');
+    }
+
+    public function test_owner_admin_and_trainer_can_view_session_bookings_with_company_isolation(): void
+    {
+        $this->bindFixedClock('2026-11-16 08:00:00+00:00');
+
+        $a = $this->createSessionSetup('A', 5, '2026-11-16 09:00:00+00:00', '2026-11-16 10:00:00+00:00');
+        $b = $this->createSessionSetup('B', 5, '2026-11-16 09:00:00+00:00', '2026-11-16 10:00:00+00:00');
+
+        $staff = $this->app->make(StaffMemberRepositoryInterface::class);
+        $adminA = User::factory()->create();
+        $trainerA = User::factory()->create();
+        $staff->create($a['owner']->id, $a['companyId'], Role::OWNER);
+        $staff->create($adminA->id, $a['companyId'], Role::ADMIN);
+        $staff->create($trainerA->id, $a['companyId'], Role::TRAINER);
+
+        $adminB = User::factory()->create();
+        $trainerB = User::factory()->create();
+        $staff->create($b['owner']->id, $b['companyId'], Role::OWNER);
+        $staff->create($adminB->id, $b['companyId'], Role::ADMIN);
+        $staff->create($trainerB->id, $b['companyId'], Role::TRAINER);
+
+        $client1 = User::factory()->create();
+        $client2 = User::factory()->create();
+
+        // Без авторизации -> 401
+        $this->getJson("/api/v1/business/schedule/sessions/{$a['session']->id()}/bookings")
+            ->assertStatus(401);
+
+        // Обычный клиент не является сотрудником/тренером -> 403
+        $this->actingAs($client1, 'sanctum')
+            ->getJson("/api/v1/business/schedule/sessions/{$a['session']->id()}/bookings")
+            ->assertStatus(403)
+            ->assertJsonPath('error.code', 'FORBIDDEN');
+
+        // Две записи в компанию A (одна остаётся активной, вторая отменяется) и одна в B
+        $firstBook = $this->actingAs($client1, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$a['session']->id()}/book")
+            ->assertCreated();
+        $firstBookingId = (int) $firstBook->json('data.id');
+        $firstClientId = (int) $firstBook->json('data.client_id');
+
+        $this->bindFixedClock('2026-11-16 08:10:00+00:00');
+        $secondBook = $this->actingAs($client2, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$a['session']->id()}/book")
+            ->assertCreated();
+        $secondBookingId = (int) $secondBook->json('data.id');
+        $secondClientId = (int) $secondBook->json('data.client_id');
+
+        $this->bindFixedClock('2026-11-16 08:20:00+00:00');
+        $this->actingAs($client2, 'sanctum')
+            ->postJson("/api/v1/client/schedule/bookings/{$secondBookingId}/cancel")
+            ->assertOk();
+
+        $this->actingAs($client1, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$b['session']->id()}/book")
+            ->assertCreated();
+
+        // Owner, admin и trainer своей компании видят обе записи занятия A в хронологическом порядке
+        foreach ([$a['owner'], $adminA, $trainerA] as $actorA) {
+            $res = $this->actingAs($actorA, 'sanctum')
+                ->getJson("/api/v1/business/schedule/sessions/{$a['session']->id()}/bookings")
+                ->assertOk()
+                ->assertJsonCount(2, 'data')
+                ->assertJsonPath('data.0.id', $firstBookingId)
+                ->assertJsonPath('data.0.client_id', $firstClientId)
+                ->assertJsonPath('data.0.status', 'booked')
+                ->assertJsonPath('data.0.cancelled_at', null)
+                ->assertJsonPath('data.1.id', $secondBookingId)
+                ->assertJsonPath('data.1.client_id', $secondClientId)
+                ->assertJsonPath('data.1.status', 'cancelled');
+
+            $this->assertNotNull($res->json('data.1.cancelled_at'));
+        }
+
+        // Представители чужой компании не видят занятие компании A -> 404
+        foreach ([$b['owner'], $adminB, $trainerB] as $actorB) {
+            $this->actingAs($actorB, 'sanctum')
+                ->getJson("/api/v1/business/schedule/sessions/{$a['session']->id()}/bookings")
+                ->assertStatus(404)
+                ->assertJsonPath('error.code', 'NOT_FOUND');
+        }
+
+        // Несуществующее занятие -> 404
+        $this->actingAs($adminA, 'sanctum')
+            ->getJson('/api/v1/business/schedule/sessions/999999/bookings')
+            ->assertStatus(404)
+            ->assertJsonPath('error.code', 'NOT_FOUND');
     }
 }

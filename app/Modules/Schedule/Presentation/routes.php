@@ -11,6 +11,7 @@ use App\Modules\Schedule\Presentation\ListClassSessionsController;
 use App\Modules\Schedule\Presentation\ListClassTemplatesController;
 use App\Modules\Schedule\Presentation\ListClientBookingsController;
 use App\Modules\Schedule\Presentation\ListClientGymScheduleController;
+use App\Modules\Schedule\Presentation\ListSessionBookingsController;
 use App\Modules\Schedule\Presentation\UpdateClassTemplateController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,7 @@ Route::prefix('api/v1/business/schedule')
         Route::get('/sessions', ListClassSessionsController::class);
         Route::post('/sessions/generate', GenerateClassSessionsController::class);
         Route::post('/sessions/{session}/cancel', CancelClassSessionController::class)->whereNumber('session');
+        Route::get('/sessions/{session}/bookings', ListSessionBookingsController::class)->whereNumber('session');
     });
 
 Route::prefix('api/v1/client')

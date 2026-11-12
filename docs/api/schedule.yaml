@@ -234,6 +234,40 @@ paths:
           description: FORBIDDEN — доступ только для сотрудников бэк-офиса (owner/admin)
         '404':
           description: NOT_FOUND — занятие не существует или принадлежит другой компании
+  /api/v1/business/schedule/sessions/{session}/bookings:
+    get:
+      summary: Список записавшихся на занятие (владелец, администратор и тренер)
+      description: |
+        Возвращает записи клиентов (`booked` и `cancelled`) на конкретное занятие расписания
+        компании в порядке `(booked_at, id)`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Список записей на занятие
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassBooking'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '403':
+          description: FORBIDDEN — доступ только для сотрудников и тренеров зала
+        '404':
+          description: NOT_FOUND — занятие не существует или принадлежит другой компании
   /api/v1/client/gyms/{gym}/schedule:
     get:
       summary: Просмотр расписания зала клиентом за период дат
@@ -279,6 +313,135 @@ paths:
           description: NOT_FOUND — зал не найден
         '422':
           description: VALIDATION_FAILED — некорректные параметры дат
+  /api/v1/client/schedule/sessions/{session}/book:
+    post:
+      summary: Идемпотентно записаться на групповое занятие
+      description: |
+        Записывает текущего клиента на занятие и при необходимости создаёт/связывает его
+        CRM-карточку в компании зала. Повторный запрос с тем же `Idempotency-Key` на то же
+        занятие возвращает сохранённую запись; использование того же ключа для другого занятия
+        отклоняется с ошибкой `CLASS_BOOKING_REJECTED`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: session
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+      responses:
+        '201':
+          description: Запись создана или возвращена по ключу идемпотентности
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ClassBooking'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '404':
+          description: NOT_FOUND — занятие не найдено
+        '422':
+          description: CLASS_SESSION_UNAVAILABLE / CLASS_BOOKING_REJECTED — занятие отменено, началось, нет мест, уже есть запись или конфликт Idempotency-Key
+  /api/v1/client/schedule/bookings/{booking}/cancel:
+    post:
+      summary: Идемпотентно отменить свою запись на занятие
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: booking
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Запись отменена (или уже была отменена ранее)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ClassBooking'
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '404':
+          description: NOT_FOUND — запись не найдена или принадлежит другому клиенту
+        '422':
+          description: CLASS_BOOKING_CANCELLATION_NOT_ALLOWED — нельзя отменить запись после начала запланированного занятия
+  /api/v1/client/schedule/bookings:
+    get:
+      summary: Список записей текущего клиента на групповые занятия
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: company_id
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [booked, cancelled]
+      responses:
+        '200':
+          description: Постраничный список записей клиента во всех залах
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassBooking'
+                  meta:
+                    type: object
+                    required: [page, per_page, total]
+                    properties:
+                      page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total:
+                        type: integer
+        '401':
+          description: UNAUTHORIZED — требуется вход
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры фильтра или пагинации
 components:
   securitySchemes:
     bearerAuth:
@@ -435,3 +598,38 @@ components:
         status:
           type: string
           enum: [scheduled, cancelled]
+    ClassBooking:
+      type: object
+      required:
+        - id
+        - public_id
+        - company_id
+        - gym_id
+        - session_id
+        - client_id
+        - status
+        - booked_at
+        - cancelled_at
+      properties:
+        id:
+          type: integer
+        public_id:
+          type: string
+        company_id:
+          type: integer
+        gym_id:
+          type: integer
+        session_id:
+          type: integer
+        client_id:
+          type: integer
+        status:
+          type: string
+          enum: [booked, cancelled]
+        booked_at:
+          type: string
+          format: date-time
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
