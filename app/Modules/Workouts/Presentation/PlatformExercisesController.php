@@ -120,4 +120,3 @@ final class PlatformExercisesController extends Controller
         return null;
     }
 }
-

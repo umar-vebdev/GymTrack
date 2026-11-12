@@ -27,14 +27,35 @@ final class WorkoutPlanAssembler
      */
     public function resolvePlatformItems(array $inputs): array
     {
+        return $this->resolveItems($inputs, clientUserId: null);
+    }
+
+    /**
+     * Проверяет, что все упражнения активны и доступны клиенту (платформа или свои), и строит пункты плана.
+     *
+     * @param  list<PlanItemInput>  $inputs
+     * @return list<WorkoutPlanItem>
+     */
+    public function resolveClientItems(int $userId, array $inputs): array
+    {
+        return $this->resolveItems($inputs, clientUserId: $userId);
+    }
+
+    /**
+     * @param  list<PlanItemInput>  $inputs
+     * @return list<WorkoutPlanItem>
+     */
+    private function resolveItems(array $inputs, ?int $clientUserId): array
+    {
         $ids = array_map(static fn (PlanItemInput $input): int => $input->exerciseId, $inputs);
         $exercisesById = $this->exercises->findByIds($ids);
 
         $items = [];
         foreach ($inputs as $index => $input) {
             $exercise = $exercisesById[$input->exerciseId] ?? null;
+            $hasAccess = $exercise !== null && ($exercise->isPlatform() || ($clientUserId !== null && $exercise->isOwnedBy($clientUserId)));
 
-            if ($exercise === null || !$exercise->isPlatform()) {
+            if (!$hasAccess) {
                 throw WorkoutResourceNotFound::exercise($input->exerciseId);
             }
             if (!$exercise->isActive()) {

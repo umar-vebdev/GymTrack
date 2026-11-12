@@ -52,4 +52,3 @@ final class ClientWorkoutLibraryController extends Controller
         return response()->json(['data' => WorkoutPlanResource::toArray($view)]);
     }
 }
-

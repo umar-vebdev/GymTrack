@@ -175,4 +175,3 @@ final class LibraryPlansEndpointsTest extends TestCase
             ->assertJsonPath('error.code', 'NOT_FOUND');
     }
 }
-

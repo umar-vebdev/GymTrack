@@ -19,4 +19,3 @@ final readonly class CreateLibraryPlanCommand
         public array $items = [],
     ) {}
 }
-

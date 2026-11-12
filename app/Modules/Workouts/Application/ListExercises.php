@@ -33,4 +33,3 @@ final class ListExercises
         return $this->exercises->listForClient($userId, $muscleGroup, $query);
     }
 }
-

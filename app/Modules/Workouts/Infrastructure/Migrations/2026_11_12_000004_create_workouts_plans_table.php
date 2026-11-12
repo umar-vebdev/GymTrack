@@ -47,4 +47,3 @@ return new class extends Migration
         Schema::dropIfExists('workouts_plans');
     }
 };
-

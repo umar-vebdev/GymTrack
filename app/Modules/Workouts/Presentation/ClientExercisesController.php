@@ -96,4 +96,3 @@ final class ClientExercisesController extends Controller
         return response()->json(['data' => ExerciseResource::toArray($updated)]);
     }
 }
-

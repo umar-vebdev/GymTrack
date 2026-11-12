@@ -15,4 +15,3 @@ final class CreateExerciseCommand
         public readonly ?string $description = null,
     ) {}
 }
-

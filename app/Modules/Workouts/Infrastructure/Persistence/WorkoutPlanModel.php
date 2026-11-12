@@ -60,4 +60,3 @@ final class WorkoutPlanModel extends Model
             ->orderBy('id');
     }
 }
-

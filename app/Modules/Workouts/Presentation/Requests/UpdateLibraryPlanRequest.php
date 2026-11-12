@@ -21,4 +21,3 @@ final class UpdateLibraryPlanRequest extends FormRequest
         return WorkoutPlanRequestData::planRules(allowIsActive: true);
     }
 }
-

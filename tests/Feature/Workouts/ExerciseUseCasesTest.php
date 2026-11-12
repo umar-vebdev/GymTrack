@@ -119,4 +119,3 @@ final class ExerciseUseCasesTest extends TestCase
         }
     }
 }
-
