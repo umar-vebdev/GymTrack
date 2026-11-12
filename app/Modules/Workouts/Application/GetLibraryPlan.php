@@ -39,3 +39,4 @@ final class GetLibraryPlan
         return $this->assembler->buildView($plan);
     }
 }
+

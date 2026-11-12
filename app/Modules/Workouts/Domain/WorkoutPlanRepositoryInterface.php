@@ -53,3 +53,4 @@ interface WorkoutPlanRepositoryInterface
      */
     public function listForClient(int $userId): array;
 }
+

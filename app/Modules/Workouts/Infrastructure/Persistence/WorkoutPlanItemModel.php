@@ -40,3 +40,4 @@ final class WorkoutPlanItemModel extends Model
         'rest_seconds' => 'integer',
     ];
 }
+

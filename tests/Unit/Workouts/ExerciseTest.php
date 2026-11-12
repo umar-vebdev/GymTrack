@@ -74,3 +74,4 @@ final class ExerciseTest extends TestCase
         }
     }
 }
+

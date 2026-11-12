@@ -142,7 +142,7 @@
 
 **ТЗ:** Бизнес-ТЗ 2, 9; Тех. ТЗ 3.2, 3.3, 6.1, 7.1, 14. Эпики `E5-B` и `E5-C` хранятся крупными блоками и раскрываются перед стартом (4.3 `AGENTS.md`).
 
-- [~] **E5-A Справочник упражнений и библиотека готовых планов платформы** (план подтверждён 2026-11-12, D-016)
+- [x] **E5-A Справочник упражнений и библиотека готовых планов платформы** (план подтверждён 2026-11-12, D-016)
   - [x] **T5-01** Каркас модуля `Workouts` (`WorkoutsServiceProvider` зарегистрирован в `bootstrap/providers.php`), миграция `workouts_exercises` (`public_id` ULID, `user_id` nullable с `cascadeOnDelete` на `users`), `MuscleGroup` enum, сущность `Exercise` с инвариантами, `InvalidExercise`, `ExerciseRepositoryInterface` + `EloquentExerciseRepository`, `ExerciseTest` и `ExerciseRepositoryTest` (4 новых теста, 36 проверок; также приведено форматирование Pint у 13 файлов `E4-E`; `lint`/`analyse`/`deps` и 11 связанных тестов зелёные).
   - [x] **T5-02a** Реализованы Use Cases управления упражнениями (`WorkoutResourceNotFound`, `CreateExercise`, `UpdateExercise`, `ListExercises` + `CreateExerciseCommand`/`UpdateExerciseCommand`) и `ExerciseUseCasesTest` (1 тест, 12 проверок; lint/analyse/deps зелёные).
   - [x] **T5-02b** HTTP-эндпоинты упражнений платформы (`/api/v1/platform/workouts/exercises[/{exercise}]`): `StoreExerciseRequest`, `UpdateExerciseRequest`, `ListExercisesRequest`, `ExerciseResource`, `PlatformExercisesController`, `routes.php` и `ExercisesEndpointsTest` (2 теста, 31 проверка; lint/analyse/deps зелёные).
@@ -150,9 +150,14 @@
   - [x] **T5-03a** Домен и контракт репозитория планов: `PlanLevel`, `InvalidWorkoutPlan`, `WorkoutPlanItem`, `WorkoutPlan`, `WorkoutPlanRepositoryInterface`, `WorkoutPlanTest` (4 теста, 22 проверки; lint/analyse/deps зелёные).
   - [x] **T5-03b** Хранение и репозиторий планов: миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel`, `WorkoutPlanItemModel`, `EloquentWorkoutPlanRepository`, привязка в `WorkoutsServiceProvider`, тесты `WorkoutPlanRepositoryTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
   - [x] **T5-04a** Use Cases библиотеки готовых планов платформы: `WorkoutResourceNotFound::plan()`, `InvalidWorkoutPlan::inactiveExercise()`, `ExerciseRepositoryInterface::findByIds()`, `PlanItemInput`, `WorkoutPlanView`, `WorkoutPlanAssembler`, `CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`, тесты `LibraryPlanUseCasesTest` (1 тест, 10 проверок; lint/analyse/deps зелёные).
-  - [~] **T5-04b** HTTP-эндпоинты библиотеки планов и OpenAPI: `PlatformWorkoutPlansController` (`/api/v1/platform/workouts/plans[/{plan}]`), `ClientWorkoutLibraryController` (`/api/v1/client/workouts/library[/{plan}]`), `FormRequest`, `WorkoutPlanResource`, `docs/api/workouts.yaml`, `LibraryPlansEndpointsTest`.
-    - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 15; D-016.
-    - Файлы: `app/Modules/Workouts/Presentation/*`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/LibraryPlansEndpointsTest.php`.
+  - [x] **T5-04b** HTTP-эндпоинты библиотеки планов и OpenAPI: `PlatformWorkoutPlansController` (`/api/v1/platform/workouts/plans[/{plan}]`), `ClientWorkoutLibraryController` (`/api/v1/client/workouts/library[/{plan}]`), `WorkoutPlanRequestData`, `StoreLibraryPlanRequest`, `UpdateLibraryPlanRequest`, `ListLibraryPlansRequest`, `WorkoutPlanResource`, `docs/api/workouts.yaml`, `LibraryPlansEndpointsTest` (`503 passed, 3284 assertions`, lint/analyse/deps и YAML зелёные).
+- [ ] **E5-B Собственные планы клиента** (ожидает подтверждения детализированного плана)
+  - [ ] **T5-05a** Use Cases личных планов клиента и копирования из библиотеки: добавить `resolveClientItems()` в `WorkoutPlanAssembler` (только активные упражнения платформы и личные упражнения клиента), реализовать `CreateClientPlan`, `UpdateClientPlan`, `ArchiveClientPlan`, `ListClientPlans`, `GetClientPlan`, `CopyLibraryPlanToClient` (+ команды) и тесты `ClientPlanUseCasesTest`.
+    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 3, 11; D-016.
+    - Файлы: `app/Modules/Workouts/Application/WorkoutPlanAssembler.php`, `app/Modules/Workouts/Application/*ClientPlan*`, `app/Modules/Workouts/Application/CopyLibraryPlanToClient.php`, `tests/Unit/Workouts/ClientPlanUseCasesTest.php`.
+    - Готовность: `lint`, `analyse`, `deps` и `ClientPlanUseCasesTest` зелёные.
+  - [ ] **T5-05b** HTTP-эндпоинты личных планов клиента и OpenAPI: `ClientWorkoutPlansController` (`GET/POST /api/v1/client/workouts/plans`, `GET/PATCH/DELETE /api/v1/client/workouts/plans/{plan}`, `POST /api/v1/client/workouts/library/{plan}/copy`), `StoreClientPlanRequest`, `UpdateClientPlanRequest` (через `WorkoutPlanRequestData`), `routes.php`, `docs/api/workouts.yaml`, `ClientPlansEndpointsTest`.
+    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 7.1, 7.2, 8, 15; D-016.
+    - Файлы: `app/Modules/Workouts/Presentation/ClientWorkoutPlansController.php`, `app/Modules/Workouts/Presentation/Requests/*ClientPlanRequest.php`, `app/Modules/Workouts/Presentation/routes.php`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/ClientPlansEndpointsTest.php`.
     - Готовность: `lint`, `analyse`, `deps`, проверка YAML и полный прогон `composer test` зелёные.
-- [ ] **E5-B Собственные планы клиента**: создание/редактирование/удаление личных планов, копирование плана из библиотеки платформы (раскрыть после завершения E5-A)
 - [ ] **E5-C Тренировочные сессии и прогресс**: старт/завершение тренировки, фиксация веса и повторений в подходах, история тренировок и прогресса по упражнениям (раскрыть после завершения E5-B)

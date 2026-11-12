@@ -18,3 +18,4 @@ final readonly class PlanItemInput
         public ?int $sortOrder = null,
     ) {}
 }
+

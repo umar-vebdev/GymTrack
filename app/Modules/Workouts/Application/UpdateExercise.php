@@ -40,3 +40,4 @@ final class UpdateExercise
         return $exercise;
     }
 }
+

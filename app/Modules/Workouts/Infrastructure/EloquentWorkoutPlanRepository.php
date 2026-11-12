@@ -253,3 +253,4 @@ final class EloquentWorkoutPlanRepository implements WorkoutPlanRepositoryInterf
         );
     }
 }
+

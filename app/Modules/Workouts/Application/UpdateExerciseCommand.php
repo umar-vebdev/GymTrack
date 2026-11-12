@@ -17,3 +17,4 @@ final class UpdateExerciseCommand
         public readonly ?bool $isActive = null,
     ) {}
 }
+

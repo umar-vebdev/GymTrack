@@ -28,3 +28,4 @@ final class StoreExerciseRequest extends FormRequest
         ];
     }
 }
+

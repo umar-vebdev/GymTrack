@@ -85,3 +85,4 @@ final class WorkoutPlanItem
         return $this->restSeconds;
     }
 }
+

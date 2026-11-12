@@ -124,3 +124,4 @@ final class WorkoutPlanTest extends TestCase
         new WorkoutPlanItem(0, exerciseId: 1, sortOrder: 0, targetSets: 0, targetReps: 10);
     }
 }
+

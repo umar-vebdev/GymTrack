@@ -18,3 +18,4 @@ enum MuscleGroup: string
     case CARDIO = 'cardio';
     case FULL_BODY = 'full_body';
 }
+

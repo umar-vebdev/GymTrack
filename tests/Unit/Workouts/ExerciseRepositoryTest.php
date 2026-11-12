@@ -93,3 +93,4 @@ final class ExerciseRepositoryTest extends TestCase
         }
     }
 }
+

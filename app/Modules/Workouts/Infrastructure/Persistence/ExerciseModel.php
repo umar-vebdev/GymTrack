@@ -41,3 +41,4 @@ final class ExerciseModel extends Model
         return ['public_id'];
     }
 }
+

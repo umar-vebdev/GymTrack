@@ -21,3 +21,4 @@ final readonly class UpdateLibraryPlanCommand
         public ?bool $isActive = null,
     ) {}
 }
+
