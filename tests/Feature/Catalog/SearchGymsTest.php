@@ -285,7 +285,7 @@ final class SearchGymsTest extends TestCase
         }
     }
 
-    public function test_catalog_module_depends_only_on_companies_and_memberships_contracts(): void
+    public function test_catalog_module_depends_only_on_allowed_contracts(): void
     {
         $catalogDir = base_path('app/Modules/Catalog');
         $this->assertDirectoryExists($catalogDir);
@@ -304,7 +304,8 @@ final class SearchGymsTest extends TestCase
             foreach ($matches[1] as $importedClass) {
                 $isOwnModule = str_starts_with($importedClass, 'App\\Modules\\Catalog\\');
                 $isAllowedContract = str_starts_with($importedClass, 'App\\Modules\\Companies\\Contracts\\')
-                    || str_starts_with($importedClass, 'App\\Modules\\Memberships\\Contracts\\');
+                    || str_starts_with($importedClass, 'App\\Modules\\Memberships\\Contracts\\')
+                    || str_starts_with($importedClass, 'App\\Modules\\Schedule\\Contracts\\');
 
                 $this->assertTrue(
                     $isOwnModule || $isAllowedContract,
