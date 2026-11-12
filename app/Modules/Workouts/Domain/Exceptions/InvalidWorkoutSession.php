@@ -65,4 +65,9 @@ final class InvalidWorkoutSession extends DomainException
     {
         return new self("Количество повторений в подходе должно быть от {$min} до {$max}.");
     }
+
+    public static function inactiveExercise(int $exerciseId): self
+    {
+        return new self(sprintf('Упражнение #%d неактивно и не может использоваться в тренировке.', $exerciseId));
+    }
 }

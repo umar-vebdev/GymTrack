@@ -17,4 +17,9 @@ final class WorkoutResourceNotFound extends DomainException
     {
         return new self(sprintf('Тренировочный план #%d не найден.', $id));
     }
+
+    public static function session(int $id): self
+    {
+        return new self(sprintf('Тренировочная сессия #%d не найдена.', $id));
+    }
 }
