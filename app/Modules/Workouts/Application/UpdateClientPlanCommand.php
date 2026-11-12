@@ -20,3 +20,4 @@ final readonly class UpdateClientPlanCommand
         public array $items,
     ) {}
 }
+

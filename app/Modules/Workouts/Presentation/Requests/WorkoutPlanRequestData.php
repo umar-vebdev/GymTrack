@@ -18,13 +18,12 @@ final class WorkoutPlanRequestData
     /**
      * @return array<string, list<mixed>>
      */
-    public static function planRules(bool $allowIsActive): array
+    public static function planRules(bool $allowIsActive, bool $allowIsPublished = true): array
     {
         $rules = [
             'title' => ['required', 'string', 'max:'.WorkoutPlan::TITLE_MAX],
             'description' => ['sometimes', 'nullable', 'string', 'max:'.WorkoutPlan::DESCRIPTION_MAX],
             'level' => ['required', 'string', Rule::enum(PlanLevel::class)],
-            'is_published' => ['sometimes', 'boolean'],
             'items' => ['sometimes', 'array', 'max:50'],
             'items.*.exercise_id' => ['required', 'integer', 'min:1'],
             'items.*.sort_order' => ['sometimes', 'nullable', 'integer', 'min:0'],
@@ -50,6 +49,9 @@ final class WorkoutPlanRequestData
             ],
         ];
 
+        if ($allowIsPublished) {
+            $rules['is_published'] = ['sometimes', 'boolean'];
+        }
         if ($allowIsActive) {
             $rules['is_active'] = ['sometimes', 'boolean'];
         }

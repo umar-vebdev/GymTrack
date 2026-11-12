@@ -346,6 +346,154 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /api/v1/client/workouts/library/{plan}/copy:
+    post:
+      summary: Копирование готового плана из библиотеки платформы в собственные планы клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: plan
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopyLibraryPlanRequest'
+      responses:
+        '201':
+          description: Личный план создан на основе библиотечного
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutPlanItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/workouts/plans:
+    get:
+      summary: Список активных личных планов тренировок клиента
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список личных планов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutPlanListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Создание собственного тренировочного плана клиента
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveClientPlanRequest'
+      responses:
+        '201':
+          description: Личный план создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutPlanItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/workouts/plans/{plan}:
+    get:
+      summary: Детали личного плана клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: plan
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Детали плана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutPlanItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Обновление собственного плана клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: plan
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveClientPlanRequest'
+      responses:
+        '200':
+          description: План обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutPlanItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    delete:
+      summary: Мягкое архивирование личного плана клиента
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: plan
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: План архивирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyDataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -529,6 +677,37 @@ components:
           properties:
             is_active:
               type: boolean
+    SaveClientPlanRequest:
+      type: object
+      required: [title, level]
+      properties:
+        title:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        level:
+          $ref: '#/components/schemas/PlanLevel'
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PlanItemInput'
+    CopyLibraryPlanRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+          maxLength: 100
+    EmptyDataResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          nullable: true
     WorkoutPlanListResponse:
       type: object
       required: [data]

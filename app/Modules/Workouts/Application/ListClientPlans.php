@@ -24,3 +24,4 @@ final class ListClientPlans
         return $this->assembler->buildViews($this->plans->listForClient($userId));
     }
 }
+
