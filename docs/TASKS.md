@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** 4 — Расписание и тренеры (E4-A и E4-B завершены; E4-C в работе, план подтверждён 2026-11-12, D-013)
+**Текущий этап:** 4 — Расписание и тренеры (`E4-A`…`E4-D` завершены; `E4-E` отложен; готов к планированию Этапа 5)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -126,10 +126,10 @@
   - [x] **T4-10b** Сценарии `CancelClassBooking` (идемпотентная отмена с проверкой владельца через `findAllClientIdsByUser`, блокировкой занятия `findByIdForUpdate` и записи в транзакции, запретом отмены уже начавшегося `scheduled`-занятия и освобождением места `releaseSeat()`), `ListSessionBookings` и `ListClientBookings` + 2 теста в `ClassBookingUseCasesTest` (всего 474 теста, 2766 проверок, lint/analyse/test/deps зелёные).
   - [x] **T4-11a** Клиентские эндпоинты записи и отмены: `POST /api/v1/client/schedule/sessions/{session}/book` (с заголовком `Idempotency-Key`, ответ 201), `POST /api/v1/client/schedule/bookings/{booking}/cancel` (идемпотентный ответ 200) и `GET /api/v1/client/schedule/bookings` (`ListClientBookingsRequest` с фильтрами `company_id`, `status` и пагинацией) (`ClassBookingResource`, контроллеры, маршруты) + 2 feature-теста в `ClientClassBookingsTest` (всего 476 тестов, 2841 проверка, lint/analyse/test/deps зелёные).
   - [x] **T4-11b** Просмотр списка записавшихся на занятие в кабинете зала и тренером (`GET /api/v1/business/schedule/sessions/{session}/bookings` через `ListSessionBookingsController`, доступ `owner`/`admin`/`trainer` своей компании через `StaffCompanyResolverInterface`), обновление OpenAPI `docs/api/schedule.yaml` (клиентские и бизнес-эндпоинты записей + схема `ClassBooking`) + тест изоляции и ролей в `ClientClassBookingsTest` (всего 477 тестов, 2888 проверок, lint/analyse/test/deps зелёные). Эпик E4-C завершён.
-- [ ] **E4-D Привязка к абонементам**: занятие списывает посещение через Contracts Memberships (план подтверждён 2026-11-12, D-014)
+- [x] **E4-D Привязка к абонементам**: занятие списывает посещение через Contracts Memberships (план подтверждён 2026-11-12, D-014; завершён)
   - [x] **T4-12a** Миграция `2026_11_12_000002_add_membership_id_to_schedule_bookings_table`, поддержка `?int $membershipId` и кодов ошибок абонемента в `ClassBooking` / `InvalidClassBooking`, обновление `ClassBookingRepositoryInterface`, `ClassBookingModel` и `EloquentClassBookingRepository` (включая `listActiveForSessionForUpdate`) + проверки в `ClassBookingTest` и `ClassBookingRepositoryTest` (всего 477 тестов, 2899 проверок, lint/analyse/test/deps зелёные).
   - [x] **T4-12b** Интеграция `MembershipVisitConsumerInterface` в `BookClassSession` (проверка кандидата, заморозки и окна времени `startsAt`, списание при записи с сохранением `membership_id`, идемпотентность без двойного списания, откат CRM-карточки при отказе), `CancelClassBooking` и `CancelClassSession` (возврат посещения через `restoreVisit` и пакетная отмена активных броней при отмене занятия залом) + обновлённые/новые тесты в `ClassBookingUseCasesTest`, `ClassSessionUseCasesTest` и `ClientClassBookingsTest` (всего 478 тестов, 2935 проверок, lint/analyse/test/deps зелёные).
-  - [ ] **T4-12c** Отображение `membership_id` в `ClassBookingResource`, маппинг кодов ошибок абонемента (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`) в контроллерах, обновление OpenAPI `docs/api/schedule.yaml` + feature-тесты в `ClientClassBookingsTest`. Проверка: `php artisan test --filter=ClientClassBookingsTest`.
+  - [x] **T4-12c** Отображение `membership_id` в `ClassBookingResource`, проброс `$e->errorCode` (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `CLASS_BOOKING_REJECTED`, `CLASS_BOOKING_CANCELLATION_NOT_ALLOWED`) в `BookClassSessionController` и `CancelClassBookingController`, обновление OpenAPI `docs/api/schedule.yaml` + feature-тесты в `ClientClassBookingsTest` (479 тестов, 2965 проверок; lint/analyse/test/deps/YAML зелёные). Эпик E4-D и этап 4 (кроме отложенного E4-E) завершены.
 - Отложено: E4-E расписание в публичном каталоге
 
 ---

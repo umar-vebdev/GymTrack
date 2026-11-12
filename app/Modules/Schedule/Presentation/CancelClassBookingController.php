@@ -35,7 +35,7 @@ final class CancelClassBookingController extends Controller
             ], 404);
         } catch (InvalidClassBooking $e) {
             return response()->json([
-                'error' => ['code' => 'CLASS_BOOKING_CANCELLATION_NOT_ALLOWED', 'message' => $e->getMessage()],
+                'error' => ['code' => $e->errorCode, 'message' => $e->getMessage()],
             ], 422);
         }
 

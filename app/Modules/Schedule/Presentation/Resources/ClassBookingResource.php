@@ -24,6 +24,7 @@ final class ClassBookingResource
             'gym_id' => $booking->gymId(),
             'session_id' => $booking->sessionId(),
             'client_id' => $booking->clientId(),
+            'membership_id' => $booking->membershipId(),
             'status' => $booking->status()->value,
             'booked_at' => $booking->bookedAt()->format(DateTimeInterface::ATOM),
             'cancelled_at' => $booking->cancelledAt()?->format(DateTimeInterface::ATOM),

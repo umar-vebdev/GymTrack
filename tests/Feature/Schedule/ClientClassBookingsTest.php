@@ -10,9 +10,12 @@ use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\Role;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
+use App\Modules\Memberships\Application\FreezeMembership;
 use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
 use App\Modules\Memberships\Domain\MembershipKind;
+use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
 use App\Modules\Memberships\Domain\MembershipRules;
+use App\Modules\Memberships\Domain\MembershipStatus;
 use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
 use App\Modules\Memberships\Domain\StartMode;
 use App\Modules\Schedule\Application\CancelClassSession;
@@ -102,8 +105,15 @@ final class ClientClassBookingsTest extends TestCase
         ];
     }
 
-    private function issueMembershipForUser(User $user, int $companyId, int $visitsCount = 5): int
-    {
+    private function issueMembershipForUser(
+        User $user,
+        int $companyId,
+        int $visitsCount = 5,
+        ?int $timeFromMinute = null,
+        ?int $timeToMinute = null,
+        int $freezeMaxDays = 0,
+        int $freezeMaxTimes = 0,
+    ): int {
         $clientId = $this->app->make(ClientLookupInterface::class)->findOrCreateForUser($user->id, $companyId);
         $typeId = $this->app->make(MembershipTypeRepositoryInterface::class)->create(
             $companyId,
@@ -114,6 +124,10 @@ final class ClientClassBookingsTest extends TestCase
                 startMode: StartMode::OnSale,
                 visitsCount: $visitsCount,
                 validityDays: 30,
+                timeFromMinute: $timeFromMinute,
+                timeToMinute: $timeToMinute,
+                freezeMaxDays: $freezeMaxDays,
+                freezeMaxTimes: $freezeMaxTimes,
             ),
         );
 
@@ -140,8 +154,8 @@ final class ClientClassBookingsTest extends TestCase
         $this->assertNotNull($secondSessionA);
 
         $client = User::factory()->create();
-        $this->issueMembershipForUser($client, $a['companyId'], 5);
-        $this->issueMembershipForUser($client, $b['companyId'], 5);
+        $membershipAId = $this->issueMembershipForUser($client, $a['companyId'], 5);
+        $membershipBId = $this->issueMembershipForUser($client, $b['companyId'], 5);
 
         // Без авторизации -> 401
         $this->postJson("/api/v1/client/schedule/sessions/{$a['session']->id()}/book")
@@ -163,6 +177,7 @@ final class ClientClassBookingsTest extends TestCase
             ->assertJsonPath('data.company_id', $a['companyId'])
             ->assertJsonPath('data.gym_id', $a['gymId'])
             ->assertJsonPath('data.session_id', $a['session']->id())
+            ->assertJsonPath('data.membership_id', $membershipAId)
             ->assertJsonPath('data.status', 'booked')
             ->assertJsonPath('data.cancelled_at', null);
 
@@ -217,6 +232,7 @@ final class ClientClassBookingsTest extends TestCase
             ->postJson("/api/v1/client/schedule/bookings/{$bookingAId}/cancel")
             ->assertOk()
             ->assertJsonPath('data.id', $bookingAId)
+            ->assertJsonPath('data.membership_id', $membershipAId)
             ->assertJsonPath('data.status', 'cancelled');
 
         $this->assertNotNull($cancelA->json('data.cancelled_at'));
@@ -247,6 +263,7 @@ final class ClientClassBookingsTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $bookingBId)
+            ->assertJsonPath('data.0.membership_id', $membershipBId)
             ->assertJsonPath('meta.total', 1);
 
         $this->actingAs($client, 'sanctum')
@@ -254,6 +271,7 @@ final class ClientClassBookingsTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $bookingAId)
+            ->assertJsonPath('data.0.membership_id', $membershipAId)
             ->assertJsonPath('meta.total', 1);
 
         $this->actingAs($client, 'sanctum')
@@ -437,5 +455,98 @@ final class ClientClassBookingsTest extends TestCase
             ->getJson('/api/v1/business/schedule/sessions/999999/bookings')
             ->assertStatus(404)
             ->assertJsonPath('error.code', 'NOT_FOUND');
+    }
+
+    public function test_client_booking_validates_membership_and_restores_visits_via_http(): void
+    {
+        $this->bindFixedClock('2026-11-16 08:00:00+00:00');
+
+        $setup = $this->createSessionSetup('M', 5, '2026-11-16 09:00:00+00:00', '2026-11-16 10:00:00+00:00');
+        $clients = $this->app->make(ClientLookupInterface::class);
+        $memberships = $this->app->make(MembershipRepositoryInterface::class);
+
+        // 1. Клиент без абонемента -> 422 NO_ACTIVE_MEMBERSHIP, и CRM-карточка откатывается транзакцией
+        $noMembershipClient = User::factory()->create();
+        $this->actingAs($noMembershipClient, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->id()}/book")
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'NO_ACTIVE_MEMBERSHIP');
+        $this->assertNull($clients->findIdByUser($noMembershipClient->id, $setup['companyId']));
+
+        // 2. Клиент с замороженным абонементом -> 422 MEMBERSHIP_FROZEN
+        $frozenClient = User::factory()->create();
+        $frozenMembershipId = $this->issueMembershipForUser(
+            $frozenClient,
+            $setup['companyId'],
+            visitsCount: 3,
+            freezeMaxDays: 14,
+            freezeMaxTimes: 2,
+        );
+        $this->app->make(FreezeMembership::class)->execute($setup['companyId'], $frozenMembershipId);
+
+        $this->actingAs($frozenClient, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->id()}/book")
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'MEMBERSHIP_FROZEN');
+
+        // 3. Клиент с абонементом, чьё временное окно не покрывает старт занятия (09:00 UTC) -> 422 OUTSIDE_ALLOWED_TIME
+        $timedClient = User::factory()->create();
+        $this->issueMembershipForUser(
+            $timedClient,
+            $setup['companyId'],
+            visitsCount: 3,
+            timeFromMinute: 600,
+            timeToMinute: 900,
+        );
+
+        $this->actingAs($timedClient, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->id()}/book")
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'OUTSIDE_ALLOWED_TIME');
+
+        // 4. Успешная запись списывает посещение, а отмена брони и отмена занятия залом возвращают его
+        $client = User::factory()->create();
+        $membershipId = $this->issueMembershipForUser($client, $setup['companyId'], visitsCount: 1);
+
+        $book1 = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->id()}/book")
+            ->assertCreated()
+            ->assertJsonPath('data.membership_id', $membershipId);
+        $bookingId1 = (int) $book1->json('data.id');
+
+        $afterBook1 = $memberships->findById($membershipId);
+        $this->assertNotNull($afterBook1);
+        $this->assertSame(0, $afterBook1->remainingVisits());
+        $this->assertSame(MembershipStatus::Expired, $afterBook1->status());
+
+        $this->bindFixedClock('2026-11-16 08:15:00+00:00');
+        $this->actingAs($client, 'sanctum')
+            ->postJson("/api/v1/client/schedule/bookings/{$bookingId1}/cancel")
+            ->assertOk()
+            ->assertJsonPath('data.membership_id', $membershipId)
+            ->assertJsonPath('data.status', 'cancelled');
+
+        $afterCancel = $memberships->findById($membershipId);
+        $this->assertNotNull($afterCancel);
+        $this->assertSame(1, $afterCancel->remainingVisits());
+        $this->assertSame(MembershipStatus::Active, $afterCancel->status());
+
+        $this->bindFixedClock('2026-11-16 08:20:00+00:00');
+        $this->actingAs($client, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->id()}/book")
+            ->assertCreated()
+            ->assertJsonPath('data.membership_id', $membershipId);
+
+        $afterBook2 = $memberships->findById($membershipId);
+        $this->assertNotNull($afterBook2);
+        $this->assertSame(0, $afterBook2->remainingVisits());
+
+        $this->bindFixedClock('2026-11-16 08:25:00+00:00');
+        $this->app->make(CancelClassSession::class)->execute($setup['companyId'], $setup['session']->id());
+
+        $afterSessionCancel = $memberships->findById($membershipId);
+        $this->assertNotNull($afterSessionCancel);
+        $this->assertSame(1, $afterSessionCancel->remainingVisits());
+        $this->assertSame(MembershipStatus::Active, $afterSessionCancel->status());
     }
 }

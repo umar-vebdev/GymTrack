@@ -352,7 +352,7 @@ paths:
         '404':
           description: NOT_FOUND — занятие не найдено
         '422':
-          description: CLASS_SESSION_UNAVAILABLE / CLASS_BOOKING_REJECTED — занятие отменено, началось, нет мест, уже есть запись или конфликт Idempotency-Key
+          description: CLASS_SESSION_UNAVAILABLE / CLASS_BOOKING_REJECTED / NO_ACTIVE_MEMBERSHIP / MEMBERSHIP_FROZEN / OUTSIDE_ALLOWED_TIME — занятие отменено, началось, нет мест, уже есть запись, нет подходящего абонемента, абонемент заморожен, время занятия вне разрешённого окна или конфликт Idempotency-Key
   /api/v1/client/schedule/bookings/{booking}/cancel:
     post:
       summary: Идемпотентно отменить свою запись на занятие
@@ -607,6 +607,7 @@ components:
         - gym_id
         - session_id
         - client_id
+        - membership_id
         - status
         - booked_at
         - cancelled_at
@@ -623,6 +624,9 @@ components:
           type: integer
         client_id:
           type: integer
+        membership_id:
+          type: integer
+          nullable: true
         status:
           type: string
           enum: [booked, cancelled]

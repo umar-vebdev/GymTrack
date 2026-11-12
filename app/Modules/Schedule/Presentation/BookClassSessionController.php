@@ -48,7 +48,7 @@ final class BookClassSessionController extends Controller
             ], 422);
         } catch (InvalidClassBooking $e) {
             return response()->json([
-                'error' => ['code' => 'CLASS_BOOKING_REJECTED', 'message' => $e->getMessage()],
+                'error' => ['code' => $e->errorCode, 'message' => $e->getMessage()],
             ], 422);
         }
 
