@@ -11,7 +11,11 @@ use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Schedule\Application\BookClassSession;
 use App\Modules\Schedule\Application\BookClassSessionCommand;
+use App\Modules\Schedule\Application\CancelClassBooking;
 use App\Modules\Schedule\Application\CancelClassSession;
+use App\Modules\Schedule\Application\ListClientBookings;
+use App\Modules\Schedule\Application\ListSessionBookings;
+use App\Modules\Schedule\Domain\ClassBooking;
 use App\Modules\Schedule\Domain\ClassBookingStatus;
 use App\Modules\Schedule\Domain\ClassSession;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
@@ -42,6 +46,13 @@ final class ClassBookingUseCasesTest extends TestCase
                 return $this->fixed;
             }
         });
+    }
+
+    private function assertSessionBookedCount(int $companyId, int $sessionId, int $expected): void
+    {
+        $session = $this->app->make(ClassSessionRepositoryInterface::class)->findById($companyId, $sessionId);
+        $this->assertNotNull($session);
+        $this->assertSame($expected, $session->bookedCount());
     }
 
     /**
@@ -236,5 +247,120 @@ final class ClassBookingUseCasesTest extends TestCase
         $reloaded = $sessions->findById($setup['companyId'], $setup['session']->id());
         $this->assertNotNull($reloaded);
         $this->assertSame(1, $reloaded->bookedCount());
+    }
+
+    public function test_cancel_is_idempotent_releases_seat_allows_rebook_and_enforces_ownership_and_start_time(): void
+    {
+        $this->bindFixedClock('2026-11-12 08:00:00+00:00');
+        $setup = $this->createSessionSetup(capacity: 2);
+        $book = $this->app->make(BookClassSession::class);
+        $cancel = $this->app->make(CancelClassBooking::class);
+
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $booking1 = $book->execute(new BookClassSessionCommand($user1->id, $setup['session']->id(), 'u1-first'));
+        $book->execute(new BookClassSessionCommand($user2->id, $setup['session']->id(), 'u2-first'));
+
+        $this->assertSessionBookedCount($setup['companyId'], $setup['session']->id(), 2);
+
+        // Чужой пользователь и несуществующая запись -> ScheduleResourceNotFound
+        try {
+            $cancel->execute($user2->id, $booking1->id());
+            $this->fail('Cancelling foreign booking must throw ScheduleResourceNotFound.');
+        } catch (ScheduleResourceNotFound) {
+            $this->addToAssertionCount(1);
+        }
+
+        try {
+            $cancel->execute($user1->id, 999999);
+            $this->fail('Cancelling missing booking must throw ScheduleResourceNotFound.');
+        } catch (ScheduleResourceNotFound) {
+            $this->addToAssertionCount(1);
+        }
+
+        // Отмена освобождает 1 место (2 -> 1)
+        $this->bindFixedClock('2026-11-12 09:00:00+00:00');
+        $cancelled = $this->app->make(CancelClassBooking::class)->execute($user1->id, $booking1->id());
+        $this->assertSame(ClassBookingStatus::CANCELLED, $cancelled->status());
+        $this->assertSame('2026-11-12 09:00:00', $cancelled->cancelledAt()?->format('Y-m-d H:i:s'));
+        $this->assertSessionBookedCount($setup['companyId'], $setup['session']->id(), 1);
+
+        // Повторная отмена идемпотентна: не меняет время отмены и не освобождает место повторно
+        $this->bindFixedClock('2026-11-12 10:00:00+00:00');
+        $cancelledAgain = $this->app->make(CancelClassBooking::class)->execute($user1->id, $booking1->id());
+        $this->assertSame('2026-11-12 09:00:00', $cancelledAgain->cancelledAt()?->format('Y-m-d H:i:s'));
+        $this->assertSessionBookedCount($setup['companyId'], $setup['session']->id(), 1);
+
+        // После отмены клиент может записаться на то же занятие повторно (с новым ключом)
+        $rebooked = $this->app->make(BookClassSession::class)->execute(new BookClassSessionCommand($user1->id, $setup['session']->id(), 'u1-second'));
+        $this->assertNotSame($booking1->id(), $rebooked->id());
+        $this->assertSessionBookedCount($setup['companyId'], $setup['session']->id(), 2);
+
+        // Нельзя отменить запись на уже начавшееся занятие со статусом scheduled
+        $this->bindFixedClock('2026-11-16 09:00:00+00:00');
+        try {
+            $this->app->make(CancelClassBooking::class)->execute($user1->id, $rebooked->id());
+            $this->fail('Cancelling started scheduled session must throw InvalidClassBooking.');
+        } catch (InvalidClassBooking) {
+            $this->addToAssertionCount(1);
+        }
+
+        // Но если само занятие отменено залом, клиент может отменить свою запись
+        $this->app->make(CancelClassSession::class)->execute($setup['companyId'], $setup['session']->id());
+        $cancelledAfterSessionCancel = $this->app->make(CancelClassBooking::class)->execute($user1->id, $rebooked->id());
+        $this->assertSame(ClassBookingStatus::CANCELLED, $cancelledAfterSessionCancel->status());
+    }
+
+    public function test_list_session_bookings_and_list_client_bookings_respect_isolation_and_filters(): void
+    {
+        $this->bindFixedClock('2026-11-12 08:00:00+00:00');
+        $a = $this->createSessionSetup('A', capacity: 5);
+        $b = $this->createSessionSetup('B', capacity: 5);
+
+        $listSession = $this->app->make(ListSessionBookings::class);
+        $listClient = $this->app->make(ListClientBookings::class);
+
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $emptyUser = User::factory()->create();
+
+        $b1 = $this->app->make(BookClassSession::class)->execute(new BookClassSessionCommand($user->id, $a['session']->id()));
+        $this->bindFixedClock('2026-11-12 08:10:00+00:00');
+        $b2 = $this->app->make(BookClassSession::class)->execute(new BookClassSessionCommand($otherUser->id, $a['session']->id()));
+        $this->bindFixedClock('2026-11-12 08:20:00+00:00');
+        $b3 = $this->app->make(BookClassSession::class)->execute(new BookClassSessionCommand($user->id, $b['session']->id()));
+        $this->app->make(CancelClassBooking::class)->execute($user->id, $b1->id());
+
+        $sessionBookings = $listSession->execute($a['companyId'], $a['session']->id());
+        $this->assertSame(
+            [$b1->id(), $b2->id()],
+            array_map(static fn (ClassBooking $booking): int => $booking->id(), $sessionBookings),
+        );
+
+        try {
+            $listSession->execute($b['companyId'], $a['session']->id());
+            $this->fail('Listing foreign session bookings must throw ScheduleResourceNotFound.');
+        } catch (ScheduleResourceNotFound) {
+            $this->addToAssertionCount(1);
+        }
+
+        $emptyList = $listClient->execute($emptyUser->id);
+        $this->assertSame(['items' => [], 'total' => 0], $emptyList);
+
+        $allUserBookings = $listClient->execute($user->id);
+        $this->assertSame(2, $allUserBookings['total']);
+        $this->assertSame(
+            [$b3->id(), $b1->id()],
+            array_map(static fn (ClassBooking $booking): int => $booking->id(), $allUserBookings['items']),
+        );
+
+        $filteredByCompanyAndStatus = $listClient->execute(
+            userId: $user->id,
+            companyId: $a['companyId'],
+            status: ClassBookingStatus::CANCELLED,
+        );
+        $this->assertSame(1, $filteredByCompanyAndStatus['total']);
+        $this->assertSame($b1->id(), $filteredByCompanyAndStatus['items'][0]->id());
     }
 }

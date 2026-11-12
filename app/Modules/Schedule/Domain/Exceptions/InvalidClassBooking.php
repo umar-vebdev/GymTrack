@@ -52,4 +52,9 @@ final class InvalidClassBooking extends DomainException
     {
         return new self('Ключ идемпотентности уже использован для другой записи.');
     }
+
+    public static function cannotCancelStartedSession(int $sessionId): self
+    {
+        return new self(sprintf('Нельзя отменить запись на уже начавшееся занятие #%d.', $sessionId));
+    }
 }

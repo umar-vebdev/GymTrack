@@ -27,4 +27,9 @@ final class ScheduleResourceNotFound extends DomainException
     {
         return new self(sprintf('Занятие #%d не найдено.', $sessionId));
     }
+
+    public static function booking(int $bookingId): self
+    {
+        return new self(sprintf('Запись на занятие #%d не найдена.', $bookingId));
+    }
 }
