@@ -25,6 +25,14 @@ interface ExerciseRepositoryInterface
     public function findAvailableForClient(int $userId, int $id): ?Exercise;
 
     /**
+     * Загружает упражнения по набору ID в виде карты `exerciseId => Exercise`.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, Exercise>
+     */
+    public function findByIds(array $ids): array;
+
+    /**
      * Список платформенных упражнений для админа платформы, отсортированный по (name, id).
      *
      * @return list<Exercise>

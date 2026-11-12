@@ -70,4 +70,9 @@ final class InvalidWorkoutPlan extends DomainException
     {
         return new self("Время отдыха должно быть от 0 до {$max} секунд.");
     }
+
+    public static function inactiveExercise(int $exerciseId): self
+    {
+        return new self(sprintf('Упражнение #%d неактивно и не может использоваться в плане.', $exerciseId));
+    }
 }

@@ -81,6 +81,29 @@ final class EloquentExerciseRepository implements ExerciseRepositoryInterface
         return $model !== null ? $this->toDomain($model) : null;
     }
 
+    public function findByIds(array $ids): array
+    {
+        $uniqueIds = array_values(array_unique(array_filter(
+            $ids,
+            static fn (int $id): bool => $id > 0,
+        )));
+
+        if ($uniqueIds === []) {
+            return [];
+        }
+
+        /** @var array<int, Exercise> $map */
+        $map = [];
+        $models = ExerciseModel::query()->whereIn('id', $uniqueIds)->get();
+
+        foreach ($models as $model) {
+            $exercise = $this->toDomain($model);
+            $map[$exercise->id()] = $exercise;
+        }
+
+        return $map;
+    }
+
     public function listForPlatform(?MuscleGroup $muscleGroup = null, ?string $query = null, ?bool $onlyActive = null): array
     {
         $builder = ExerciseModel::query()->whereNull('user_id');
