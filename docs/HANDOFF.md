@@ -1,23 +1,18 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-12
-**Текущий этап:** Этап 4 — Расписание и тренеры (эпики `E4-A`, `E4-B`, `E4-C` завершены)
-**Текущая задача:** Планирование `E4-D` — Привязка к абонементам (`MembershipVisitConsumerInterface`)
+**Текущий этап:** Этап 4 — Расписание и тренеры (`E4-D` — Привязка к абонементам)
+**Текущая задача:** `T4-12b` (готова к старту; `T4-12a` завершена)
 
 ## Что сделано в последней сессии
 
-- **D-013:** Согласовано переиспользование `ClientLookupInterface::findOrCreateForUser(int $userId, int $companyId): int` без добавления дублирующего метода; утверждён план `E4-C` (`T4-09a`…`T4-11b`).
-- **T4-09a** (`82fccbc`): `ClassBooking`, `ClassBookingStatus`, `InvalidClassBooking` + `ClassBookingTest` (468 тестов).
-- **T4-09b** (`b36017a`): Миграция `schedule_bookings`, `ClassBookingRepositoryInterface`, `ClassBookingModel`, `EloquentClassBookingRepository`, биндинг в `ScheduleServiceProvider` + `ClassBookingRepositoryTest` (470 тестов).
-- **T4-10a** (`2491b13`): `BookClassSession`, `BookClassSessionCommand`, `ClassSessionRepositoryInterface::findCompanyId`, `ClassSession::assertOpenForBooking` / `reserveSeat` + `ClassBookingUseCasesTest` (472 теста).
-- **T4-10b** (`c1db491`): `CancelClassBooking`, `ListSessionBookings`, `ListClientBookings`, доменные исключения + `ClassBookingUseCasesTest` (474 теста).
-- **T4-11a** (`90648e0`): Клиентские эндпоинты `POST /api/v1/client/schedule/sessions/{session}/book`, `POST /api/v1/client/schedule/bookings/{booking}/cancel`, `GET /api/v1/client/schedule/bookings`, `ClassBookingResource`, `ListClientBookingsRequest` + `ClientClassBookingsTest` (476 тестов).
-- **T4-11b:** `ListSessionBookingsController` для `GET /api/v1/business/schedule/sessions/{session}/bookings` (доступ `owner`/`admin`/`trainer` своей компании), обновление OpenAPI `docs/api/schedule.yaml` + тест ролей и изоляции в `ClientClassBookingsTest`. Проверки `lint`, `analyse`, `deps` и Docker `test` пройдены: `477 passed (2888 assertions)`. Эпик **E4-C** полностью завершён.
+- **D-014:** Зафиксирован план и правила `E4-D` (`T4-12a`…`T4-12c`): списание 1 посещения через `MembershipVisitConsumerInterface` при `BookClassSession`, хранение `membership_id` в `schedule_bookings`, возврат посещения при `CancelClassBooking` и `CancelClassSession`.
+- **T4-12a:** Добавлена миграция `2026_11_12_000002_add_membership_id_to_schedule_bookings_table`, поддержка `?int $membershipId` и кодов ошибок (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`) в `ClassBooking` / `InvalidClassBooking`, обновлён репозиторий `ClassBookingRepositoryInterface` / `EloquentClassBookingRepository` (`listActiveForSessionForUpdate`) + unit-тесты `ClassBookingTest` и `ClassBookingRepositoryTest`. Проверки `lint`, `analyse`, `deps` и Docker `test` пройдены: `477 passed (2899 assertions)`.
 
 ## Точный следующий шаг
 
-1. Раскрыть и согласовать с разработчиком детальный план задач для эпика **E4-D Привязка к абонементам** (`T4-12a`…) с уточнением бизнес-правил списания/возврата посещения (через `MembershipVisitConsumerInterface`): списывать при записи или разрешать/требовать наличие активного абонемента компании, как поступать при отмене до начала занятия.
-2. После подтверждения плана реализовать задачи `E4-D`.
+1. Выполнить **T4-12b**: интегрировать `MembershipVisitConsumerInterface` в `BookClassSession` (проверка кандидата, заморозки и окна времени `startsAt`, списание без двойного расхода при идемпотентном повторе), `CancelClassBooking` и `CancelClassSession` (возврат посещения и отмена активных броней при отмене занятия залом) + обновить/добавить тесты в `ClassBookingUseCasesTest` и `ClassSessionUseCasesTest`.
+2. Выполнить **T4-12c**: вывести `membership_id` в `ClassBookingResource`, использовать `$e->errorCode` в контроллерах, обновить `docs/api/schedule.yaml` и `tests/Feature/Schedule/ClientClassBookingsTest.php`.
 
 ## Команды проверки
 
@@ -35,4 +30,4 @@ docker compose exec -T app composer test
 
 ## Нерешённые вопросы
 
-- Архитектурный выбор для `E4-D`: момент списания посещения с абонемента (`BookClassSession` vs отметка присутствия на занятии) и поведение при отсутствии активного абонемента — требует подтверждения разработчика перед стартом `E4-D`.
+- Нет.

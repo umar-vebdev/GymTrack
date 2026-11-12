@@ -30,9 +30,13 @@ final class ClassBooking
         ?string $idempotencyKey,
         private readonly DateTimeImmutable $bookedAt,
         private ?DateTimeImmutable $cancelledAt = null,
+        private readonly ?int $membershipId = null,
     ) {
         if ($id <= 0 || $companyId <= 0 || $gymId <= 0 || $sessionId <= 0 || $clientId <= 0) {
             throw InvalidClassBooking::invalidIdentifiers();
+        }
+        if ($membershipId !== null && $membershipId <= 0) {
+            throw InvalidClassBooking::invalidMembershipId();
         }
 
         $this->publicId = self::cleanPublicId($publicId);
@@ -148,5 +152,10 @@ final class ClassBooking
     public function cancelledAt(): ?DateTimeImmutable
     {
         return $this->cancelledAt;
+    }
+
+    public function membershipId(): ?int
+    {
+        return $this->membershipId;
     }
 }

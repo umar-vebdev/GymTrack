@@ -20,6 +20,7 @@ final class EloquentClassBookingRepository implements ClassBookingRepositoryInte
         int $clientId,
         DateTimeImmutable $bookedAt,
         ?string $idempotencyKey = null,
+        ?int $membershipId = null,
     ): ClassBooking {
         $utc = new DateTimeZone('UTC');
         $cleanKey = ClassBooking::cleanIdempotencyKey($idempotencyKey);
@@ -29,6 +30,7 @@ final class EloquentClassBookingRepository implements ClassBookingRepositoryInte
             'gym_id' => $gymId,
             'session_id' => $sessionId,
             'client_id' => $clientId,
+            'membership_id' => $membershipId,
             'status' => ClassBookingStatus::BOOKED->value,
             'idempotency_key' => $cleanKey,
             'booked_at' => $bookedAt->setTimezone($utc)->format('Y-m-d H:i:s'),
@@ -117,6 +119,26 @@ final class EloquentClassBookingRepository implements ClassBookingRepositoryInte
     }
 
     /**
+     * Блокирует активные бронирования занятия для пакетной отмены в транзакции.
+     *
+     * @return list<ClassBooking>
+     */
+    public function listActiveForSessionForUpdate(int $companyId, int $sessionId): array
+    {
+        return array_values(
+            ClassBookingModel::withoutGlobalScopes()
+                ->where('company_id', $companyId)
+                ->where('session_id', $sessionId)
+                ->where('status', ClassBookingStatus::BOOKED->value)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->map(fn (ClassBookingModel $model): ClassBooking => $this->toDomain($model))
+                ->all(),
+        );
+    }
+
+    /**
      * @param  list<int>  $clientIds
      * @return array{items: list<ClassBooking>, total: int}
      */
@@ -178,6 +200,7 @@ final class EloquentClassBookingRepository implements ClassBookingRepositoryInte
             cancelledAt: $model->cancelled_at !== null
                 ? DateTimeImmutable::createFromInterface($model->cancelled_at)->setTimezone($utc)
                 : null,
+            membershipId: $model->membership_id,
         );
     }
 }

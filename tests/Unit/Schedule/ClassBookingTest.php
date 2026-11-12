@@ -23,6 +23,7 @@ final class ClassBookingTest extends TestCase
         ?string $idempotencyKey = 'key-123',
         ?DateTimeImmutable $bookedAt = null,
         ?DateTimeImmutable $cancelledAt = null,
+        ?int $membershipId = null,
     ): ClassBooking {
         return new ClassBooking(
             id: $id,
@@ -35,6 +36,7 @@ final class ClassBookingTest extends TestCase
             idempotencyKey: $idempotencyKey,
             bookedAt: $bookedAt ?? new DateTimeImmutable('2026-11-12 09:00:00+00:00'),
             cancelledAt: $cancelledAt,
+            membershipId: $membershipId,
         );
     }
 
@@ -45,6 +47,7 @@ final class ClassBookingTest extends TestCase
             publicId: '  01j00000000000000000000001  ',
             idempotencyKey: '  req-abc  ',
             bookedAt: $bookedAt,
+            membershipId: 55,
         );
 
         $this->assertSame(1, $booking->id());
@@ -53,6 +56,7 @@ final class ClassBookingTest extends TestCase
         $this->assertSame(20, $booking->gymId());
         $this->assertSame(30, $booking->sessionId());
         $this->assertSame(40, $booking->clientId());
+        $this->assertSame(55, $booking->membershipId());
         $this->assertSame(ClassBookingStatus::BOOKED, $booking->status());
         $this->assertSame('req-abc', $booking->idempotencyKey());
         $this->assertEquals($bookedAt, $booking->bookedAt());
@@ -99,6 +103,8 @@ final class ClassBookingTest extends TestCase
             fn () => $this->makeBooking(gymId: -1),
             fn () => $this->makeBooking(sessionId: 0),
             fn () => $this->makeBooking(clientId: 0),
+            fn () => $this->makeBooking(membershipId: 0),
+            fn () => $this->makeBooking(membershipId: -1),
             fn () => $this->makeBooking(publicId: '   '),
             fn () => $this->makeBooking(idempotencyKey: str_repeat('a', ClassBooking::IDEMPOTENCY_KEY_MAX + 1)),
             fn () => $this->makeBooking(status: ClassBookingStatus::BOOKED, cancelledAt: $afterBooked),
@@ -134,5 +140,10 @@ final class ClassBookingTest extends TestCase
             $this->assertTrue($booking->isCancelled());
             $this->assertEquals($afterBooked, $booking->cancelledAt());
         }
+
+        $this->assertSame(InvalidClassBooking::CODE_NO_ACTIVE_MEMBERSHIP, InvalidClassBooking::noActiveMembership()->errorCode);
+        $this->assertSame(InvalidClassBooking::CODE_MEMBERSHIP_FROZEN, InvalidClassBooking::membershipFrozen()->errorCode);
+        $this->assertSame(InvalidClassBooking::CODE_OUTSIDE_ALLOWED_TIME, InvalidClassBooking::outsideAllowedTime()->errorCode);
+        $this->assertSame(InvalidClassBooking::CODE_CANCELLATION_NOT_ALLOWED, InvalidClassBooking::cannotCancelStartedSession(1)->errorCode);
     }
 }

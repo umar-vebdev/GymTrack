@@ -15,6 +15,7 @@ interface ClassBookingRepositoryInterface
         int $clientId,
         DateTimeImmutable $bookedAt,
         ?string $idempotencyKey = null,
+        ?int $membershipId = null,
     ): ClassBooking;
 
     public function save(ClassBooking $booking): void;
@@ -31,6 +32,13 @@ interface ClassBookingRepositoryInterface
      * @return list<ClassBooking>
      */
     public function listForSession(int $companyId, int $sessionId): array;
+
+    /**
+     * Блокирует активные бронирования занятия для пакетной отмены в транзакции.
+     *
+     * @return list<ClassBooking>
+     */
+    public function listActiveForSessionForUpdate(int $companyId, int $sessionId): array;
 
     /**
      * @param  list<int>  $clientIds

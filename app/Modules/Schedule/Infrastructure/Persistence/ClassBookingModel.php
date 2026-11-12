@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $gym_id
  * @property int $session_id
  * @property int $client_id
+ * @property int|null $membership_id
  * @property string $status
  * @property string|null $idempotency_key
  * @property Carbon $booked_at
@@ -33,6 +34,7 @@ final class ClassBookingModel extends Model
         'gym_id',
         'session_id',
         'client_id',
+        'membership_id',
         'status',
         'idempotency_key',
         'booked_at',

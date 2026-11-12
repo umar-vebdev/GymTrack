@@ -8,6 +8,11 @@ use App\Models\User;
 use App\Modules\Clients\Domain\ClientRepositoryInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
+use App\Modules\Memberships\Domain\MembershipKind;
+use App\Modules\Memberships\Domain\MembershipRules;
+use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
+use App\Modules\Memberships\Domain\StartMode;
 use App\Modules\Schedule\Domain\ClassBooking;
 use App\Modules\Schedule\Domain\ClassBookingRepositoryInterface;
 use App\Modules\Schedule\Domain\ClassBookingStatus;
@@ -15,6 +20,7 @@ use App\Modules\Schedule\Domain\ClassSession;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
 use App\Modules\Schedule\Domain\ClassTemplateRepositoryInterface;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
+use App\Shared\Domain\Money;
 use DateTimeImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -117,6 +123,25 @@ final class ClassBookingRepositoryTest extends TestCase
 
         $this->assertNull($repo->findActiveForSessionAndClient($a['companyId'], $a['session']->id(), $a['clientId']));
 
+        // Создаём абонемент и проверяем сохранение membership_id
+        $typeId = $this->app->make(MembershipTypeRepositoryInterface::class)->create(
+            $a['companyId'],
+            '10 занятий',
+            new Money(50000, 'TJS'),
+            MembershipRules::create(
+                kind: MembershipKind::Visits,
+                startMode: StartMode::OnSale,
+                visitsCount: 10,
+                validityDays: 30,
+            ),
+        );
+        $membershipId = $this->app->make(MembershipIssuerInterface::class)->issue(
+            $a['companyId'],
+            $a['clientId'],
+            $typeId,
+            $t1,
+        );
+
         // Повторная запись после отмены допустима (partial unique index только для status = 'booked')
         $rebooked = $repo->create(
             companyId: $a['companyId'],
@@ -125,7 +150,9 @@ final class ClassBookingRepositoryTest extends TestCase
             clientId: $a['clientId'],
             bookedAt: $t3,
             idempotencyKey: null,
+            membershipId: $membershipId,
         );
+        $this->assertSame($membershipId, $rebooked->membershipId());
 
         $otherInSession = $repo->create(
             companyId: $a['companyId'],
@@ -151,6 +178,17 @@ final class ClassBookingRepositoryTest extends TestCase
             array_map(static fn (ClassBooking $booking): int => $booking->id(), $sessionBookings),
         );
         $this->assertSame([], $repo->listForSession($a['companyId'], $b['session']->id()));
+
+        // Блокирующая выборка активных броней занятия возвращает только status = booked
+        DB::transaction(function () use ($repo, $a, $b, $rebooked, $otherInSession, $membershipId): void {
+            $activeLocked = $repo->listActiveForSessionForUpdate($a['companyId'], $a['session']->id());
+            $this->assertSame(
+                [$rebooked->id(), $otherInSession->id()],
+                array_map(static fn (ClassBooking $booking): int => $booking->id(), $activeLocked),
+            );
+            $this->assertSame($membershipId, $activeLocked[0]->membershipId());
+            $this->assertSame([], $repo->listActiveForSessionForUpdate($b['companyId'], $a['session']->id()));
+        });
 
         // Список записей клиента с фильтрами и пагинацией
         $this->assertSame(['items' => [], 'total' => 0], $repo->listForClient([]));
