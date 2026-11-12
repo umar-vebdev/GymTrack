@@ -144,7 +144,8 @@
 
 - [~] **E5-A Справочник упражнений и библиотека готовых планов платформы** (план подтверждён 2026-11-12, D-016)
   - [x] **T5-01** Каркас модуля `Workouts` (`WorkoutsServiceProvider` зарегистрирован в `bootstrap/providers.php`), миграция `workouts_exercises` (`public_id` ULID, `user_id` nullable с `cascadeOnDelete` на `users`), `MuscleGroup` enum, сущность `Exercise` с инвариантами, `InvalidExercise`, `ExerciseRepositoryInterface` + `EloquentExerciseRepository`, `ExerciseTest` и `ExerciseRepositoryTest` (4 новых теста, 36 проверок; также приведено форматирование Pint у 13 файлов `E4-E`; `lint`/`analyse`/`deps` и 11 связанных тестов зелёные).
-  - [ ] **T5-02** Use Cases и эндпоинты управления упражнениями: `CreateExercise`, `UpdateExercise`, `ListExercises`, маршруты `/api/v1/platform/workouts/exercises[/{exercise}]` (админ платформы) и `/api/v1/client/workouts/exercises` (клиент), `ExerciseResource`, `FormRequest`, тесты.
+  - [x] **T5-02a** Реализованы Use Cases управления упражнениями (`WorkoutResourceNotFound`, `CreateExercise`, `UpdateExercise`, `ListExercises` + `CreateExerciseCommand`/`UpdateExerciseCommand`) и `ExerciseUseCasesTest` (1 тест, 12 проверок; lint/analyse/deps зелёные).
+  - [ ] **T5-02b** HTTP-эндпоинты управления упражнениями (`/api/v1/platform/workouts/exercises[/{exercise}]` и `/api/v1/client/workouts/exercises`), `FormRequest`, `ExerciseResource`, `routes.php` и `ExercisesEndpointsTest`.
     - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 8; D-016.
     - Файлы: `app/Modules/Workouts/Application/CreateExercise.php`, `app/Modules/Workouts/Application/UpdateExercise.php`, `app/Modules/Workouts/Application/ListExercises.php`, `app/Modules/Workouts/Presentation/*`, `tests/Feature/Workouts/ExercisesEndpointsTest.php`.
     - Готовность: `lint`, `analyse`, `deps` и `ExercisesEndpointsTest` зелёные.
