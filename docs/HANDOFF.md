@@ -2,8 +2,8 @@
 
 > Файл **перезаписывается** целиком, а не дописывается. Обновлять после каждой задачи.
 
-**Обновлено:** 2026-11-11
-**Этап:** 4 — Расписание и тренеры (E4-A и E4-B завершены; E4-C ожидает подтверждения плана)
+**Обновлено:** 2026-11-12
+**Этап:** 4 — Расписание и тренеры (E4-A и E4-B завершены; E4-C в работе)
 **Ветка:** main
 
 ## Текущее состояние
@@ -11,18 +11,17 @@
 - Этапы 0–3 завершены и приняты.
 - Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
 - Эпик **E4-B (Расписание) завершён** (`T4-05a`…`T4-08b`).
-- Эпик **E4-C (Запись клиентов)** раскрыт в задачи `T4-09a`…`T4-11b` в `docs/TASKS.md` и предложен разработчику на подтверждение (раздел 4.3 `AGENTS.md`).
+- Эпик **E4-C (Запись клиентов)** в работе (план подтверждён 2026-11-12, `D-013`): завершена `T4-09a`, следующая — `T4-09b`.
 
 ## Последняя сессия
 
-- **T4-07b [x]**: сценарии `GenerateClassSessions`, `CancelClassSession` и `ListClassSessions` + 3 теста в `ClassSessionUseCasesTest`.
-- **T4-08a [x]**: HTTP-эндпоинты кабинета зала `POST /api/v1/business/schedule/sessions/generate`, `POST /api/v1/business/schedule/sessions/{session}/cancel`, `GET /api/v1/business/schedule/sessions` + 2 теста в `ManageClassSessionsTest`.
-- **T4-08b [x]**: `GymLookupInterface::findCompanyId` + `EloquentGymLookup`, клиентский эндпоинт `GET /api/v1/client/gyms/{gym}/schedule`, OpenAPI `docs/api/schedule.yaml` + тест в `ManageClassSessionsTest`.
-- **465 тестов, 2648 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **D-013**: зафиксировано подтверждение плана E4-C и выбор `ClientLookupInterface::findOrCreateForUser` при записи клиента на занятие.
+- **T4-09a [x]**: `ClassBookingStatus`, `InvalidClassBooking`, доменная сущность `ClassBooking` и 3 теста в `tests/Unit/Schedule/ClassBookingTest.php`.
+- **468 тестов, 2682 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. После подтверждения разработчиком списка задач эпика **E4-C** начать с **T4-09a**: доменная сущность `ClassBooking`, `ClassBookingStatus`, `InvalidClassBooking` и unit-тест `ClassBookingTest`.
+1. Взять в работу **T4-09b**: миграция `schedule_bookings`, `ClassBookingRepositoryInterface`, `ClassBookingModel`, `EloquentClassBookingRepository` и тест `ClassBookingRepositoryTest`.
 
 ## Окружение: важное про Docker и Git
 
