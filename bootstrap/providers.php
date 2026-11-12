@@ -15,6 +15,7 @@ use App\Modules\Sales\SalesServiceProvider;
 use App\Modules\Schedule\ScheduleServiceProvider;
 use App\Modules\Trainers\TrainersServiceProvider;
 use App\Modules\Visits\VisitsServiceProvider;
+use App\Modules\Workouts\WorkoutsServiceProvider;
 use App\Providers\AppServiceProvider;
 
 return [
@@ -32,4 +33,5 @@ return [
     CatalogServiceProvider::class,
     TrainersServiceProvider::class,
     ScheduleServiceProvider::class,
+    WorkoutsServiceProvider::class,
 ];

@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** 4 — Расписание и тренеры завершён (`E4-A`…`E4-E` выполнены; готов к планированию Этапа 5)
+**Текущий этап:** 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-A`)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -138,5 +138,23 @@
 
 ---
 
-## Этап 5 (не раскрывать до завершения предыдущего этапа)
-- Этап 5: дневник тренировок
+## Этап 5 — Дневник тренировок (объём: D-016)
+
+**ТЗ:** Бизнес-ТЗ 2, 9; Тех. ТЗ 3.2, 3.3, 6.1, 7.1, 14. Эпики `E5-B` и `E5-C` хранятся крупными блоками и раскрываются перед стартом (4.3 `AGENTS.md`).
+
+- [~] **E5-A Справочник упражнений и библиотека готовых планов платформы** (план подтверждён 2026-11-12, D-016)
+  - [x] **T5-01** Каркас модуля `Workouts` (`WorkoutsServiceProvider` зарегистрирован в `bootstrap/providers.php`), миграция `workouts_exercises` (`public_id` ULID, `user_id` nullable с `cascadeOnDelete` на `users`), `MuscleGroup` enum, сущность `Exercise` с инвариантами, `InvalidExercise`, `ExerciseRepositoryInterface` + `EloquentExerciseRepository`, `ExerciseTest` и `ExerciseRepositoryTest` (4 новых теста, 36 проверок; также приведено форматирование Pint у 13 файлов `E4-E`; `lint`/`analyse`/`deps` и 11 связанных тестов зелёные).
+  - [ ] **T5-02** Use Cases и эндпоинты управления упражнениями: `CreateExercise`, `UpdateExercise`, `ListExercises`, маршруты `/api/v1/platform/workouts/exercises[/{exercise}]` (админ платформы) и `/api/v1/client/workouts/exercises` (клиент), `ExerciseResource`, `FormRequest`, тесты.
+    - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 8; D-016.
+    - Файлы: `app/Modules/Workouts/Application/CreateExercise.php`, `app/Modules/Workouts/Application/UpdateExercise.php`, `app/Modules/Workouts/Application/ListExercises.php`, `app/Modules/Workouts/Presentation/*`, `tests/Feature/Workouts/ExercisesEndpointsTest.php`.
+    - Готовность: `lint`, `analyse`, `deps` и `ExercisesEndpointsTest` зелёные.
+  - [ ] **T5-03** Домен и хранение тренировочных планов: миграции `workouts_plans` и `workouts_plan_items`, сущности `WorkoutPlan`, `WorkoutPlanItem`, `PlanLevel`, `InvalidWorkoutPlan`, репозиторий `WorkoutPlanRepositoryInterface` + `EloquentWorkoutPlanRepository`, unit/repository-тесты.
+    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 6.1; D-016.
+    - Файлы: `app/Modules/Workouts/Domain/PlanLevel.php`, `app/Modules/Workouts/Domain/WorkoutPlanItem.php`, `app/Modules/Workouts/Domain/WorkoutPlan.php`, `app/Modules/Workouts/Domain/Exceptions/InvalidWorkoutPlan.php`, `app/Modules/Workouts/Domain/WorkoutPlanRepositoryInterface.php`, миграции, модели, репозиторий, тесты.
+    - Готовность: `lint`, `analyse`, `deps` и тесты домена/репозитория планов зелёные.
+  - [ ] **T5-04** Библиотека готовых планов платформы: сценарии `CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`, эндпоинты `/api/v1/platform/workouts/plans[/{plan}]` и `/api/v1/client/workouts/library[/{plan}]`, OpenAPI `docs/api/workouts.yaml`, feature-тесты.
+    - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 15; D-016.
+    - Файлы: `app/Modules/Workouts/Application/*LibraryPlan*`, `app/Modules/Workouts/Presentation/*`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/LibraryPlansEndpointsTest.php`.
+    - Готовность: `lint`, `analyse`, `deps` и полный прогон `composer test` зелёные.
+- [ ] **E5-B Собственные планы клиента**: создание/редактирование/удаление личных планов, копирование плана из библиотеки платформы (раскрыть после завершения E5-A)
+- [ ] **E5-C Тренировочные сессии и прогресс**: старт/завершение тренировки, фиксация веса и повторений в подходах, история тренировок и прогресса по упражнениям (раскрыть после завершения E5-B)

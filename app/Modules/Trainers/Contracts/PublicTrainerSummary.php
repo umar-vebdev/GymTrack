@@ -15,4 +15,3 @@ final class PublicTrainerSummary
         public readonly ?string $bio,
     ) {}
 }
-

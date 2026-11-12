@@ -22,4 +22,3 @@ final class PublicClassSession
         public readonly ?string $trainerName,
     ) {}
 }
-

@@ -72,4 +72,3 @@ final class ListPublicGymScheduleRequest extends FormRequest
         });
     }
 }
-

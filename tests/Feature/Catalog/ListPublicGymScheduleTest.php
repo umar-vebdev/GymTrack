@@ -241,4 +241,3 @@ final class ListPublicGymScheduleTest extends TestCase
             ->assertJsonStructure(['error' => ['details' => ['to_date']]]);
     }
 }
-

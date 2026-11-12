@@ -1,26 +1,19 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-12
-**Текущий этап:** Этап 4 — Расписание и тренеры полностью завершён (`E4-A`…`E4-E` выполнены)
-**Текущая задача:** Нет активной задачи — этап 4 полностью закрыт (`T4-15b` `[x]`); следующий шаг — планирование **Этапа 5** (дневник тренировок) после подтверждения разработчиком
+**Текущий этап:** Этап 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-A`)
+**Текущая задача:** `T5-02` `[ ]` — Use Cases и эндпоинты управления упражнениями (платформа и клиент)
 
 ## Что сделано в последней сессии
 
-- **T4-10b** (`c1db491`): Сценарии `CancelClassBooking`, `ListSessionBookings`, `ListClientBookings` и тесты (`474 passed, 2766 assertions`).
-- **T4-11a** (`90648e0`): Клиентские эндпоинты записи, отмены и списка броней (`476 passed, 2841 assertions`).
-- **T4-11b** (`b68e052`): Бизнес-эндпоинт списка записавшихся на занятие и OpenAPI `docs/api/schedule.yaml` (`477 passed, 2888 assertions`).
-- **D-014 + T4-12a** (`eae4ee0`): Правила привязки записей к абонементам, миграция `membership_id`, доменные коды ошибок `InvalidClassBooking`, репозиторий и unit/repository-тесты (`477 passed, 2899 assertions`).
-- **T4-12b** (`1d02d9c`): Интеграция `MembershipVisitConsumerInterface` в `BookClassSession`, `CancelClassBooking` и `CancelClassSession` с блокировками, идемпотентностью и возвратом посещения (`478 passed, 2935 assertions`).
 - **T4-12c** (`eda5e92`): Добавлен `membership_id` в `ClassBookingResource`, проброшен `$e->errorCode` в контроллерах, обновлён `docs/api/schedule.yaml` (`479 passed, 2965 assertions`).
-- **D-015 + T4-13** (`94cc375`): Раскрыт эпик `E4-E`; добавлен `gymId` в `PublicGymProfile` и контракт `PublicTrainerQueryInterface` (`PublicTrainerSummary`, `EloquentPublicTrainerQuery`) с тестами (`15 passed, 119 assertions`).
-- **T4-14** (`77c21a2`): Добавлен `ScheduleCatalogQueryInterface` (`PublicClassSession`), реализация `EloquentScheduleCatalogQuery` без N+1 и `ScheduleCatalogQueryTest` (`1 passed, 23 assertions`).
-- **T4-15a** (`e6e2db4`): Реализован Use Case `GetPublicGymSchedule` и `PublicGymScheduleResult`, разрешён контракт `Schedule\Contracts` в `SearchGymsTest`, добавлен `GetPublicGymScheduleTest` (`8 passed, 67 assertions`).
-- **T4-15b:** Реализован эндпоинт `GET /api/v1/public/gyms/{publicId}/schedule` (`ListPublicGymScheduleRequest`, `PublicClassSessionResource`, `ListPublicGymScheduleController`), обновлён `docs/api/public-catalog.yaml` и добавлен `ListPublicGymScheduleTest`. Проверки `lint`, `analyse`, `deps`, YAML и полный прогон Docker `test` пройдены: `487 passed (3097 assertions)`.
+- **D-015 + E4-E (`T4-13`…`T4-15b`)** (`94cc375`, `77c21a2`, `e6e2db4`, `1cb04cc`): Полностью завершён Этап 4 — добавлено публичное расписание залов в каталоге (`GET /api/v1/public/gyms/{publicId}/schedule`, контракты `PublicTrainerQueryInterface` и `ScheduleCatalogQueryInterface`, OpenAPI `docs/api/public-catalog.yaml`; `487 passed, 3097 assertions`).
+- **D-016 + T5-01:** Утверждён объём Этапа 5 (`E5-A`…`E5-C`, модуль `Workouts`) и план `E5-A`; зарегистрирован `WorkoutsServiceProvider`, добавлена миграция `workouts_exercises`, домен `Exercise` / `MuscleGroup` / `InvalidExercise`, `EloquentExerciseRepository` и тесты `ExerciseTest` + `ExerciseRepositoryTest` (11 проверенных тестов, 145 assertions; `lint`/`analyse`/`deps` зелёные).
 
 ## Точный следующий шаг
 
-1. Дождаться подтверждения разработчика на переход к **Этапу 5** (дневник тренировок, модуль `Workouts`) согласно правилу 4.3 `AGENTS.md`.
-2. Перед раскрытием Этапа 5 заново перечитать раздел 9 `docs/specs/GymTrack_TZ_v2.md` и раздел 14 `docs/specs/GymTrack_Technical_TZ.md`, составить детализированный список задач первого эпика и согласовать его с разработчиком.
+1. Выполнить **T5-02**: реализовать `CreateExercise`, `UpdateExercise`, `ListExercises`, маршруты `/api/v1/platform/workouts/exercises[/{exercise}]` и `/api/v1/client/workouts/exercises`, `ExerciseResource`, `FormRequest` и `ExercisesEndpointsTest`.
+2. Далее выполнить `T5-03` и `T5-04` для завершения эпика `E5-A`.
 
 ## Команды проверки
 
