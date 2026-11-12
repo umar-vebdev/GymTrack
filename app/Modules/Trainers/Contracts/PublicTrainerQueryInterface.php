@@ -17,3 +17,4 @@ interface PublicTrainerQueryInterface
      */
     public function findByIds(array $trainerIds): array;
 }
+

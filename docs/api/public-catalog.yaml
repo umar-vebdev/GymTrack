@@ -165,6 +165,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NotFoundErrorResponse'
+  /api/v1/public/gyms/{publicId}/schedule:
+    get:
+      summary: Публичное расписание групповых занятий зала по ULID
+      description: |
+        Доступно без авторизации. Возвращает только предстоящие неотменённые (`scheduled`)
+        занятия одобренного и опубликованного зала в выбранном интервале дат (по умолчанию —
+        7 дней от текущей даты UTC, максимум 62 дня), отсортированные по `(starts_at, id)`.
+        Внутренние идентификаторы и список записавшихся клиентов не возвращаются.
+      parameters:
+        - in: path
+          name: publicId
+          required: true
+          description: Публичный идентификатор зала (ULID)
+          schema:
+            type: string
+            example: 01JCXYZ0000000000000000000
+        - in: query
+          name: from_date
+          required: false
+          description: Начальная дата периода (Y-m-d, UTC; по умолчанию — сегодня)
+          schema:
+            type: string
+            format: date
+            example: '2026-11-12'
+        - in: query
+          name: to_date
+          required: false
+          description: Конечная дата периода (Y-m-d, UTC; по умолчанию — from_date + 6 дней, максимум 62 дня от from_date)
+          schema:
+            type: string
+            format: date
+            example: '2026-11-18'
+      responses:
+        '200':
+          description: Публичное расписание зала
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicClassSession'
+                  meta:
+                    $ref: '#/components/schemas/SchedulePeriodMeta'
+        '404':
+          description: NOT_FOUND — зал не найден или скрыт из каталога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+        '422':
+          description: VALIDATION_FAILED — некорректный формат или диапазон дат
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 components:
   schemas:
     PublicGym:
@@ -306,6 +365,67 @@ components:
         total:
           type: integer
           example: 1
+    SchedulePeriodMeta:
+      type: object
+      required: [from_date, to_date]
+      properties:
+        from_date:
+          type: string
+          format: date
+          example: '2026-11-12'
+        to_date:
+          type: string
+          format: date
+          example: '2026-11-18'
+    PublicScheduleTrainer:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          description: Публичный идентификатор тренера (ULID)
+          example: 01JCXYZ2222222222222222222
+        name:
+          type: string
+          example: Алишер
+    PublicClassSession:
+      type: object
+      required:
+        - id
+        - title
+        - starts_at
+        - ends_at
+        - capacity
+        - available_seats
+        - trainer
+      properties:
+        id:
+          type: string
+          description: Публичный идентификатор занятия (ULID)
+          example: 01JCXYZ3333333333333333333
+        title:
+          type: string
+          example: Йога
+        starts_at:
+          type: string
+          format: date-time
+          example: '2026-11-12T12:00:00+00:00'
+        ends_at:
+          type: string
+          format: date-time
+          example: '2026-11-12T13:00:00+00:00'
+        capacity:
+          type: integer
+          minimum: 1
+          example: 12
+        available_seats:
+          type: integer
+          minimum: 0
+          example: 10
+        trainer:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/PublicScheduleTrainer'
     ValidationErrorResponse:
       type: object
       required: [error]

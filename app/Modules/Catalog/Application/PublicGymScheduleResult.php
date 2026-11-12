@@ -23,3 +23,4 @@ final class PublicGymScheduleResult
         public readonly array $sessions,
     ) {}
 }
+

@@ -24,3 +24,4 @@ interface ScheduleCatalogQueryInterface
         DateTimeImmutable $now,
     ): array;
 }
+

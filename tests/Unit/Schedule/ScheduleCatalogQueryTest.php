@@ -146,3 +146,4 @@ final class ScheduleCatalogQueryTest extends TestCase
         $this->assertCount(0, DB::getQueryLog());
     }
 }
+

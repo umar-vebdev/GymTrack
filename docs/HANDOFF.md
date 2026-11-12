@@ -1,8 +1,8 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-12
-**Текущий этап:** Этап 4 — Расписание и тренеры (`E4-A`…`E4-D` готовы; в работе `E4-E` — расписание в публичном каталоге)
-**Текущая задача:** `T4-15b` `[ ]` — Публичный HTTP-эндпоинт `GET /api/v1/public/gyms/{publicId}/schedule`, OpenAPI и feature-тесты
+**Текущий этап:** Этап 4 — Расписание и тренеры полностью завершён (`E4-A`…`E4-E` выполнены)
+**Текущая задача:** Нет активной задачи — этап 4 полностью закрыт (`T4-15b` `[x]`); следующий шаг — планирование **Этапа 5** (дневник тренировок) после подтверждения разработчиком
 
 ## Что сделано в последней сессии
 
@@ -14,12 +14,13 @@
 - **T4-12c** (`eda5e92`): Добавлен `membership_id` в `ClassBookingResource`, проброшен `$e->errorCode` в контроллерах, обновлён `docs/api/schedule.yaml` (`479 passed, 2965 assertions`).
 - **D-015 + T4-13** (`94cc375`): Раскрыт эпик `E4-E`; добавлен `gymId` в `PublicGymProfile` и контракт `PublicTrainerQueryInterface` (`PublicTrainerSummary`, `EloquentPublicTrainerQuery`) с тестами (`15 passed, 119 assertions`).
 - **T4-14** (`77c21a2`): Добавлен `ScheduleCatalogQueryInterface` (`PublicClassSession`), реализация `EloquentScheduleCatalogQuery` без N+1 и `ScheduleCatalogQueryTest` (`1 passed, 23 assertions`).
-- **T4-15a:** Реализован Use Case `GetPublicGymSchedule` и `PublicGymScheduleResult`, разрешён контракт `Schedule\Contracts` в `SearchGymsTest`, добавлен `GetPublicGymScheduleTest` (`8 passed, 67 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **T4-15a** (`e6e2db4`): Реализован Use Case `GetPublicGymSchedule` и `PublicGymScheduleResult`, разрешён контракт `Schedule\Contracts` в `SearchGymsTest`, добавлен `GetPublicGymScheduleTest` (`8 passed, 67 assertions`).
+- **T4-15b:** Реализован эндпоинт `GET /api/v1/public/gyms/{publicId}/schedule` (`ListPublicGymScheduleRequest`, `PublicClassSessionResource`, `ListPublicGymScheduleController`), обновлён `docs/api/public-catalog.yaml` и добавлен `ListPublicGymScheduleTest`. Проверки `lint`, `analyse`, `deps`, YAML и полный прогон Docker `test` пройдены: `487 passed (3097 assertions)`.
 
 ## Точный следующий шаг
 
-1. Выполнить **T4-15b**: добавить `ListPublicGymScheduleRequest`, `PublicClassSessionResource`, `ListPublicGymScheduleController`, маршрут `GET /api/v1/public/gyms/{publicId}/schedule`, обновить `docs/api/public-catalog.yaml`, написать `ListPublicGymScheduleTest` и закрыть Этап 4.
-2. После закрытия Этапа 4 согласовать с разработчиком раскрытие **Этапа 5** (дневник тренировок).
+1. Дождаться подтверждения разработчика на переход к **Этапу 5** (дневник тренировок, модуль `Workouts`) согласно правилу 4.3 `AGENTS.md`.
+2. Перед раскрытием Этапа 5 заново перечитать раздел 9 `docs/specs/GymTrack_TZ_v2.md` и раздел 14 `docs/specs/GymTrack_Technical_TZ.md`, составить детализированный список задач первого эпика и согласовать его с разработчиком.
 
 ## Команды проверки
 

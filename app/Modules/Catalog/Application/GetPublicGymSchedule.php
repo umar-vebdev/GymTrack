@@ -84,3 +84,4 @@ final class GetPublicGymSchedule
         return [$startDay, $endDay];
     }
 }
+

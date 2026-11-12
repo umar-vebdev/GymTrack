@@ -40,3 +40,4 @@ final class EloquentPublicTrainerQuery implements PublicTrainerQueryInterface
         return $result;
     }
 }
+
