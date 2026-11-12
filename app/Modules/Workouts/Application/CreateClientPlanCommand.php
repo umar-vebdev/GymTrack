@@ -19,4 +19,3 @@ final readonly class CreateClientPlanCommand
         public array $items = [],
     ) {}
 }
-

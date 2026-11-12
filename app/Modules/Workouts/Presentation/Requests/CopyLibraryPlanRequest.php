@@ -24,4 +24,3 @@ final class CopyLibraryPlanRequest extends FormRequest
         ];
     }
 }
-

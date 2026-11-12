@@ -21,4 +21,3 @@ final class StoreClientPlanRequest extends FormRequest
         return WorkoutPlanRequestData::planRules(allowIsActive: false, allowIsPublished: false);
     }
 }
-

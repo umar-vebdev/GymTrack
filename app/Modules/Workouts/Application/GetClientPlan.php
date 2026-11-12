@@ -28,4 +28,3 @@ final class GetClientPlan
         return $this->assembler->buildView($plan);
     }
 }
-

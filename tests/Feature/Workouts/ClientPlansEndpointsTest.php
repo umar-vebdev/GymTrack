@@ -151,4 +151,3 @@ final class ClientPlansEndpointsTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 }
-

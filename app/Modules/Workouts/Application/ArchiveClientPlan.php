@@ -28,4 +28,3 @@ final class ArchiveClientPlan
         $this->plans->save($plan);
     }
 }
-

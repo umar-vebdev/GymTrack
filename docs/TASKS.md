@@ -154,12 +154,9 @@
 - [x] **E5-B Собственные планы клиента** (план подтверждён 2026-11-12, D-017)
   - [x] **T5-05a** Use Cases личных планов клиента и копирования из библиотеки: `resolveClientItems()` в `WorkoutPlanAssembler`, `CreateClientPlan`, `UpdateClientPlan`, `ArchiveClientPlan`, `ListClientPlans`, `GetClientPlan`, `CopyLibraryPlanToClient`, тесты `ClientPlanUseCasesTest` (1 тест, 16 проверок; lint/analyse/deps зелёные).
   - [x] **T5-05b** HTTP-эндпоинты личных планов клиента и OpenAPI: `ClientWorkoutPlansController` (`GET/POST /api/v1/client/workouts/plans`, `GET/PATCH/DELETE /api/v1/client/workouts/plans/{plan}`, `POST /api/v1/client/workouts/library/{plan}/copy`), `StoreClientPlanRequest`, `UpdateClientPlanRequest`, `CopyLibraryPlanRequest`, `routes.php`, `docs/api/workouts.yaml`, `ClientPlansEndpointsTest` (`506 passed, 3339 assertions`, lint/analyse/deps и YAML зелёные).
-- [ ] **E5-C Тренировочные сессии и прогресс** (ожидает подтверждения детализированного плана)
-  - [ ] **T5-06a** Домен тренировочных сессий и подходов: `WorkoutSessionStatus`, `InvalidWorkoutSession`, `WorkoutSet`, `WorkoutSession`, `WorkoutSessionRepositoryInterface`, unit-тесты `WorkoutSessionTest`.
-    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 3, 6.1, 11; D-016.
-    - Файлы: `app/Modules/Workouts/Domain/WorkoutSessionStatus.php`, `app/Modules/Workouts/Domain/Exceptions/InvalidWorkoutSession.php`, `app/Modules/Workouts/Domain/WorkoutSet.php`, `app/Modules/Workouts/Domain/WorkoutSession.php`, `app/Modules/Workouts/Domain/WorkoutSessionRepositoryInterface.php`, `tests/Unit/Workouts/WorkoutSessionTest.php`.
-    - Готовность: `lint`, `analyse`, `deps` и `WorkoutSessionTest` зелёные.
-  - [ ] **T5-06b** Хранение и репозиторий сессий: миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel`, `WorkoutSetModel`, `EloquentWorkoutSessionRepository` (с выборкой истории прогресса по упражнению), привязка в `WorkoutsServiceProvider`, `WorkoutSessionRepositoryTest`.
+- [~] **E5-C Тренировочные сессии и прогресс** (план подтверждён 2026-11-12, D-018)
+  - [x] **T5-06a** Домен тренировочных сессий и подходов: `WorkoutSessionStatus`, `InvalidWorkoutSession`, `WorkoutSet`, `WorkoutSession`, `ExerciseProgressSession`, `WorkoutSessionRepositoryInterface`, `WorkoutSessionTest` (2 теста, 18 проверок; lint/analyse/deps зелёные).
+  - [~] **T5-06b** Хранение и репозиторий сессий: миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel`, `WorkoutSetModel`, `EloquentWorkoutSessionRepository` (с выборкой истории прогресса по упражнению), привязка в `WorkoutsServiceProvider`, `WorkoutSessionRepositoryTest`.
     - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 6.1; D-016.
     - Файлы: `app/Modules/Workouts/Infrastructure/Migrations/*`, `app/Modules/Workouts/Infrastructure/Persistence/*`, `app/Modules/Workouts/Infrastructure/EloquentWorkoutSessionRepository.php`, `app/Modules/Workouts/WorkoutsServiceProvider.php`, `tests/Feature/Workouts/WorkoutSessionRepositoryTest.php`.
     - Готовность: `lint`, `analyse`, `deps` и `WorkoutSessionRepositoryTest` зелёные.

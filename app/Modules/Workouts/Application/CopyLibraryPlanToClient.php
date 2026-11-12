@@ -52,4 +52,3 @@ final class CopyLibraryPlanToClient
         return $this->assembler->buildView($copy);
     }
 }
-

@@ -21,4 +21,3 @@ final class UpdateClientPlanRequest extends FormRequest
         return WorkoutPlanRequestData::planRules(allowIsActive: false, allowIsPublished: false);
     }
 }
-

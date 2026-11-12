@@ -278,4 +278,3 @@ final class ClientPlanUseCasesTest extends TestCase
         };
     }
 }
-
