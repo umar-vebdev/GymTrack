@@ -232,6 +232,7 @@ final class PublicGymQueryTest extends TestCase
         $card = $query->findByPublicId($g1['publicId']);
         $this->assertNotNull($card);
         $this->assertSame($g1['publicId'], $card->publicId);
+        $this->assertSame($g1['gymId'], $card->gymId);
         $this->assertSame($g1['companyId'], $card->companyId);
         $this->assertSame('Gym 1', $card->name);
         $this->assertSame('Описание Gym 1', $card->description);
@@ -255,6 +256,7 @@ final class PublicGymQueryTest extends TestCase
         $page1 = $query->search(new PublicGymFilter(page: 1, perPage: 2));
         $this->assertSame(3, $page1['total']);
         $this->assertCount(2, $page1['items']);
+        $this->assertGreaterThan(0, $page1['items'][0]->gymId);
         $this->assertSame([$expectedOrder[0], $expectedOrder[1]], [
             $page1['items'][0]->publicId,
             $page1['items'][1]->publicId,

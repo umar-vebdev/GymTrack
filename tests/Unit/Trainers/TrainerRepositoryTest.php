@@ -7,13 +7,16 @@ namespace Tests\Unit\Trainers;
 use App\Models\User;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Trainers\Contracts\PublicTrainerQueryInterface;
 use App\Modules\Trainers\Contracts\TrainerLookupInterface;
 use App\Modules\Trainers\Domain\Exceptions\InvalidTrainerProfile;
 use App\Modules\Trainers\Domain\Trainer;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
 use App\Modules\Trainers\Infrastructure\Persistence\TrainerModel;
+use App\Shared\Application\CurrentCompanyInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class TrainerRepositoryTest extends TestCase
@@ -133,5 +136,37 @@ final class TrainerRepositoryTest extends TestCase
         $repo->save($trainer);
 
         $this->assertFalse($lookup->existsActiveInGym($trainer->id(), $a['companyId'], $a['gymId']));
+    }
+
+    public function test_public_trainer_query_returns_batch_summaries_ignoring_company_scope(): void
+    {
+        $a = $this->createCompanyWithGym('A');
+        $b = $this->createCompanyWithGym('B');
+        $repo = $this->app->make(TrainerRepositoryInterface::class);
+        $publicQuery = $this->app->make(PublicTrainerQueryInterface::class);
+
+        $t1 = $repo->create($a['companyId'], $a['gymId'], 'Али', 'Силовой тренинг');
+        $t2 = $repo->create($b['companyId'], $b['gymId'], 'Зухра');
+        $t2->deactivate();
+        $repo->save($t2);
+
+        $this->app->make(CurrentCompanyInterface::class)->setId($a['companyId']);
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        $this->assertSame([], $publicQuery->findByIds([]));
+        $this->assertCount(0, DB::getQueryLog());
+
+        DB::flushQueryLog();
+        $summaries = $publicQuery->findByIds([$t1->id(), $t2->id(), $t1->id(), 999999]);
+        $this->assertCount(1, DB::getQueryLog());
+
+        $this->assertCount(2, $summaries);
+        $this->assertSame($t1->publicId(), $summaries[$t1->id()]->publicId);
+        $this->assertSame('Али', $summaries[$t1->id()]->name);
+        $this->assertSame('Силовой тренинг', $summaries[$t1->id()]->bio);
+        $this->assertSame($t2->publicId(), $summaries[$t2->id()]->publicId);
+        $this->assertSame('Зухра', $summaries[$t2->id()]->name);
+        $this->assertNull($summaries[$t2->id()]->bio);
     }
 }

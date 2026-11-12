@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** 4 — Расписание и тренеры (`E4-A`…`E4-D` завершены; `E4-E` отложен; готов к планированию Этапа 5)
+**Текущий этап:** 4 — Расписание и тренеры (`E4-A`…`E4-D` завершены; в работе `E4-E`)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -130,7 +130,23 @@
   - [x] **T4-12a** Миграция `2026_11_12_000002_add_membership_id_to_schedule_bookings_table`, поддержка `?int $membershipId` и кодов ошибок абонемента в `ClassBooking` / `InvalidClassBooking`, обновление `ClassBookingRepositoryInterface`, `ClassBookingModel` и `EloquentClassBookingRepository` (включая `listActiveForSessionForUpdate`) + проверки в `ClassBookingTest` и `ClassBookingRepositoryTest` (всего 477 тестов, 2899 проверок, lint/analyse/test/deps зелёные).
   - [x] **T4-12b** Интеграция `MembershipVisitConsumerInterface` в `BookClassSession` (проверка кандидата, заморозки и окна времени `startsAt`, списание при записи с сохранением `membership_id`, идемпотентность без двойного списания, откат CRM-карточки при отказе), `CancelClassBooking` и `CancelClassSession` (возврат посещения через `restoreVisit` и пакетная отмена активных броней при отмене занятия залом) + обновлённые/новые тесты в `ClassBookingUseCasesTest`, `ClassSessionUseCasesTest` и `ClientClassBookingsTest` (всего 478 тестов, 2935 проверок, lint/analyse/test/deps зелёные).
   - [x] **T4-12c** Отображение `membership_id` в `ClassBookingResource`, проброс `$e->errorCode` (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `CLASS_BOOKING_REJECTED`, `CLASS_BOOKING_CANCELLATION_NOT_ALLOWED`) в `BookClassSessionController` и `CancelClassBookingController`, обновление OpenAPI `docs/api/schedule.yaml` + feature-тесты в `ClientClassBookingsTest` (479 тестов, 2965 проверок; lint/analyse/test/deps/YAML зелёные). Эпик E4-D и этап 4 (кроме отложенного E4-E) завершены.
-- Отложено: E4-E расписание в публичном каталоге
+- [~] **E4-E Расписание в публичном каталоге** (план подтверждён 2026-11-12, D-015)
+  - [x] **T4-13** Добавлен внутренний `gymId` в `PublicGymProfile` (`EloquentPublicGymQuery`, в JSON-ресурсы `Catalog` не попадает) и контракт `Trainers/Contracts/PublicTrainerQueryInterface` (`PublicTrainerSummary`, `EloquentPublicTrainerQuery` с пакетной выборкой без `CompanyScope`, привязка в `TrainersServiceProvider`) + проверки в `PublicGymQueryTest` и `TrainerRepositoryTest` (15 тестов, 119 проверок; lint/analyse/deps зелёные).
+  - [ ] **T4-14** Публичный контракт расписания в модуле `Schedule` (`ScheduleCatalogQueryInterface`, `PublicClassSession`, `EloquentScheduleCatalogQuery`).
+    - ТЗ: Бизнес-ТЗ 7, 8; Тех. ТЗ 3.5, 3.7, 6.1; D-015.
+    - Файлы: `app/Modules/Schedule/Contracts/PublicClassSession.php`, `app/Modules/Schedule/Contracts/ScheduleCatalogQueryInterface.php`, `app/Modules/Schedule/Infrastructure/EloquentScheduleCatalogQuery.php`, `app/Modules/Schedule/ScheduleServiceProvider.php`, `tests/Unit/Schedule/ScheduleCatalogQueryTest.php`.
+    - Шаги: 1) создать `PublicClassSession` (только публичные поля + `trainerPublicId`/`trainerName`) и `ScheduleCatalogQueryInterface::listUpcomingForGym`; 2) реализовать `EloquentScheduleCatalogQuery` (`scheduled`, `starts_at >= max(from, now)`, сортировка `(starts_at, public_id)`, пакетная подгрузка тренеров через `PublicTrainerQueryInterface`); 3) привязать в `ScheduleServiceProvider` и написать тесты в `ScheduleCatalogQueryTest`.
+    - Готовность: `composer lint`, `composer analyse`, `composer deps` и `ScheduleCatalogQueryTest` зелёные.
+  - [ ] **T4-15a** Use Case публичного расписания зала в модуле `Catalog` (`GetPublicGymSchedule`, `GetPublicGymScheduleQuery`).
+    - ТЗ: Бизнес-ТЗ 7, 8; Тех. ТЗ 3.5, 3.7; D-015.
+    - Файлы: `app/Modules/Catalog/Application/GetPublicGymSchedule.php`, `tests/Feature/Catalog/GetPublicGymScheduleTest.php`, `tests/Feature/Catalog/SearchGymsTest.php`.
+    - Шаги: 1) реализовать `GetPublicGymSchedule` (проверка публикации через `PublicGymQueryInterface::findByPublicId`, дефолт 7 дней от `Clock::now()`, максимум 62 дня, запрос в `ScheduleCatalogQueryInterface`); 2) разрешить `Schedule\Contracts` в тесте зависимостей `SearchGymsTest`; 3) написать `GetPublicGymScheduleTest`.
+    - Готовность: `composer lint`, `composer analyse`, `composer deps` и `GetPublicGymScheduleTest` / `SearchGymsTest` зелёные.
+  - [ ] **T4-15b** Публичный HTTP-эндпоинт `GET /api/v1/public/gyms/{publicId}/schedule`, OpenAPI и feature-тесты.
+    - ТЗ: Бизнес-ТЗ 7, 8; Тех. ТЗ 6.1, 7.1, 7.2, 15; D-015.
+    - Файлы: `app/Modules/Catalog/Presentation/Requests/ListPublicGymScheduleRequest.php`, `app/Modules/Catalog/Presentation/Resources/PublicClassSessionResource.php`, `app/Modules/Catalog/Presentation/ListPublicGymScheduleController.php`, `app/Modules/Catalog/Presentation/routes.php`, `docs/api/public-catalog.yaml`, `tests/Feature/Catalog/ListPublicGymScheduleTest.php`.
+    - Шаги: 1) реализовать `ListPublicGymScheduleRequest` (опциональные `from_date`, `to_date` до 62 дней), `PublicClassSessionResource` (без внутренних ID и `booked_count`), `ListPublicGymScheduleController` и маршрут; 2) обновить `docs/api/public-catalog.yaml`; 3) написать feature-тесты и прогнать весь набор проверок.
+    - Готовность: `composer lint`, `composer analyse`, `composer deps` и полный прогон `docker compose exec -T app composer test -- --compact --colors=never` зелёные.
 
 ---
 

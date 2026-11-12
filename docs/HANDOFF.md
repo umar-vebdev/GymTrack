@@ -1,8 +1,8 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-12
-**Текущий этап:** Этап 4 — Расписание и тренеры завершён (`E4-A`…`E4-D` готовы; `E4-E` отложен)
-**Текущая задача:** Нет активной задачи — этап 4 закрыт (`T4-12c` `[x]`); следующий шаг — планирование **Этапа 5** (дневник тренировок) после подтверждения разработчиком
+**Текущий этап:** Этап 4 — Расписание и тренеры (`E4-A`…`E4-D` готовы; в работе `E4-E` — расписание в публичном каталоге)
+**Текущая задача:** `T4-14` `[ ]` — Публичный контракт расписания в модуле `Schedule` (`ScheduleCatalogQueryInterface`, `PublicClassSession`, `EloquentScheduleCatalogQuery`)
 
 ## Что сделано в последней сессии
 
@@ -11,12 +11,13 @@
 - **T4-11b** (`b68e052`): Бизнес-эндпоинт списка записавшихся на занятие и OpenAPI `docs/api/schedule.yaml` (`477 passed, 2888 assertions`).
 - **D-014 + T4-12a** (`eae4ee0`): Правила привязки записей к абонементам, миграция `membership_id`, доменные коды ошибок `InvalidClassBooking`, репозиторий и unit/repository-тесты (`477 passed, 2899 assertions`).
 - **T4-12b** (`1d02d9c`): Интеграция `MembershipVisitConsumerInterface` в `BookClassSession`, `CancelClassBooking` и `CancelClassSession` с блокировками, идемпотентностью и возвратом посещения (`478 passed, 2935 assertions`).
-- **T4-12c:** Добавлен `membership_id` в `ClassBookingResource`, проброшен `$e->errorCode` в `BookClassSessionController` и `CancelClassBookingController`, обновлён OpenAPI `docs/api/schedule.yaml` и расширен `ClientClassBookingsTest`. Проверки `lint`, `analyse`, `deps`, YAML и Docker `test` пройдены: `479 passed (2965 assertions)`.
+- **T4-12c** (`eda5e92`): Добавлен `membership_id` в `ClassBookingResource`, проброшен `$e->errorCode` в контроллерах, обновлён `docs/api/schedule.yaml` (`479 passed, 2965 assertions`).
+- **D-015 + T4-13:** Раскрыт эпик `E4-E`; добавлен `gymId` в `PublicGymProfile` и контракт `PublicTrainerQueryInterface` (`PublicTrainerSummary`, `EloquentPublicTrainerQuery`) с тестами в `PublicGymQueryTest` и `TrainerRepositoryTest` (`15 passed, 119 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 ## Точный следующий шаг
 
-1. Дождаться решения разработчика: переходить к раскрытию **Этапа 5** (дневник тренировок) согласно правилу 4.3 `AGENTS.md` или вернуть в работу отложенный эпик `E4-E` (публичное расписание в каталоге).
-2. Перед раскрытием Этапа 5 заново прочитать разделы о дневнике тренировок в `docs/specs/GymTrack_TZ_v2.md` и `docs/specs/GymTrack_Technical_TZ.md`, детализировать первый эпик и согласовать план с разработчиком.
+1. Выполнить **T4-14**: реализовать `ScheduleCatalogQueryInterface`, `PublicClassSession`, `EloquentScheduleCatalogQuery` и `ScheduleCatalogQueryTest`.
+2. Далее выполнить `T4-15a` и `T4-15b` для завершения эпика `E4-E` и полного закрытия Этапа 4 перед переходом к Этапу 5.
 
 ## Команды проверки
 

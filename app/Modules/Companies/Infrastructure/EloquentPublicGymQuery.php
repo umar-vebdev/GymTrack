@@ -201,6 +201,7 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
 
         return new PublicGymProfile(
             publicId: $publicId,
+            gymId: (int) $model->gym_id,
             companyId: (int) $model->company_id,
             name: $name,
             description: $model->description,

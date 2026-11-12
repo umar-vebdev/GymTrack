@@ -16,6 +16,7 @@ final class PublicGymProfile
      */
     public function __construct(
         public readonly string $publicId,
+        public readonly int $gymId,
         public readonly int $companyId,
         public readonly string $name,
         public readonly ?string $description,

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Trainers;
 
+use App\Modules\Trainers\Contracts\PublicTrainerQueryInterface;
 use App\Modules\Trainers\Contracts\TrainerLookupInterface;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
+use App\Modules\Trainers\Infrastructure\EloquentPublicTrainerQuery;
 use App\Modules\Trainers\Infrastructure\EloquentTrainerLookup;
 use App\Modules\Trainers\Infrastructure\EloquentTrainerRepository;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +18,7 @@ final class TrainersServiceProvider extends ServiceProvider
     {
         $this->app->bind(TrainerRepositoryInterface::class, EloquentTrainerRepository::class);
         $this->app->bind(TrainerLookupInterface::class, EloquentTrainerLookup::class);
+        $this->app->bind(PublicTrainerQueryInterface::class, EloquentPublicTrainerQuery::class);
     }
 
     public function boot(): void
