@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Schedule\Presentation\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+/**
+ * Валидация параметров фильтрации и пагинации для списка записей клиента.
+ */
+final class ListClientBookingsRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'company_id' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'string', 'in:booked,cancelled'],
+        ];
+    }
+}
