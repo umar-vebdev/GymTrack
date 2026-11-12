@@ -24,6 +24,11 @@ interface ClassSessionRepositoryInterface
     public function save(ClassSession $session): void;
 
     /**
+     * Возвращает ID компании-владельца занятия или null, если занятие не найдено.
+     */
+    public function findCompanyId(int $id): ?int;
+
+    /**
      * Ищет занятие по внутреннему ID только в рамках указанной компании.
      */
     public function findById(int $companyId, int $id): ?ClassSession;

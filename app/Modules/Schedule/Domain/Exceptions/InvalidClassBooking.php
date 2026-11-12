@@ -42,4 +42,14 @@ final class InvalidClassBooking extends DomainException
     {
         return new self(sprintf('Запись на занятие #%d уже отменена.', $bookingId));
     }
+
+    public static function alreadyBooked(int $sessionId): self
+    {
+        return new self(sprintf('Вы уже записаны на занятие #%d.', $sessionId));
+    }
+
+    public static function idempotencyKeyConflict(): self
+    {
+        return new self('Ключ идемпотентности уже использован для другой записи.');
+    }
 }

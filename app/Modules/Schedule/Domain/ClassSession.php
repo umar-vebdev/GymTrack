@@ -51,11 +51,24 @@ final class ClassSession
         $this->status = ClassSessionStatus::CANCELLED;
     }
 
-    public function reserveSeat(): void
+    public function assertOpenForBooking(DateTimeImmutable $at): void
     {
         if ($this->status !== ClassSessionStatus::SCHEDULED) {
             throw InvalidClassSession::cancelled($this->id);
         }
+        if ($this->startsAt <= $at) {
+            throw InvalidClassSession::alreadyStarted($this->id);
+        }
+    }
+
+    public function reserveSeat(?DateTimeImmutable $at = null): void
+    {
+        if ($at !== null) {
+            $this->assertOpenForBooking($at);
+        } elseif ($this->status !== ClassSessionStatus::SCHEDULED) {
+            throw InvalidClassSession::cancelled($this->id);
+        }
+
         if ($this->bookedCount >= $this->capacity) {
             throw InvalidClassSession::noSeatsLeft($this->id);
         }

@@ -27,6 +27,11 @@ final class InvalidClassSession extends DomainException
         return new self(sprintf('Занятие #%d отменено.', $sessionId));
     }
 
+    public static function alreadyStarted(int $sessionId): self
+    {
+        return new self(sprintf('Занятие #%d уже началось или завершилось.', $sessionId));
+    }
+
     public static function noSeatsLeft(int $sessionId): self
     {
         return new self(sprintf('На занятии #%d нет свободных мест.', $sessionId));
