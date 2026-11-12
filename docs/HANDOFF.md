@@ -11,17 +11,18 @@
 - Этапы 0–3 завершены и приняты.
 - Эпик **E4-A (Тренеры) завершён** (`T4-01`…`T4-04`).
 - Эпик **E4-B (Расписание) завершён** (`T4-05a`…`T4-08b`).
-- Эпик **E4-C (Запись клиентов)** в работе (план подтверждён 2026-11-12, `D-013`): завершена `T4-09a`, следующая — `T4-09b`.
+- Эпик **E4-C (Запись клиентов)** в работе (`D-013`): завершены `T4-09a` и `T4-09b`, следующая — `T4-10a`.
 
 ## Последняя сессия
 
-- **D-013**: зафиксировано подтверждение плана E4-C и выбор `ClientLookupInterface::findOrCreateForUser` при записи клиента на занятие.
-- **T4-09a [x]**: `ClassBookingStatus`, `InvalidClassBooking`, доменная сущность `ClassBooking` и 3 теста в `tests/Unit/Schedule/ClassBookingTest.php`.
-- **468 тестов, 2682 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
+- **D-013**: зафиксировано подтверждение плана E4-C и выбор `ClientLookupInterface::findOrCreateForUser`.
+- **T4-09a [x]**: `ClassBookingStatus`, `InvalidClassBooking`, `ClassBooking` и 3 теста в `ClassBookingTest`.
+- **T4-09b [x]**: миграция `schedule_bookings` (включая partial unique index `WHERE status = 'booked'`), `ClassBookingRepositoryInterface`, `ClassBookingModel`, `EloquentClassBookingRepository`, привязка в `ScheduleServiceProvider` и 2 теста в `ClassBookingRepositoryTest`.
+- **470 тестов, 2712 проверок**; `composer lint`, `composer analyse`, `composer test`, `composer deps` проходят.
 
 ## Текущая задача и точный следующий шаг
 
-1. Взять в работу **T4-09b**: миграция `schedule_bookings`, `ClassBookingRepositoryInterface`, `ClassBookingModel`, `EloquentClassBookingRepository` и тест `ClassBookingRepositoryTest`.
+1. Взять в работу **T4-10a**: сценарий `BookClassSession` (`BookClassSessionCommand`, привязка к клиенту через `ClientLookupInterface::findOrCreateForUser`, идемпотентность по `idempotency_key`, блокировка строки занятия `findByIdForUpdate`, проверка статуса/времени/свободных мест и `reserveSeat()`) + тесты в `ClassBookingUseCasesTest`.
 
 ## Окружение: важное про Docker и Git
 
