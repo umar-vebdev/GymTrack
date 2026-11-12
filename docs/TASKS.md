@@ -156,11 +156,8 @@
   - [x] **T5-05b** HTTP-эндпоинты личных планов клиента и OpenAPI: `ClientWorkoutPlansController` (`GET/POST /api/v1/client/workouts/plans`, `GET/PATCH/DELETE /api/v1/client/workouts/plans/{plan}`, `POST /api/v1/client/workouts/library/{plan}/copy`), `StoreClientPlanRequest`, `UpdateClientPlanRequest`, `CopyLibraryPlanRequest`, `routes.php`, `docs/api/workouts.yaml`, `ClientPlansEndpointsTest` (`506 passed, 3339 assertions`, lint/analyse/deps и YAML зелёные).
 - [~] **E5-C Тренировочные сессии и прогресс** (план подтверждён 2026-11-12, D-018)
   - [x] **T5-06a** Домен тренировочных сессий и подходов: `WorkoutSessionStatus`, `InvalidWorkoutSession`, `WorkoutSet`, `WorkoutSession`, `ExerciseProgressSession`, `WorkoutSessionRepositoryInterface`, `WorkoutSessionTest` (2 теста, 18 проверок; lint/analyse/deps зелёные).
-  - [~] **T5-06b** Хранение и репозиторий сессий: миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel`, `WorkoutSetModel`, `EloquentWorkoutSessionRepository` (с выборкой истории прогресса по упражнению), привязка в `WorkoutsServiceProvider`, `WorkoutSessionRepositoryTest`.
-    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 6.1; D-016.
-    - Файлы: `app/Modules/Workouts/Infrastructure/Migrations/*`, `app/Modules/Workouts/Infrastructure/Persistence/*`, `app/Modules/Workouts/Infrastructure/EloquentWorkoutSessionRepository.php`, `app/Modules/Workouts/WorkoutsServiceProvider.php`, `tests/Feature/Workouts/WorkoutSessionRepositoryTest.php`.
-    - Готовность: `lint`, `analyse`, `deps` и `WorkoutSessionRepositoryTest` зелёные.
-  - [ ] **T5-07a** Use Cases тренировочных сессий и прогресса: `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress`, тесты `WorkoutSessionUseCasesTest`.
+  - [x] **T5-06b** Хранение и репозиторий сессий: миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel`, `WorkoutSetModel`, `EloquentWorkoutSessionRepository` (с блокировкой строки в `addSet()` и выборкой прогресса), привязка в `WorkoutsServiceProvider`, `WorkoutSessionRepositoryTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
+  - [~] **T5-07a** Use Cases тренировочных сессий и прогресса: `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress`, тесты `WorkoutSessionUseCasesTest`.
     - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 3, 11; D-016.
     - Файлы: `app/Modules/Workouts/Application/*WorkoutSession*`, `app/Modules/Workouts/Application/LogWorkoutSet*`, `app/Modules/Workouts/Application/GetExerciseProgress*`, `tests/Unit/Workouts/WorkoutSessionUseCasesTest.php`.
     - Готовность: `lint`, `analyse`, `deps` и `WorkoutSessionUseCasesTest` зелёные.

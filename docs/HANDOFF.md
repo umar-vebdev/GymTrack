@@ -2,18 +2,19 @@
 
 **Обновлено:** 2026-11-12
 **Текущий этап:** Этап 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-C`)
-**Текущая задача:** `T5-06b` `[~]` — Миграции `workouts_sessions` и `workouts_sets`, Eloquent-модели и `EloquentWorkoutSessionRepository` (`E5-C`)
+**Текущая задача:** `T5-07a` `[~]` — Use Cases тренировочных сессий и прогресса (`E5-C`)
 
 ## Что сделано в последней сессии
 
-- **D-016 + E5-A (`T5-01`…`T5-04b`)** (`6abd0c0`…`bc94c8e`): Полностью завершён эпик `E5-A` — модуль `Workouts`, упражнения платформы и клиента, готовые планы платформы и публичная для клиентов библиотека (`/api/v1/client/workouts/library`, OpenAPI `docs/api/workouts.yaml`).
+- **D-016 + E5-A (`T5-01`…`T5-04b`)** (`6abd0c0`…`bc94c8e`): Полностью завершён эпик `E5-A` — модуль `Workouts`, упражнения платформы и клиента, готовые планы платформы и библиотека (`/api/v1/client/workouts/library`, OpenAPI `docs/api/workouts.yaml`).
 - **D-017 + E5-B (`T5-05a`, `T5-05b`)** (`7548f41`, `56ba18a`): Полностью завершён эпик `E5-B` — личные планы клиента, мягкое архивирование и копирование планов из библиотеки (`506 passed, 3339 assertions`).
-- **D-018 + T5-06a:** Подтверждён план `E5-C`; созданы `WorkoutSessionStatus`, `InvalidWorkoutSession`, `WorkoutSet`, `WorkoutSession`, `ExerciseProgressSession`, `WorkoutSessionRepositoryInterface` и `WorkoutSessionTest` (`2 passed, 18 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **D-018 + T5-06a** (`216fbd9`): Подтверждён план `E5-C`; создан домен `WorkoutSession` / `WorkoutSet` / `WorkoutSessionStatus` / `ExerciseProgressSession` (`2 passed, 18 assertions`).
+- **T5-06b:** Добавлены миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel` и `WorkoutSetModel`, репозиторий `EloquentWorkoutSessionRepository` (привязан в `WorkoutsServiceProvider`) и `WorkoutSessionRepositoryTest` (`1 passed, 14 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 ## Точный следующий шаг
 
-1. Выполнить **T5-06b**: создать миграции `workouts_sessions` и `workouts_sets`, Eloquent-модели и `EloquentWorkoutSessionRepository` (с транзакционным `addSet()` под `lockForUpdate` и выборкой истории прогресса по упражнению), зарегистрировать в `WorkoutsServiceProvider` и покрыть `WorkoutSessionRepositoryTest`.
-2. Далее выполнить `T5-07a` (Use Cases) и `T5-07b` (HTTP + OpenAPI) для завершения Этапа 5.
+1. Выполнить **T5-07a**: добавить `WorkoutResourceNotFound::session()`, `WorkoutSessionView`, `ExerciseProgressView`, Use Cases `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress` и тесты `WorkoutSessionUseCasesTest`.
+2. Далее выполнить `T5-07b` (HTTP-эндпоинты сессий и прогресса + обновление `docs/api/workouts.yaml`) для завершения Этапа 5.
 
 ## Команды проверки
 
