@@ -127,4 +127,83 @@ final class ExercisesEndpointsTest extends TestCase
             ->assertJsonPath('error.code', 'VALIDATION_FAILED')
             ->assertJsonStructure(['error' => ['details' => ['name', 'muscle_group']]]);
     }
+
+    public function test_client_can_list_create_and_update_own_exercises_with_tenant_isolation(): void
+    {
+        $clientA = User::factory()->create();
+        $clientB = User::factory()->create();
+        $repo = $this->app->make(ExerciseRepositoryInterface::class);
+
+        $platformActive = $repo->create(null, 'Приседания со штангой', MuscleGroup::LEGS);
+        $platformInactive = $repo->create(null, 'Устаревшее упражнение', MuscleGroup::LEGS);
+        $platformInactive->deactivate();
+        $repo->save($platformInactive);
+
+        $foreignPersonal = $repo->create($clientB->id, 'Чужое упражнение', MuscleGroup::CHEST);
+
+        $this->getJson('/api/v1/client/workouts/exercises')->assertStatus(401);
+        $this->postJson('/api/v1/client/workouts/exercises', [
+            'name' => 'Моё',
+            'muscle_group' => 'core',
+        ])->assertStatus(401);
+
+        $created = $this->actingAs($clientA, 'sanctum')
+            ->postJson('/api/v1/client/workouts/exercises', [
+                'name' => 'Планка с весом',
+                'muscle_group' => 'core',
+                'description' => 'С диском 10 кг',
+            ]);
+
+        $created->assertStatus(201)
+            ->assertJsonPath('data.is_platform', false)
+            ->assertJsonPath('data.name', 'Планка с весом')
+            ->assertJsonPath('data.muscle_group', 'core');
+
+        $ownId = (int) $created->json('data.id');
+
+        $this->actingAs($clientA, 'sanctum')
+            ->getJson('/api/v1/client/workouts/exercises')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $this->actingAs($clientA, 'sanctum')
+            ->getJson('/api/v1/client/workouts/exercises?muscle_group=core&q=планка')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $ownId);
+
+        // Клиент Б видит только платформенное активное, но не личное клиента А
+        $this->actingAs($clientB, 'sanctum')
+            ->getJson('/api/v1/client/workouts/exercises?muscle_group=core')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        // Обновление своего упражнения (и скрытие через is_active = false)
+        $this->actingAs($clientA, 'sanctum')
+            ->patchJson("/api/v1/client/workouts/exercises/{$ownId}", [
+                'name' => 'Планка боковая',
+                'muscle_group' => 'core',
+                'is_active' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Планка боковая')
+            ->assertJsonPath('data.is_active', false);
+
+        // После деактивации не возвращается в активном справочнике клиента
+        $this->actingAs($clientA, 'sanctum')
+            ->getJson('/api/v1/client/workouts/exercises?muscle_group=core')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        // Платформенное и чужое упражнение нельзя редактировать клиенту -> 404
+        foreach ([$platformActive->id(), $foreignPersonal->id()] as $forbiddenId) {
+            $this->actingAs($clientA, 'sanctum')
+                ->patchJson("/api/v1/client/workouts/exercises/{$forbiddenId}", [
+                    'name' => 'Попытка подмены',
+                    'muscle_group' => 'legs',
+                ])
+                ->assertStatus(404)
+                ->assertJsonPath('error.code', 'NOT_FOUND');
+        }
+    }
 }
