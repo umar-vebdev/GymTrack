@@ -2,17 +2,18 @@
 
 **Обновлено:** 2026-11-12
 **Текущий этап:** Этап 4 — Расписание и тренеры (`E4-D` — Привязка к абонементам)
-**Текущая задача:** `T4-12b` (готова к старту; `T4-12a` завершена)
+**Текущая задача:** `T4-12c` (готова к старту; `T4-12b` завершена)
 
 ## Что сделано в последней сессии
 
-- **D-014:** Зафиксирован план и правила `E4-D` (`T4-12a`…`T4-12c`): списание 1 посещения через `MembershipVisitConsumerInterface` при `BookClassSession`, хранение `membership_id` в `schedule_bookings`, возврат посещения при `CancelClassBooking` и `CancelClassSession`.
-- **T4-12a:** Добавлена миграция `2026_11_12_000002_add_membership_id_to_schedule_bookings_table`, поддержка `?int $membershipId` и кодов ошибок (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`) в `ClassBooking` / `InvalidClassBooking`, обновлён репозиторий `ClassBookingRepositoryInterface` / `EloquentClassBookingRepository` (`listActiveForSessionForUpdate`) + unit-тесты `ClassBookingTest` и `ClassBookingRepositoryTest`. Проверки `lint`, `analyse`, `deps` и Docker `test` пройдены: `477 passed (2899 assertions)`.
+- **D-014:** Приняты правила `E4-D` (`T4-12a`…`T4-12c`): списание при записи через `MembershipVisitConsumerInterface`, хранение `membership_id` в `schedule_bookings`, возврат при отмене.
+- **T4-12a** (`eae4ee0`): Миграция `add_membership_id_to_schedule_bookings_table`, `ClassBooking::membershipId()`, коды ошибок `InvalidClassBooking`, `ClassBookingRepositoryInterface::listActiveForSessionForUpdate()` + unit-тесты (477 тестов).
+- **T4-12b:** Интеграция `MembershipVisitConsumerInterface` в `BookClassSession`, `CancelClassBooking` и `CancelClassSession` + тесты в `ClassBookingUseCasesTest`, `ClassSessionUseCasesTest` и `ClientClassBookingsTest`. Проверки `lint`, `analyse`, `deps` и Docker `test` пройдены: `478 passed (2935 assertions)`.
 
 ## Точный следующий шаг
 
-1. Выполнить **T4-12b**: интегрировать `MembershipVisitConsumerInterface` в `BookClassSession` (проверка кандидата, заморозки и окна времени `startsAt`, списание без двойного расхода при идемпотентном повторе), `CancelClassBooking` и `CancelClassSession` (возврат посещения и отмена активных броней при отмене занятия залом) + обновить/добавить тесты в `ClassBookingUseCasesTest` и `ClassSessionUseCasesTest`.
-2. Выполнить **T4-12c**: вывести `membership_id` в `ClassBookingResource`, использовать `$e->errorCode` в контроллерах, обновить `docs/api/schedule.yaml` и `tests/Feature/Schedule/ClientClassBookingsTest.php`.
+1. Выполнить **T4-12c**: вывести `membership_id` в `ClassBookingResource`, использовать `$e->errorCode` в `BookClassSessionController` и `CancelClassBookingController`, обновить `docs/api/schedule.yaml` (`NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `membership_id` в `ClassBooking`) и дополнить `tests/Feature/Schedule/ClientClassBookingsTest.php`.
+2. После закрытия `T4-12c` отметить завершение **E4-D** и **Этапа 4** (кроме отложенного `E4-E`) и перейти к планированию Этапа 5 (дневник тренировок) по запросу.
 
 ## Команды проверки
 

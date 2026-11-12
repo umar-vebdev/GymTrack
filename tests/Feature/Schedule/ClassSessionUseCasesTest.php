@@ -5,8 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\Schedule;
 
 use App\Models\User;
+use App\Modules\Clients\Contracts\ClientLookupInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
+use App\Modules\Memberships\Domain\MembershipKind;
+use App\Modules\Memberships\Domain\MembershipRepositoryInterface;
+use App\Modules\Memberships\Domain\MembershipRules;
+use App\Modules\Memberships\Domain\MembershipStatus;
+use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
+use App\Modules\Memberships\Domain\StartMode;
+use App\Modules\Schedule\Application\BookClassSession;
+use App\Modules\Schedule\Application\BookClassSessionCommand;
 use App\Modules\Schedule\Application\CancelClassSession;
 use App\Modules\Schedule\Application\CreateClassTemplate;
 use App\Modules\Schedule\Application\CreateClassTemplateCommand;
@@ -14,10 +24,14 @@ use App\Modules\Schedule\Application\GenerateClassSessions;
 use App\Modules\Schedule\Application\ListClassSessions;
 use App\Modules\Schedule\Application\UpdateClassTemplate;
 use App\Modules\Schedule\Application\UpdateClassTemplateCommand;
+use App\Modules\Schedule\Domain\ClassBookingRepositoryInterface;
+use App\Modules\Schedule\Domain\ClassBookingStatus;
 use App\Modules\Schedule\Domain\ClassSessionStatus;
 use App\Modules\Schedule\Domain\Exceptions\InvalidClassSession;
 use App\Modules\Schedule\Domain\Exceptions\ScheduleResourceNotFound;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
+use App\Shared\Domain\Clock;
+use App\Shared\Domain\Money;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -220,5 +234,91 @@ final class ClassSessionUseCasesTest extends TestCase
         } catch (InvalidClassSession) {
             $this->addToAssertionCount(1);
         }
+    }
+
+    public function test_cancel_session_cancels_active_bookings_and_restores_membership_visits_idempotently(): void
+    {
+        $fixed = new DateTimeImmutable('2026-11-12 08:00:00+00:00');
+        $this->app->instance(Clock::class, new class($fixed) implements Clock
+        {
+            public function __construct(private readonly DateTimeImmutable $fixed) {}
+
+            public function now(): DateTimeImmutable
+            {
+                return $this->fixed;
+            }
+        });
+
+        $setup = $this->createSetup();
+        $template = $this->app->make(CreateClassTemplate::class)->execute(new CreateClassTemplateCommand(
+            companyId: $setup['companyId'],
+            gymId: $setup['gymId'],
+            trainerId: $setup['trainerId'],
+            title: 'Кроссфит',
+            description: null,
+            weekday: 1,
+            startTimeMinute: 540,
+            durationMinutes: 60,
+            capacity: 5,
+        ));
+
+        $sessions = $this->app->make(GenerateClassSessions::class)->execute(
+            $setup['companyId'],
+            $setup['gymId'],
+            new DateTimeImmutable('2026-11-16 00:00:00+00:00'),
+            new DateTimeImmutable('2026-11-16 00:00:00+00:00'),
+        );
+        $session = $sessions[0];
+
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $clientLookup = $this->app->make(ClientLookupInterface::class);
+        $client1Id = $clientLookup->findOrCreateForUser($user1->id, $setup['companyId']);
+        $client2Id = $clientLookup->findOrCreateForUser($user2->id, $setup['companyId']);
+
+        $typeId = $this->app->make(MembershipTypeRepositoryInterface::class)->create(
+            $setup['companyId'],
+            'Разовый пакет',
+            new Money(15000, 'TJS'),
+            MembershipRules::create(
+                kind: MembershipKind::Visits,
+                startMode: StartMode::OnSale,
+                visitsCount: 1,
+                validityDays: 30,
+            ),
+        );
+        $issuer = $this->app->make(MembershipIssuerInterface::class);
+        $membership1Id = $issuer->issue($setup['companyId'], $client1Id, $typeId, $fixed);
+        $membership2Id = $issuer->issue($setup['companyId'], $client2Id, $typeId, $fixed);
+
+        $book = $this->app->make(BookClassSession::class);
+        $b1 = $book->execute(new BookClassSessionCommand($user1->id, $session->id()));
+        $b2 = $book->execute(new BookClassSessionCommand($user2->id, $session->id()));
+
+        $memberships = $this->app->make(MembershipRepositoryInterface::class);
+        $this->assertSame(MembershipStatus::Expired, $memberships->findById($membership1Id)?->status());
+        $this->assertSame(MembershipStatus::Expired, $memberships->findById($membership2Id)?->status());
+
+        $cancelSession = $this->app->make(CancelClassSession::class);
+        $cancelledSession = $cancelSession->execute($setup['companyId'], $session->id());
+        $this->assertSame(ClassSessionStatus::CANCELLED, $cancelledSession->status());
+        $this->assertSame(0, $cancelledSession->bookedCount());
+
+        // Повторная отмена не должна дублировать возврат посещений
+        $cancelSession->execute($setup['companyId'], $session->id());
+
+        $bookingsRepo = $this->app->make(ClassBookingRepositoryInterface::class);
+        $this->assertSame(ClassBookingStatus::CANCELLED, $bookingsRepo->findById($b1->id())?->status());
+        $this->assertSame(ClassBookingStatus::CANCELLED, $bookingsRepo->findById($b2->id())?->status());
+
+        $reloadedMemberships = $this->app->make(MembershipRepositoryInterface::class);
+        $m1 = $reloadedMemberships->findById($membership1Id);
+        $m2 = $reloadedMemberships->findById($membership2Id);
+        $this->assertNotNull($m1);
+        $this->assertNotNull($m2);
+        $this->assertSame(1, $m1->remainingVisits());
+        $this->assertSame(MembershipStatus::Active, $m1->status());
+        $this->assertSame(1, $m2->remainingVisits());
+        $this->assertSame(MembershipStatus::Active, $m2->status());
     }
 }

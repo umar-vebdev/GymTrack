@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace Tests\Feature\Schedule;
 
 use App\Models\User;
+use App\Modules\Clients\Contracts\ClientLookupInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\Role;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
+use App\Modules\Memberships\Contracts\MembershipIssuerInterface;
+use App\Modules\Memberships\Domain\MembershipKind;
+use App\Modules\Memberships\Domain\MembershipRules;
+use App\Modules\Memberships\Domain\MembershipTypeRepositoryInterface;
+use App\Modules\Memberships\Domain\StartMode;
 use App\Modules\Schedule\Application\CancelClassSession;
 use App\Modules\Schedule\Domain\ClassSession;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
@@ -16,6 +22,7 @@ use App\Modules\Schedule\Domain\ClassTemplate;
 use App\Modules\Schedule\Domain\ClassTemplateRepositoryInterface;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
 use App\Shared\Domain\Clock;
+use App\Shared\Domain\Money;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -95,6 +102,29 @@ final class ClientClassBookingsTest extends TestCase
         ];
     }
 
+    private function issueMembershipForUser(User $user, int $companyId, int $visitsCount = 5): int
+    {
+        $clientId = $this->app->make(ClientLookupInterface::class)->findOrCreateForUser($user->id, $companyId);
+        $typeId = $this->app->make(MembershipTypeRepositoryInterface::class)->create(
+            $companyId,
+            'Абонемент '.$visitsCount,
+            new Money(50000, 'TJS'),
+            MembershipRules::create(
+                kind: MembershipKind::Visits,
+                startMode: StartMode::OnSale,
+                visitsCount: $visitsCount,
+                validityDays: 30,
+            ),
+        );
+
+        return $this->app->make(MembershipIssuerInterface::class)->issue(
+            $companyId,
+            $clientId,
+            $typeId,
+            $this->currentTestNow(),
+        );
+    }
+
     public function test_client_can_book_idempotently_list_with_filters_and_cancel_booking(): void
     {
         $this->bindFixedClock('2026-11-16 08:00:00+00:00');
@@ -110,6 +140,8 @@ final class ClientClassBookingsTest extends TestCase
         $this->assertNotNull($secondSessionA);
 
         $client = User::factory()->create();
+        $this->issueMembershipForUser($client, $a['companyId'], 5);
+        $this->issueMembershipForUser($client, $b['companyId'], 5);
 
         // Без авторизации -> 401
         $this->postJson("/api/v1/client/schedule/sessions/{$a['session']->id()}/book")
@@ -247,6 +279,8 @@ final class ClientClassBookingsTest extends TestCase
         $setup = $this->createSessionSetup('A', 1, '2026-11-16 09:00:00+00:00', '2026-11-16 10:00:00+00:00');
         $client1 = User::factory()->create();
         $client2 = User::factory()->create();
+        $this->issueMembershipForUser($client1, $setup['companyId'], 5);
+        $this->issueMembershipForUser($client2, $setup['companyId'], 5);
 
         // Несуществующее занятие -> 404
         $this->actingAs($client1, 'sanctum')
@@ -336,6 +370,9 @@ final class ClientClassBookingsTest extends TestCase
 
         $client1 = User::factory()->create();
         $client2 = User::factory()->create();
+        $this->issueMembershipForUser($client1, $a['companyId'], 5);
+        $this->issueMembershipForUser($client2, $a['companyId'], 5);
+        $this->issueMembershipForUser($client1, $b['companyId'], 5);
 
         // Без авторизации -> 401
         $this->getJson("/api/v1/business/schedule/sessions/{$a['session']->id()}/bookings")

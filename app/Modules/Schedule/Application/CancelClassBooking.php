@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Schedule\Application;
 
 use App\Modules\Clients\Contracts\ClientLookupInterface;
+use App\Modules\Memberships\Contracts\MembershipVisitConsumerInterface;
 use App\Modules\Schedule\Domain\ClassBooking;
 use App\Modules\Schedule\Domain\ClassBookingRepositoryInterface;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
@@ -15,7 +16,7 @@ use App\Shared\Domain\Clock;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Идемпотентная отмена записи клиента на занятие с блокировкой строки занятия (Бизнес-ТЗ 8; D-011).
+ * Идемпотентная отмена записи клиента на занятие с освобождением места и возвратом посещения (Бизнес-ТЗ 8; D-011, D-014).
  */
 final class CancelClassBooking
 {
@@ -23,6 +24,7 @@ final class CancelClassBooking
         private readonly ClassBookingRepositoryInterface $bookings,
         private readonly ClassSessionRepositoryInterface $sessions,
         private readonly ClientLookupInterface $clients,
+        private readonly MembershipVisitConsumerInterface $memberships,
         private readonly Clock $clock,
     ) {}
 
@@ -52,7 +54,7 @@ final class CancelClassBooking
 
         /** @var ClassBooking $cancelled */
         $cancelled = DB::transaction(function () use ($companyId, $sessionId, $bookingId, $now): ClassBooking {
-            // Порядок блокировки всегда session -> booking (совпадает с BookClassSession против взаимоблокировок)
+            // Единый порядок блокировок для всего модуля: session -> booking -> membership
             $session = $this->sessions->findByIdForUpdate($companyId, $sessionId);
             if ($session === null) {
                 throw ScheduleResourceNotFound::session($sessionId);
@@ -76,6 +78,10 @@ final class CancelClassBooking
 
             $this->bookings->save($lockedBooking);
             $this->sessions->save($session);
+
+            if ($lockedBooking->membershipId() !== null) {
+                $this->memberships->restoreVisit($lockedBooking->membershipId(), $now);
+            }
 
             return $lockedBooking;
         });
