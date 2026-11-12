@@ -148,13 +148,14 @@
   - [x] **T5-02b** HTTP-эндпоинты упражнений платформы (`/api/v1/platform/workouts/exercises[/{exercise}]`): `StoreExerciseRequest`, `UpdateExerciseRequest`, `ListExercisesRequest`, `ExerciseResource`, `PlatformExercisesController`, `routes.php` и `ExercisesEndpointsTest` (2 теста, 31 проверка; lint/analyse/deps зелёные).
   - [x] **T5-02c** HTTP-эндпоинты упражнений клиента (`/api/v1/client/workouts/exercises[/{exercise}]`): `ClientExercisesController`, `routes.php`, `ExercisesEndpointsTest` (3 теста, 53 проверки; lint/analyse/deps зелёные).
   - [x] **T5-03a** Домен и контракт репозитория планов: `PlanLevel`, `InvalidWorkoutPlan`, `WorkoutPlanItem`, `WorkoutPlan`, `WorkoutPlanRepositoryInterface`, `WorkoutPlanTest` (4 теста, 22 проверки; lint/analyse/deps зелёные).
-  - [~] **T5-03b** Хранение и репозиторий планов: миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel`, `WorkoutPlanItemModel`, `EloquentWorkoutPlanRepository`, привязка в `WorkoutsServiceProvider`, тесты `WorkoutPlanRepositoryTest`.
-    - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 6.1; D-016.
-    - Файлы: `app/Modules/Workouts/Infrastructure/Migrations/*`, `app/Modules/Workouts/Infrastructure/Persistence/*`, `app/Modules/Workouts/Infrastructure/EloquentWorkoutPlanRepository.php`, `app/Modules/Workouts/WorkoutsServiceProvider.php`, `tests/Feature/Workouts/WorkoutPlanRepositoryTest.php`.
-    - Готовность: `lint`, `analyse`, `deps` и `WorkoutPlanRepositoryTest` зелёные.
-  - [ ] **T5-04** Библиотека готовых планов платформы: сценарии `CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`, эндпоинты `/api/v1/platform/workouts/plans[/{plan}]` и `/api/v1/client/workouts/library[/{plan}]`, OpenAPI `docs/api/workouts.yaml`, feature-тесты.
+  - [x] **T5-03b** Хранение и репозиторий планов: миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel`, `WorkoutPlanItemModel`, `EloquentWorkoutPlanRepository`, привязка в `WorkoutsServiceProvider`, тесты `WorkoutPlanRepositoryTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
+  - [ ] **T5-04a** Use Cases библиотеки готовых планов платформы: `WorkoutResourceNotFound::plan()`, `ExerciseRepositoryInterface::findByIds()`, `CreateLibraryPlan` (+ `LibraryPlanItemInput`, `CreateLibraryPlanCommand`), `UpdateLibraryPlan` (+ `UpdateLibraryPlanCommand`), `ListLibraryPlans`, `GetLibraryPlan`, тесты `LibraryPlanUseCasesTest`.
+    - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 3, 11; D-016.
+    - Файлы: `app/Modules/Workouts/Domain/ExerciseRepositoryInterface.php`, `app/Modules/Workouts/Infrastructure/EloquentExerciseRepository.php`, `app/Modules/Workouts/Domain/Exceptions/WorkoutResourceNotFound.php`, `app/Modules/Workouts/Application/*LibraryPlan*`, `tests/Unit/Workouts/LibraryPlanUseCasesTest.php`.
+    - Готовность: `lint`, `analyse`, `deps` и `LibraryPlanUseCasesTest` зелёные.
+  - [ ] **T5-04b** HTTP-эндпоинты библиотеки планов и OpenAPI: `PlatformWorkoutPlansController` (`/api/v1/platform/workouts/plans[/{plan}]`), `ClientWorkoutLibraryController` (`/api/v1/client/workouts/library[/{plan}]`), `FormRequest`, `WorkoutPlanResource`, `docs/api/workouts.yaml`, `LibraryPlansEndpointsTest`.
     - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 15; D-016.
-    - Файлы: `app/Modules/Workouts/Application/*LibraryPlan*`, `app/Modules/Workouts/Presentation/*`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/LibraryPlansEndpointsTest.php`.
-    - Готовность: `lint`, `analyse`, `deps` и полный прогон `composer test` зелёные.
+    - Файлы: `app/Modules/Workouts/Presentation/*`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/LibraryPlansEndpointsTest.php`.
+    - Готовность: `lint`, `analyse`, `deps`, проверка YAML и полный прогон `composer test` зелёные.
 - [ ] **E5-B Собственные планы клиента**: создание/редактирование/удаление личных планов, копирование плана из библиотеки платформы (раскрыть после завершения E5-A)
 - [ ] **E5-C Тренировочные сессии и прогресс**: старт/завершение тренировки, фиксация веса и повторений в подходах, история тренировок и прогресса по упражнениям (раскрыть после завершения E5-B)

@@ -2,7 +2,7 @@
 
 **Обновлено:** 2026-11-12
 **Текущий этап:** Этап 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-A`)
-**Текущая задача:** `T5-03b` `[~]` — Миграции `workouts_plans` и `workouts_plan_items`, Eloquent-модели, `EloquentWorkoutPlanRepository` и тесты
+**Текущая задача:** `T5-04a` `[ ]` — Use Cases библиотеки готовых планов платформы (`CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`)
 
 ## Что сделано в последней сессии
 
@@ -12,12 +12,13 @@
 - **T5-02a** (`f50f4a0`): Реализованы Use Cases `CreateExercise`, `UpdateExercise`, `ListExercises` (`WorkoutResourceNotFound`) и `ExerciseUseCasesTest` (`1 passed, 12 assertions`).
 - **T5-02b** (`cd9fa0c`): Реализованы платформенные эндпоинты `/api/v1/platform/workouts/exercises[/{exercise}]` (`PlatformExercisesController`, `FormRequest`, `ExerciseResource`, `routes.php`) и `ExercisesEndpointsTest` (`2 passed, 31 assertions`).
 - **T5-02c** (`aa4ab8b`): Добавлен `ClientExercisesController` и маршруты `/api/v1/client/workouts/exercises[/{exercise}]` с тестами изоляции в `ExercisesEndpointsTest` (`3 passed, 53 assertions`).
-- **T5-03a:** Созданы `PlanLevel`, `InvalidWorkoutPlan`, `WorkoutPlanItem`, `WorkoutPlan`, `WorkoutPlanRepositoryInterface` и `WorkoutPlanTest` (`4 passed, 22 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **T5-03a** (`6d2f673`): Созданы `PlanLevel`, `InvalidWorkoutPlan`, `WorkoutPlanItem`, `WorkoutPlan`, `WorkoutPlanRepositoryInterface` и `WorkoutPlanTest` (`4 passed, 22 assertions`).
+- **T5-03b:** Добавлены миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel` и `WorkoutPlanItemModel`, репозиторий `EloquentWorkoutPlanRepository` (привязан в `WorkoutsServiceProvider`) и `WorkoutPlanRepositoryTest` (`1 passed, 14 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 ## Точный следующий шаг
 
-1. Выполнить **T5-03b**: создать миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel` и `WorkoutPlanItemModel`, реализовать `EloquentWorkoutPlanRepository`, зарегистрировать в `WorkoutsServiceProvider` и покрыть `WorkoutPlanRepositoryTest`.
-2. Далее выполнить `T5-04` (библиотека готовых планов платформы + OpenAPI `docs/api/workouts.yaml`) для завершения эпика `E5-A`.
+1. Выполнить **T5-04a**: реализовать Use Cases библиотеки планов (`CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`), метод `findByIds` в `ExerciseRepositoryInterface` и тесты `LibraryPlanUseCasesTest`.
+2. Выполнить **T5-04b**: добавить эндпоинты платформы и клиента, OpenAPI `docs/api/workouts.yaml` и `LibraryPlansEndpointsTest`, завершить `E5-A` и представить план `E5-B` разработчику на подтверждение.
 
 ## Команды проверки
 

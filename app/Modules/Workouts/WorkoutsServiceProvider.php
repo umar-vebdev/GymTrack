@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Workouts;
 
 use App\Modules\Workouts\Domain\ExerciseRepositoryInterface;
+use App\Modules\Workouts\Domain\WorkoutPlanRepositoryInterface;
 use App\Modules\Workouts\Infrastructure\EloquentExerciseRepository;
+use App\Modules\Workouts\Infrastructure\EloquentWorkoutPlanRepository;
 use Illuminate\Support\ServiceProvider;
 
 final class WorkoutsServiceProvider extends ServiceProvider
@@ -13,6 +15,7 @@ final class WorkoutsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ExerciseRepositoryInterface::class, EloquentExerciseRepository::class);
+        $this->app->bind(WorkoutPlanRepositoryInterface::class, EloquentWorkoutPlanRepository::class);
     }
 
     public function boot(): void
