@@ -147,10 +147,11 @@
   - [x] **T5-02a** Реализованы Use Cases управления упражнениями (`WorkoutResourceNotFound`, `CreateExercise`, `UpdateExercise`, `ListExercises` + `CreateExerciseCommand`/`UpdateExerciseCommand`) и `ExerciseUseCasesTest` (1 тест, 12 проверок; lint/analyse/deps зелёные).
   - [x] **T5-02b** HTTP-эндпоинты упражнений платформы (`/api/v1/platform/workouts/exercises[/{exercise}]`): `StoreExerciseRequest`, `UpdateExerciseRequest`, `ListExercisesRequest`, `ExerciseResource`, `PlatformExercisesController`, `routes.php` и `ExercisesEndpointsTest` (2 теста, 31 проверка; lint/analyse/deps зелёные).
   - [x] **T5-02c** HTTP-эндпоинты упражнений клиента (`/api/v1/client/workouts/exercises[/{exercise}]`): `ClientExercisesController`, `routes.php`, `ExercisesEndpointsTest` (3 теста, 53 проверки; lint/analyse/deps зелёные).
-  - [ ] **T5-03** Домен и хранение тренировочных планов: миграции `workouts_plans` и `workouts_plan_items`, сущности `WorkoutPlan`, `WorkoutPlanItem`, `PlanLevel`, `InvalidWorkoutPlan`, репозиторий `WorkoutPlanRepositoryInterface` + `EloquentWorkoutPlanRepository`, unit/repository-тесты.
+  - [x] **T5-03a** Домен и контракт репозитория планов: `PlanLevel`, `InvalidWorkoutPlan`, `WorkoutPlanItem`, `WorkoutPlan`, `WorkoutPlanRepositoryInterface`, `WorkoutPlanTest` (4 теста, 22 проверки; lint/analyse/deps зелёные).
+  - [~] **T5-03b** Хранение и репозиторий планов: миграции `workouts_plans` и `workouts_plan_items`, модели `WorkoutPlanModel`, `WorkoutPlanItemModel`, `EloquentWorkoutPlanRepository`, привязка в `WorkoutsServiceProvider`, тесты `WorkoutPlanRepositoryTest`.
     - ТЗ: Бизнес-ТЗ 9; Тех. ТЗ 6.1; D-016.
-    - Файлы: `app/Modules/Workouts/Domain/PlanLevel.php`, `app/Modules/Workouts/Domain/WorkoutPlanItem.php`, `app/Modules/Workouts/Domain/WorkoutPlan.php`, `app/Modules/Workouts/Domain/Exceptions/InvalidWorkoutPlan.php`, `app/Modules/Workouts/Domain/WorkoutPlanRepositoryInterface.php`, миграции, модели, репозиторий, тесты.
-    - Готовность: `lint`, `analyse`, `deps` и тесты домена/репозитория планов зелёные.
+    - Файлы: `app/Modules/Workouts/Infrastructure/Migrations/*`, `app/Modules/Workouts/Infrastructure/Persistence/*`, `app/Modules/Workouts/Infrastructure/EloquentWorkoutPlanRepository.php`, `app/Modules/Workouts/WorkoutsServiceProvider.php`, `tests/Feature/Workouts/WorkoutPlanRepositoryTest.php`.
+    - Готовность: `lint`, `analyse`, `deps` и `WorkoutPlanRepositoryTest` зелёные.
   - [ ] **T5-04** Библиотека готовых планов платформы: сценарии `CreateLibraryPlan`, `UpdateLibraryPlan`, `ListLibraryPlans`, `GetLibraryPlan`, эндпоинты `/api/v1/platform/workouts/plans[/{plan}]` и `/api/v1/client/workouts/library[/{plan}]`, OpenAPI `docs/api/workouts.yaml`, feature-тесты.
     - ТЗ: Бизнес-ТЗ 2, 9; Тех. ТЗ 7.1, 7.2, 15; D-016.
     - Файлы: `app/Modules/Workouts/Application/*LibraryPlan*`, `app/Modules/Workouts/Presentation/*`, `docs/api/workouts.yaml`, `tests/Feature/Workouts/LibraryPlansEndpointsTest.php`.
