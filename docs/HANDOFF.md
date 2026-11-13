@@ -1,8 +1,8 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-13
-**Текущий этап:** Этап 6 (`E6-A` → `E6-B` → `E6-C`); план `E6-A` детализирован в `docs/TASKS.md`
-**Текущая задача:** `T6-05b` — HTTP-эндпоинты управления сотрудниками (`Companies`)
+**Текущий этап:** Этап 6 (`E6-A` завершён; следующий `E6-B` → `E6-C`)
+**Текущая задача:** Согласование детального плана `E6-B` (Вариант A)
 
 ## Что сделано в последней сессии
 
@@ -12,15 +12,12 @@
 - **`T6-04a` (Use Cases филиалов)**: `ListCompanyGyms`, `CreateGym`, `UpdateGym` и расширение `GymRepositoryInterface` (`522 passed, 3464 assertions`).
 - **`T6-04b` (HTTP-эндпоинты филиалов)**: `GymsController` (`GET/POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`), `docs/api/companies.yaml`, `ManageGymsEndpointTest` (`524 passed, 3492 assertions`).
 - **`T6-05a` (Use Cases сотрудников)**: `UserSummary` в `Identity`, `ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`, аудит-события `StaffMemberAdded`/`RoleChanged`/`Removed`, `StaffUseCasesTest` (`526 passed, 3509 assertions`, `lint`/`analyse`/`deps` зелёные).
-
-- Проведена сверка `HANDOFF.md`/`TASKS.md` с реальным состоянием репозитория: выявлены и исправлены 32 ошибки стиля Pint (`composer lint:fix`) в файлах `E5-C` (`T5-06a`…`T5-07b`), а также устаревший статус этапа в шапке `docs/TASKS.md`.
-- Полностью обновлён `README.md`: отражены все завершённые этапы 0–5, 14 модулей, структура API (`/business`, `/client`, `/public`, `/platform`), ссылки на 6 спецификаций `docs/api/*.yaml`, исправлен путь health-check (`/api/v1/health`) и актуализирована таблица расписания команд из `routes/console.php`.
-- Подтверждены все 4 проверки (`composer lint`, `composer analyse`, `composer deps`, `docker compose exec -T app composer test`: `511 passed, 3424 assertions`).
+- **`T6-05b` (HTTP-эндпоинты сотрудников, `E6-A` завершён)**: `StaffController` (`GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`), `AddStaffMemberRequest`, `UpdateStaffMemberRoleRequest`, `StaffMemberResource`, `docs/api/companies.yaml`, `README.md`, `ManageStaffEndpointTest` (`528 passed, 3540 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 ## Точный следующий шаг
 
-1. Выполнить `T6-05b` — HTTP-эндпоинты сотрудников (`GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`), дополнить `docs/api/companies.yaml` и `README.md`.
-2. После завершения `E6-A` — раскрыть и согласовать план эпика `E6-B` (Вариант A).
+1. Подтвердить с разработчиком детальный список задач эпика `E6-B` (Вариант A: сидеры, локализация `ru`/`tg` + `Accept-Language`, rate limiting на auth/OTP, OpenAPI для Этапов 1–2, JSON-логи и Docker worker/scheduler).
+2. После подтверждения приступить к `T6-06`.
 
 ## Команды проверки
 
@@ -36,8 +33,8 @@ docker compose exec -T app composer test -- --compact --colors=never
 - В feature-тестах Laravel кэширует контроллер на экземпляре `Route` в пределах одного теста, поэтому тестовый `Clock` с изменением времени внутри одного теста должен читать время из мутабельного свойства теста.
 - В контейнере `app` команда `composer test` выполняется при условии `php artisan config:clear` перед прогоном; запуск через `docker compose exec -T app composer test -- --compact --colors=never`.
 - Файл `.deptrac.cache` отслеживается в git и обновляется при запуске `composer deps`.
-- Пробелы относительно ТЗ на 2026-11-13: отсутствует `lang/` (`ru`/`tg` + `Accept-Language`), отсутствуют сидеры библиотеки/тарифов, нет OpenAPI-спецификаций для Этапов 1–2, rate limiting настроен только на `/visits/*`, нет эндпоинтов добавления филиалов/сотрудников в `Companies`.
+- Пробелы относительно ТЗ на 2026-11-13 (запланированы в `E6-B`): отсутствует `lang/` (`ru`/`tg` + `Accept-Language`), отсутствуют сидеры библиотеки/тарифов, нет OpenAPI-спецификаций для Этапов 1–2, rate limiting настроен только на `/visits/*`, нет JSON-формата логов и отдельных сервисов `worker`/`scheduler` в `docker-compose.yml`.
 
 ## Нерешённые вопросы
 
-- Ожидается выбор вектора развития для Этапа 6 (вариант A / B / C).
+- Вектор Этапа 6 выбран: `B -> A -> C` (`E6-A` завершён, ожидается подтверждение списка задач `E6-B`).

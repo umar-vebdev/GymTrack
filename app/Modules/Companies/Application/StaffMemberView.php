@@ -18,3 +18,4 @@ final class StaffMemberView
         public readonly ?string $email,
     ) {}
 }
+

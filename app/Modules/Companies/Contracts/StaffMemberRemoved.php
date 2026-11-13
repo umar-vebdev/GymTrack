@@ -69,3 +69,4 @@ final class StaffMemberRemoved implements AuditableEvent, DomainEvent
         return null;
     }
 }
+

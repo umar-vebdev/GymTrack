@@ -13,3 +13,4 @@ final class StaffMemberNotFound extends DomainException
         return new self(sprintf('Сотрудник #%d не найден.', $staffId));
     }
 }
+

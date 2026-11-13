@@ -182,12 +182,7 @@
 
 - [x] **T6-05a** Use Cases управления сотрудниками (`Companies` + `Identity`): `UserSummary` и `findSummaryById`/`findSummariesByIds` в `UserQueryInterface`, `StaffMember::withRole`, `StaffMemberNotFound`, расширение `StaffMemberRepositoryInterface`, аудит-события `StaffMemberAdded`/`StaffMemberRoleChanged`/`StaffMemberRemoved`, сценарии `ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`; 2 теста в `StaffUseCasesTest`; `526 passed, 3509 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-05b HTTP-эндпоинты сотрудников (`Companies`)**
-  - **Цель:** открыть API `GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`.
-  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 7.1, 8, 15.
-  - **Файлы:** контроллеры, `FormRequest`, `StaffMemberResource`, `Companies/Presentation/routes.php`, `docs/api/companies.yaml`, feature-тесты (права, изоляция, аудит).
-  - **Шаги:** 1) доступ только `owner` (`admin`/`trainer` → 403); 2) описать в `docs/api/companies.yaml`; 3) feature-тесты включая проверку записей в аудит-логе.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-05b** HTTP-эндпоинты сотрудников (`Companies`: `GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`, `owner`-only, `docs/api/companies.yaml`, `528 passed`).
 
 ### E6-B — Релизная готовность и обязательные пробелы ТЗ (Вариант A, крупный блок)
 

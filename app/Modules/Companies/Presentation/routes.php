@@ -9,6 +9,7 @@ use App\Modules\Companies\Presentation\ListGymProfilesController;
 use App\Modules\Companies\Presentation\ModerateGymProfileController;
 use App\Modules\Companies\Presentation\RegisterCompanyController;
 use App\Modules\Companies\Presentation\SetGymPublicationController;
+use App\Modules\Companies\Presentation\StaffController;
 use App\Modules\Companies\Presentation\SubmitGymProfileController;
 use App\Modules\Companies\Presentation\UpdateCompanyCurrencyController;
 use App\Modules\Companies\Presentation\UpdateGymProfileController;
@@ -24,6 +25,10 @@ Route::prefix('api/v1/business')
         Route::get('/gyms', [GymsController::class, 'index']);
         Route::post('/gyms', [GymsController::class, 'store']);
         Route::patch('/gyms/{gym}', [GymsController::class, 'update'])->whereNumber('gym');
+        Route::get('/staff', [StaffController::class, 'index']);
+        Route::post('/staff', [StaffController::class, 'store']);
+        Route::patch('/staff/{staff}', [StaffController::class, 'update'])->whereNumber('staff');
+        Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])->whereNumber('staff');
         Route::put('/gyms/{gym}/profile', UpdateGymProfileController::class)->whereNumber('gym');
         Route::patch('/gyms/{gym}/publication', SetGymPublicationController::class)->whereNumber('gym');
         Route::post('/gyms/{gym}/profile/submit', SubmitGymProfileController::class)->whereNumber('gym');

@@ -25,3 +25,4 @@ final class UpdateGymRequest extends FormRequest
         ];
     }
 }
+

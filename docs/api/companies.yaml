@@ -46,6 +46,123 @@ paths:
           description: Только владелец компании может создавать филиалы
         '422':
           description: Ошибка валидации
+  /api/v1/business/staff:
+    get:
+      summary: Список сотрудников компании (только владелец)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список сотрудников компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StaffMember'
+        '403':
+          description: Управлять сотрудниками может только владелец компании
+    post:
+      summary: Добавить сотрудника в компанию по подтверждённому номеру телефона (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - role
+              properties:
+                phone:
+                  type: string
+                  example: '+992900112233'
+                role:
+                  type: string
+                  enum: [admin, trainer]
+      responses:
+        '201':
+          description: Сотрудник добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StaffMember'
+        '400':
+          description: Пользователь не найден / телефон не подтверждён / уже в штате
+        '403':
+          description: Только владелец компании
+        '422':
+          description: Ошибка валидации
+  /api/v1/business/staff/{staff}:
+    patch:
+      summary: Изменить роль сотрудника компании (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staff
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [admin, trainer]
+      responses:
+        '200':
+          description: Роль обновлена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StaffMember'
+        '400':
+          description: Нельзя изменить роль владельца
+        '403':
+          description: Только владелец компании
+        '404':
+          description: Сотрудник не найден
+        '422':
+          description: Ошибка валидации
+    delete:
+      summary: Удалить сотрудника из компании (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staff
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Сотрудник удалён
+        '400':
+          description: Нельзя удалить единственного владельца
+        '403':
+          description: Только владелец компании
+        '404':
+          description: Сотрудник не найден
   /api/v1/business/gyms/{gym}:
     patch:
       summary: Обновить данные филиала компании (только владелец)
@@ -80,6 +197,123 @@ paths:
           description: Зал не найден или принадлежит другой компании
         '422':
           description: Ошибка валидации
+  /api/v1/business/staff:
+    get:
+      summary: Список сотрудников компании (только владелец)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список сотрудников компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StaffMember'
+        '403':
+          description: Управлять сотрудниками может только владелец компании
+    post:
+      summary: Добавить сотрудника в компанию по подтверждённому номеру телефона (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - role
+              properties:
+                phone:
+                  type: string
+                  example: '+992900112233'
+                role:
+                  type: string
+                  enum: [admin, trainer]
+      responses:
+        '201':
+          description: Сотрудник добавлен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StaffMember'
+        '400':
+          description: Пользователь не найден / телефон не подтверждён / уже в штате
+        '403':
+          description: Только владелец компании
+        '422':
+          description: Ошибка валидации
+  /api/v1/business/staff/{staff}:
+    patch:
+      summary: Изменить роль сотрудника компании (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staff
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [admin, trainer]
+      responses:
+        '200':
+          description: Роль обновлена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StaffMember'
+        '400':
+          description: Нельзя изменить роль владельца
+        '403':
+          description: Только владелец компании
+        '404':
+          description: Сотрудник не найден
+        '422':
+          description: Ошибка валидации
+    delete:
+      summary: Удалить сотрудника из компании (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: staff
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Сотрудник удалён
+        '400':
+          description: Нельзя удалить единственного владельца
+        '403':
+          description: Только владелец компании
+        '404':
+          description: Сотрудник не найден
 components:
   securitySchemes:
     bearerAuth:
@@ -100,6 +334,32 @@ components:
           maxLength: 255
         timezone:
           type: string
+    StaffMember:
+      type: object
+      required:
+        - id
+        - user_id
+        - company_id
+        - role
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        company_id:
+          type: integer
+        role:
+          type: string
+          enum: [owner, admin, trainer]
+        name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
           example: Asia/Dushanbe
     Gym:
       type: object
@@ -121,3 +381,29 @@ components:
           nullable: true
         timezone:
           type: string
+    StaffMember:
+      type: object
+      required:
+        - id
+        - user_id
+        - company_id
+        - role
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        company_id:
+          type: integer
+        role:
+          type: string
+          enum: [owner, admin, trainer]
+        name:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true

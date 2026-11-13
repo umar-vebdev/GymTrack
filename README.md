@@ -80,7 +80,7 @@ app/
 - `GET /user` — текущий авторизованный пользователь.
 
 ### Кабинет зала (`/api/v1/business/...`, Sanctum)
-- **Компания, залы и витрина:** `POST /companies`, `GET /currencies`, `PATCH /company/currency`, `PUT /gyms/{gym}/profile`, `POST /gyms/{gym}/profile/submit`, `PATCH /gyms/{gym}/publication`, `POST/DELETE /gyms/{gym}/photos/{photo?}`.
+- **Компания, залы, сотрудники и витрина:** `POST /companies`, `GET /currencies`, `PATCH /company/currency`, `GET/POST /gyms`, `PATCH /gyms/{gym}`, `GET/POST /staff`, `PATCH/DELETE /staff/{staff}`, `PUT /gyms/{gym}/profile`, `POST /gyms/{gym}/profile/submit`, `PATCH /gyms/{gym}/publication`, `POST/DELETE /gyms/{gym}/photos/{photo?}`.
 - **Клиенты (CRM):** `GET/POST /clients`, `POST /clients/merge`.
 - **Абонементы:** `GET/POST /membership-types`, `PATCH /membership-types/{id}/active`, `GET /clients/{id}/memberships`, `GET /memberships/expiring`, `POST /memberships/{id}/{freeze,unfreeze,cancel}`.
 - **Товары, касса и заявки:** `GET/POST /products`, `PATCH /products/{id}`, `GET/POST /sales`, `POST /sales/{id}/refund`, `GET /clients/{id}/sales`, `GET /membership-requests`, `POST /membership-requests/{id}/{pay,cancel}`.
@@ -108,6 +108,7 @@ app/
 - `GET/POST /workouts/exercises`, `PATCH /workouts/exercises/{exercise}`, `GET/POST /workouts/plans`, `GET/PATCH /workouts/plans/{plan}`.
 
 ### OpenAPI-спецификации (`docs/api/`)
+- [companies.yaml](docs/api/companies.yaml) — управление филиалами и сотрудниками компании
 - [gym-profiles.yaml](docs/api/gym-profiles.yaml) — редактирование и публикация витрин
 - [gym-photos.yaml](docs/api/gym-photos.yaml) — загрузка и удаление фотографий зала
 - [public-catalog.yaml](docs/api/public-catalog.yaml) — публичный каталог, геопоиск и расписание зала

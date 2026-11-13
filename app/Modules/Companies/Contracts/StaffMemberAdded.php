@@ -69,3 +69,4 @@ final class StaffMemberAdded implements AuditableEvent, DomainEvent
         return null;
     }
 }
+
