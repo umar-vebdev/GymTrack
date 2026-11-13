@@ -71,4 +71,3 @@ final class StaffMemberRoleChanged implements AuditableEvent, DomainEvent
         return null;
     }
 }
-

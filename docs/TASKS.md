@@ -186,12 +186,7 @@
 
 ### E6-B — Релизная готовность и обязательные пробелы ТЗ (Вариант A)
 
-- [ ] **T6-06 Сидеры начальных данных (`PlatformPlanSeeder`, `WorkoutsSeeder`)**
-  - **Цель:** наполнить БД стартовыми тарифными планами платформы и базовым справочником упражнений + готовых планов тренировок.
-  - **ТЗ:** Бизнес-ТЗ 9; Тех. ТЗ 12.
-  - **Файлы:** `database/seeders/PlatformPlanSeeder.php`, `database/seeders/WorkoutsSeeder.php`, `database/seeders/DatabaseSeeder.php`, `tests/Feature/Seeders/DatabaseSeederTest.php`.
-  - **Шаги:** 1) идемпотентный `PlatformPlanSeeder`; 2) идемпотентный `WorkoutsSeeder` (базовые упражнения и готовые планы); 3) подключение в `DatabaseSeeder`; 4) тест повторного запуска.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-06** Идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`, `DatabaseSeeder`, `DatabaseSeederTest`, `README.md`; `529 passed, 3556 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 - [ ] **T6-07 Локализация `ru`/`tg` и middleware `Accept-Language`**
   - **Цель:** подключить переводы сообщений API и ошибок на русский (`ru`) и таджикский (`tg`) с выбором локали по заголовку `Accept-Language`.

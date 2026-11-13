@@ -115,4 +115,3 @@ final class ManageGymsEndpointTest extends TestCase
             ->assertJsonPath('error.code', 'NOT_FOUND');
     }
 }
-

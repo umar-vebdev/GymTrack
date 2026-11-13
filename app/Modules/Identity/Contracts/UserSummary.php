@@ -16,4 +16,3 @@ final class UserSummary
         public readonly ?string $email,
     ) {}
 }
-

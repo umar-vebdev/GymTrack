@@ -108,4 +108,3 @@ final class GymsController extends Controller
         ], 403);
     }
 }
-

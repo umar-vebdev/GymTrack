@@ -161,4 +161,3 @@ final class StaffController extends Controller
         ], 403);
     }
 }
-

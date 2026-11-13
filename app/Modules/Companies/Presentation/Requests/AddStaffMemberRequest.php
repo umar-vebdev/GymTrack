@@ -24,4 +24,3 @@ final class AddStaffMemberRequest extends FormRequest
         ];
     }
 }
-

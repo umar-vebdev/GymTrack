@@ -115,4 +115,3 @@ final class StaffUseCasesTest extends TestCase
             ->toThrow(StaffMemberNotFound::class);
     }
 }
-

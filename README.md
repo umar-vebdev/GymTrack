@@ -146,9 +146,10 @@ app/
    docker compose exec app php artisan key:generate
    ```
 
-5. Примените миграции:
+5. Примените миграции и заполните базовые справочники (идемпотентные сидеры тарифов платформы и библиотеки тренировок):
    ```bash
    docker compose exec app php artisan migrate
+   docker compose exec app php artisan db:seed
    ```
 
 Приложение доступно по адресу: **http://localhost:8000**  
