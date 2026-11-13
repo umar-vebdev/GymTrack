@@ -14,13 +14,30 @@ final class EloquentGymRepository implements GymRepositoryInterface
     {
         $model = GymModel::query()->withoutGlobalScopes()->find($id);
 
-        return $model ? new Gym(
-            id: $model->id,
-            companyId: $model->company_id,
-            name: $model->name,
-            address: $model->address,
-            timezone: $model->timezone ?: Gym::DEFAULT_TIMEZONE,
-        ) : null;
+        return $model ? $this->mapToDomain($model) : null;
+    }
+
+    public function findByIdForUpdate(int $id): ?Gym
+    {
+        $model = GymModel::query()->withoutGlobalScopes()->lockForUpdate()->find($id);
+
+        return $model ? $this->mapToDomain($model) : null;
+    }
+
+    /**
+     * @return list<Gym>
+     */
+    public function listByCompany(int $companyId): array
+    {
+        return array_values(
+            GymModel::query()
+                ->withoutGlobalScopes()
+                ->where('company_id', $companyId)
+                ->orderBy('id')
+                ->get()
+                ->map(fn (GymModel $model): Gym => $this->mapToDomain($model))
+                ->all()
+        );
     }
 
     public function create(int $companyId, string $name, ?string $address, string $timezone = Gym::DEFAULT_TIMEZONE): int
@@ -35,16 +52,27 @@ final class EloquentGymRepository implements GymRepositoryInterface
         return $model->id;
     }
 
-    public function findByIdForUpdate(int $id): ?Gym
+    public function save(Gym $gym): void
     {
-        $model = GymModel::query()->withoutGlobalScopes()->lockForUpdate()->find($id);
+        GymModel::query()
+            ->withoutGlobalScopes()
+            ->where('id', $gym->id())
+            ->where('company_id', $gym->companyId())
+            ->update([
+                'name' => $gym->name(),
+                'address' => $gym->address(),
+                'timezone' => $gym->timezone(),
+            ]);
+    }
 
-        return $model ? new Gym(
+    private function mapToDomain(GymModel $model): Gym
+    {
+        return new Gym(
             id: $model->id,
             companyId: $model->company_id,
             name: $model->name,
             address: $model->address,
             timezone: $model->timezone ?: Gym::DEFAULT_TIMEZONE,
-        ) : null;
+        );
     }
 }

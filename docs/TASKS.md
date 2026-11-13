@@ -176,12 +176,7 @@
 
 - [x] **T6-03** Режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, закрытие `D-012`): при `companyIdForUser === null` проверяется `companyIdForTrainer`, добавлен тест в `ReadOnlyExpiredSubscriptionTest`; `520 passed, 3449 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-04a Use Cases управления филиалами (`Companies`)**
-  - **Цель:** реализовать сценарии просмотра, создания и редактирования залов компании.
-  - **ТЗ:** Бизнес-ТЗ 3, 4.1, 11 (`несколько филиалов`).
-  - **Файлы:** `GymRepositoryInterface.php`, `EloquentGymRepository.php`, `ListCompanyGyms.php`, `CreateGym.php`, `UpdateGym.php`, тесты.
-  - **Шаги:** 1) расширить `GymRepositoryInterface` (`listByCompany`, `create` с `timezone`, `save`); 2) реализовать `ListCompanyGyms`, `CreateGym`, `UpdateGym` с валидацией IANA `timezone`; 3) написать тесты.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-04a** Use Cases управления филиалами (`Companies`): `Gym::withDetails`, `GymRepositoryInterface::listByCompany`/`save`, сценарии `ListCompanyGyms`, `CreateGym`, `UpdateGym` с изоляцией компаний (`GymNotFound`) и валидацией IANA `timezone`; 2 новых теста в `GymUseCasesTest`; `522 passed, 3464 assertions`, `lint`/`analyse`/`deps` зелёные.
 
 - [ ] **T6-04b HTTP-эндпоинты филиалов (`Companies`)**
   - **Цель:** открыть API `GET /api/v1/business/gyms`, `POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`.
