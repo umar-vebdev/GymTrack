@@ -172,12 +172,7 @@
 
 - [x] **T6-01** Часовой пояс зала (`gyms.timezone`, default `Asia/Dushanbe`): миграция `2026_11_13_000001_add_timezone_to_gyms_table`, валидация IANA-пояса в `Gym`, поля `timezone` в `GymModel`/`EloquentGymRepository`/`GymQrSummary`, метод `GymLookupInterface::findTimezone`; 6 новых тестов (`GymTest`, `GymTimezoneTest`); `517 passed, 3438 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-02 Локальный пояс зала в отметке посещений (`Visits`, `D-007`)**
-  - **Цель:** считать «день» (`visit_date`) и окно времени (`WithinAllowedTimeRule`) в поясе зала, сохраняя `visited_at` в UTC.
-  - **ТЗ:** Бизнес-ТЗ 4.3, 10; Тех. ТЗ 6.1, 13; `D-007`.
-  - **Файлы:** `CheckInByQr.php`, `CheckInManually.php`, `CheckInContext.php`, `WithinAllowedTimeRule.php`, `DailyLimitNotExceededRule.php`, тесты `CheckInRulesTest.php`, `CheckInByQrEndpointTest.php`, `ManualCheckInTest.php`.
-  - **Шаги:** 1) передавать `gymTimezone` в `CheckInContext`; 2) вычислять локальную дату и минуту дня через `DateTimeZone($gymTimezone)`; 3) проверить переход суток (`23:55` Asia/Dushanbe vs `18:55` UTC) и окно времени в тестах.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-02** Локальный пояс зала в отметке посещений (`Visits`, закрытие `D-007`): `CheckInContext::gymTimezone` + `localNow()`, `WithinAllowedTimeRule` и `DailyLimitNotExceededRule` считают время и день в поясе зала, `EloquentVisitRepository::create` хранит `visited_at` в UTC и `visit_date` в поясе зала, `CheckInByQr`/`CheckInManually` передают `$gym->timezone`; +2 новых теста (`CheckInRulesTest`, `CheckInTimezoneTest`), также поправлен стиль 2 файлов `T6-01`; `519 passed, 3446 assertions`, `lint`/`analyse`/`deps` зелёные.
 
 - [ ] **T6-03 Режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, `D-012`)**
   - **Цель:** распространить блокировку изменяющих запросов при истёкшей подписке компании и на роль тренера.

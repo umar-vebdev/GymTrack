@@ -18,6 +18,7 @@ use App\Modules\Visits\Domain\Rules\CheckInRuleInterface;
 use App\Modules\Visits\Domain\VisitMethod;
 use App\Modules\Visits\Domain\VisitRepositoryInterface;
 use App\Shared\Domain\Clock;
+use DateTimeZone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
@@ -97,10 +98,11 @@ final class CheckInByQr
 
             $candidate = $this->memberships->findCandidate($gym->companyId, $clientId, $now);
             if ($candidate === null) {
+                $localDate = $now->setTimezone(new DateTimeZone($gym->timezone))->format('Y-m-d');
                 $completedToday = $this->visits->countCompletedForClientInGymOnDate(
                     $clientId,
                     $gym->id,
-                    $now->format('Y-m-d'),
+                    $localDate,
                 );
 
                 if ($completedToday > 0) {
@@ -121,6 +123,7 @@ final class CheckInByQr
                 dailyLimit: $candidate->dailyLimit,
                 timeFromMinute: $candidate->timeFromMinute,
                 timeToMinute: $candidate->timeToMinute,
+                gymTimezone: $gym->timezone,
             );
 
             foreach ($this->rules as $rule) {
@@ -139,6 +142,7 @@ final class CheckInByQr
                 registeredByUserId: $command->userId,
                 device: $command->device,
                 idempotencyKey: $command->idempotencyKey,
+                gymTimezone: $gym->timezone,
             );
 
             $createdNew = true;

@@ -27,6 +27,7 @@ final class FakeVisitRepository implements VisitRepositoryInterface
         ?int $registeredByUserId,
         ?string $device = null,
         ?string $idempotencyKey = null,
+        string $gymTimezone = 'UTC',
     ): Visit {
         throw new LogicException('Not used in rule tests.');
     }

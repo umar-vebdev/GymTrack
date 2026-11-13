@@ -10,6 +10,7 @@ use App\Modules\Visits\Domain\VisitRepositoryInterface;
 use App\Modules\Visits\Domain\VisitStatus;
 use App\Modules\Visits\Infrastructure\Persistence\VisitModel;
 use DateTimeImmutable;
+use DateTimeZone;
 
 final class EloquentVisitRepository implements VisitRepositoryInterface
 {
@@ -23,8 +24,10 @@ final class EloquentVisitRepository implements VisitRepositoryInterface
         ?int $registeredByUserId,
         ?string $device = null,
         ?string $idempotencyKey = null,
+        string $gymTimezone = 'UTC',
     ): Visit {
-        $visitDate = $visitedAt->format('Y-m-d');
+        $utcVisitedAt = $visitedAt->setTimezone(new DateTimeZone('UTC'));
+        $visitDate = $visitedAt->setTimezone(new DateTimeZone($gymTimezone))->format('Y-m-d');
         $existingToday = $this->countCompletedForClientInGymOnDate($clientId, $gymId, $visitDate);
 
         $model = VisitModel::withoutGlobalScopes()->create([
@@ -34,7 +37,7 @@ final class EloquentVisitRepository implements VisitRepositoryInterface
             'membership_id' => $membershipId,
             'method' => $method->value,
             'status' => VisitStatus::Completed->value,
-            'visited_at' => $visitedAt->format('Y-m-d H:i:s'),
+            'visited_at' => $utcVisitedAt->format('Y-m-d H:i:s'),
             'visit_date' => $visitDate,
             'daily_entry_number' => $existingToday + 1,
             'registered_by_user_id' => $registeredByUserId,

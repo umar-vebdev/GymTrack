@@ -2,11 +2,12 @@
 
 **Обновлено:** 2026-11-13
 **Текущий этап:** Этап 6 (`E6-A` → `E6-B` → `E6-C`); план `E6-A` детализирован в `docs/TASKS.md`
-**Текущая задача:** `T6-02` — локальный пояс зала в отметке посещений (`Visits`, `D-007`)
+**Текущая задача:** `T6-03` — режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, `D-012`)
 
 ## Что сделано в последней сессии
 
-- **`T6-01` (часовой пояс зала)**: добавлена миграция `gyms.timezone` (`Asia/Dushanbe` по умолчанию), валидация IANA-пояса в `Gym`, `timezone` в `GymQrSummary` и `GymLookupInterface::findTimezone` (`517 passed, 3438 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **`T6-01` (часовой пояс зала)**: добавлена миграция `gyms.timezone` (`Asia/Dushanbe` по умолчанию), валидация IANA-пояса в `Gym`, `timezone` в `GymQrSummary` и `GymLookupInterface::findTimezone` (`517 passed, 3438 assertions`).
+- **`T6-02` (часовой пояс в `Visits`, `D-007`)**: локальная дата `visit_date` и окно времени `WithinAllowedTimeRule` переведены на часовой пояс зала с сохранением `visited_at` в UTC (`519 passed, 3446 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 - Проведена сверка `HANDOFF.md`/`TASKS.md` с реальным состоянием репозитория: выявлены и исправлены 32 ошибки стиля Pint (`composer lint:fix`) в файлах `E5-C` (`T5-06a`…`T5-07b`), а также устаревший статус этапа в шапке `docs/TASKS.md`.
 - Полностью обновлён `README.md`: отражены все завершённые этапы 0–5, 14 модулей, структура API (`/business`, `/client`, `/public`, `/platform`), ссылки на 6 спецификаций `docs/api/*.yaml`, исправлен путь health-check (`/api/v1/health`) и актуализирована таблица расписания команд из `routes/console.php`.
@@ -14,8 +15,8 @@
 
 ## Точный следующий шаг
 
-1. Выполнить `T6-02` — использовать `gym->timezone` при расчёте локальной даты `visit_date` и окна времени в `Visits` (`D-007`).
-2. Далее по плану `E6-A`: `T6-03` (`EnsureActiveCompanySubscription` для тренера), `T6-04a`/`T6-04b` (филиалы), `T6-05a`/`T6-05b` (сотрудники).
+1. Выполнить `T6-03` — учесть `companyIdForTrainer` в `EnsureActiveCompanySubscription` (`D-012`).
+2. Далее по плану `E6-A`: `T6-04a`/`T6-04b` (филиалы), `T6-05a`/`T6-05b` (сотрудники).
 
 ## Команды проверки
 

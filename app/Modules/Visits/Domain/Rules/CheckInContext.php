@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Visits\Domain\Rules;
 
 use DateTimeImmutable;
+use DateTimeZone;
 
 /**
  * Данные для проверки отметки. Содержит только простые значения: Domain не зависит от других модулей,
@@ -23,5 +24,11 @@ final class CheckInContext
         public readonly int $dailyLimit,
         public readonly ?int $timeFromMinute,
         public readonly ?int $timeToMinute,
+        public readonly string $gymTimezone = 'UTC',
     ) {}
+
+    public function localNow(): DateTimeImmutable
+    {
+        return $this->now->setTimezone(new DateTimeZone($this->gymTimezone));
+    }
 }

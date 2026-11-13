@@ -22,7 +22,7 @@ final class DailyLimitNotExceededRule implements CheckInRuleInterface
         $count = $this->visits->countCompletedForClientInGymOnDate(
             $ctx->clientId,
             $ctx->gymId,
-            $ctx->now->format('Y-m-d'),
+            $ctx->localNow()->format('Y-m-d'),
         );
 
         if ($count >= $ctx->dailyLimit) {

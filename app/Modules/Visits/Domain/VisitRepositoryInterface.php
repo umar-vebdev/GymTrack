@@ -18,6 +18,7 @@ interface VisitRepositoryInterface
         ?int $registeredByUserId,
         ?string $device = null,
         ?string $idempotencyKey = null,
+        string $gymTimezone = 'UTC',
     ): Visit;
 
     public function findById(int $id): ?Visit;

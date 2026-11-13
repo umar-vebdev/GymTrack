@@ -101,3 +101,41 @@ test('daily limit follows membership setting', function () {
     expect(denialReason(fn () => (new DailyLimitNotExceededRule(new FakeVisitRepository(3)))->validate($ctx)))
         ->toContain(CheckInDenied::REASON_DAILY_LIMIT_EXCEEDED);
 });
+
+test('time rule uses gym local timezone instead of UTC', function () {
+    $rule = new WithinAllowedTimeRule;
+
+    // 04:00 UTC = 09:00 Asia/Dushanbe (+05:00), попадает в окно 08:00–12:00
+    $inWindow = new CheckInContext(
+        companyId: 1,
+        gymId: 1,
+        clientId: 1,
+        now: new DateTimeImmutable('2026-10-30 04:00:00', new DateTimeZone('UTC')),
+        remainingVisits: 5,
+        membershipExpiresAt: null,
+        membershipFrozen: false,
+        dailyLimit: 1,
+        timeFromMinute: 480,
+        timeToMinute: 720,
+        gymTimezone: 'Asia/Dushanbe',
+    );
+
+    // 08:00 UTC = 13:00 Asia/Dushanbe (+05:00), уже вне окна 08:00–12:00
+    $outOfWindow = new CheckInContext(
+        companyId: 1,
+        gymId: 1,
+        clientId: 1,
+        now: new DateTimeImmutable('2026-10-30 08:00:00', new DateTimeZone('UTC')),
+        remainingVisits: 5,
+        membershipExpiresAt: null,
+        membershipFrozen: false,
+        dailyLimit: 1,
+        timeFromMinute: 480,
+        timeToMinute: 720,
+        gymTimezone: 'Asia/Dushanbe',
+    );
+
+    expect(denialReason(fn () => $rule->validate($inWindow)))->toBeNull();
+    expect(denialReason(fn () => $rule->validate($outOfWindow)))
+        ->toContain(CheckInDenied::REASON_OUT_OF_TIME_WINDOW);
+});
