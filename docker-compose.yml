@@ -50,6 +50,38 @@ services:
     networks:
       - gymtrack_net
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gymtrack_worker
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work --tries=3 --sleep=3 --timeout=90
+    volumes:
+      - ./:/var/www
+    networks:
+      - gymtrack_net
+    depends_on:
+      - db
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gymtrack_scheduler
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan schedule:work
+    volumes:
+      - ./:/var/www
+    networks:
+      - gymtrack_net
+    depends_on:
+      - db
+      - redis
+
 networks:
   gymtrack_net:
     driver: bridge

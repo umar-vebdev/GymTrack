@@ -198,12 +198,7 @@
 
 - [x] **T6-09c** OpenAPI-спецификация `Visits`, `Analytics`, `Notifications` (`docs/api/visits-analytics.yaml`, `README.md`; валидный YAML).
 
-- [ ] **T6-10 Наблюдаемость и эксплуатация: JSON-логирование и Docker worker/scheduler**
-  - **Цель:** добавить структурированное JSON-логирование с контекстом (`request_id`, `user_id`, `company_id`) и выделить сервисы очереди и планировщика в Docker Compose.
-  - **ТЗ:** Тех. ТЗ 12.
-  - **Файлы:** `app/Shared/Presentation/Middleware/RequestContextMiddleware.php`, `config/logging.php`, `bootstrap/app.php`, `docker-compose.yml`, `README.md`, feature-тест `X-Request-Id` и контекста логов.
-  - **Шаги:** 1) middleware добавления `request_id`/`user_id`/`company_id` в `Log::withContext()`; 2) JSON-форматтер в `config/logging.php`; 3) сервисы `worker` и `scheduler` в `docker-compose.yml`; 4) тесты.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-10** Наблюдаемость и эксплуатация: JSON-логирование и Docker worker/scheduler (`RequestContextMiddleware`, `config/logging.php`, `bootstrap/app.php`, `.env.example`, `docker-compose.yml`, `README.md`, `RequestContextLoggingTest`; `536 passed, 3657 assertions`, `lint`/`analyse`/`deps` зелёные, `docker compose config -q` ок).
 
 ### E6-C — Функции приоритета `Could` (Вариант C, крупный блок)
 

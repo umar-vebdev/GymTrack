@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\RequestContextMiddleware;
 use App\Modules\Billing\Presentation\Middleware\EnsureActiveCompanySubscription;
 use App\Shared\Presentation\Middleware\SetLocaleFromHeader;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(SetLocaleFromHeader::class);
+        $middleware->prepend(RequestContextMiddleware::class);
         $middleware->append(EnsureActiveCompanySubscription::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
