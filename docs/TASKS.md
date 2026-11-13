@@ -184,9 +184,56 @@
 
 - [x] **T6-05b** HTTP-эндпоинты сотрудников (`Companies`: `GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`, `owner`-only, `docs/api/companies.yaml`, `528 passed`).
 
-### E6-B — Релизная готовность и обязательные пробелы ТЗ (Вариант A, крупный блок)
+### E6-B — Релизная готовность и обязательные пробелы ТЗ (Вариант A)
 
-- Сидеры (`PlatformPlan`, базовый справочник упражнений и готовые планы `Workouts`), локализация `ru`/`tg` + `Accept-Language`, rate limiting на auth/OTP, OpenAPI для Этапов 1–2, структурированное JSON-логирование и прод-воркеры/планировщик Docker. Раскрывается перед стартом.
+- [ ] **T6-06 Сидеры начальных данных (`PlatformPlanSeeder`, `WorkoutsSeeder`)**
+  - **Цель:** наполнить БД стартовыми тарифными планами платформы и базовым справочником упражнений + готовых планов тренировок.
+  - **ТЗ:** Бизнес-ТЗ 9; Тех. ТЗ 12.
+  - **Файлы:** `database/seeders/PlatformPlanSeeder.php`, `database/seeders/WorkoutsSeeder.php`, `database/seeders/DatabaseSeeder.php`, `tests/Feature/Seeders/DatabaseSeederTest.php`.
+  - **Шаги:** 1) идемпотентный `PlatformPlanSeeder`; 2) идемпотентный `WorkoutsSeeder` (базовые упражнения и готовые планы); 3) подключение в `DatabaseSeeder`; 4) тест повторного запуска.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-07 Локализация `ru`/`tg` и middleware `Accept-Language`**
+  - **Цель:** подключить переводы сообщений API и ошибок на русский (`ru`) и таджикский (`tg`) с выбором локали по заголовку `Accept-Language`.
+  - **ТЗ:** Бизнес-ТЗ 10; Тех. ТЗ 7.2, 13.
+  - **Файлы:** `lang/ru/*.php`, `lang/tg/*.php`, `app/Shared/Presentation/Middleware/SetLocaleFromHeader.php`, `bootstrap/app.php`, feature-тест локализации.
+  - **Шаги:** 1) middleware чтения `Accept-Language` (`ru`/`tg`, fallback `ru`); 2) файлы переводов `lang/ru/` и `lang/tg/`; 3) регистрация в API; 4) feature-тесты переключения локали.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-08 Rate limiting для аутентификации и OTP**
+  - **Цель:** защитить эндпоинты входа, регистрации и отправки/проверки OTP от перебора и флуда SMS.
+  - **ТЗ:** Тех. ТЗ 7.4, 8.
+  - **Файлы:** `app/Providers/AppServiceProvider.php`, `app/Modules/Auth/Presentation/routes.php`, `app/Modules/Identity/Presentation/routes.php`, feature-тесты `429`.
+  - **Шаги:** 1) определить `RateLimiter` (`auth-login`, `auth-otp`, `auth-register`); 2) навесить `throttle` на `/auth/login`, `/auth/send-otp`, `/auth/verify-phone`, `/client/auth/register`; 3) проверить формат ответа `429` тестами.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-09a OpenAPI-спецификация `Identity` и `Auth`**
+  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты аутентификации, OTP и профиля клиента.
+  - **ТЗ:** Тех. ТЗ 2, 15.
+  - **Файлы:** `docs/api/identity-auth.yaml`, `README.md`.
+  - **Шаги:** 1) описать `/api/v1/auth/*`, `/api/v1/client/auth/register`, `/api/v1/client/profile`; 2) схемы и ошибки; 3) ссылка в `README.md`.
+  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+
+- [ ] **T6-09b OpenAPI-спецификация `Memberships`, `Clients`, `Billing`, `Platform`**
+  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты тарифов зала, клиентской базы, заявок/оплат и платформенного управления.
+  - **ТЗ:** Тех. ТЗ 2, 15.
+  - **Файлы:** `docs/api/business-core.yaml`, `docs/api/platform.yaml`, `README.md`.
+  - **Шаги:** 1) описать `Memberships`, `Clients`, `Billing` в `business-core.yaml`; 2) описать `Platform` в `platform.yaml`; 3) обновить `README.md`.
+  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+
+- [ ] **T6-09c OpenAPI-спецификация `Visits`, `Analytics`, `Notifications`**
+  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты чекинов, QR-экрана, аналитики и уведомлений.
+  - **ТЗ:** Тех. ТЗ 2, 15.
+  - **Файлы:** `docs/api/visits-analytics.yaml`, `README.md`.
+  - **Шаги:** 1) описать `Visits`, `Analytics`, `Notifications`; 2) обновить `README.md`.
+  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+
+- [ ] **T6-10 Наблюдаемость и эксплуатация: JSON-логирование и Docker worker/scheduler**
+  - **Цель:** добавить структурированное JSON-логирование с контекстом (`request_id`, `user_id`, `company_id`) и выделить сервисы очереди и планировщика в Docker Compose.
+  - **ТЗ:** Тех. ТЗ 12.
+  - **Файлы:** `app/Shared/Presentation/Middleware/RequestContextMiddleware.php`, `config/logging.php`, `bootstrap/app.php`, `docker-compose.yml`, `README.md`, feature-тест `X-Request-Id` и контекста логов.
+  - **Шаги:** 1) middleware добавления `request_id`/`user_id`/`company_id` в `Log::withContext()`; 2) JSON-форматтер в `config/logging.php`; 3) сервисы `worker` и `scheduler` в `docker-compose.yml`; 4) тесты.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
 
 ### E6-C — Функции приоритета `Could` (Вариант C, крупный блок)
 
