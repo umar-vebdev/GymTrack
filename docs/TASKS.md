@@ -196,12 +196,7 @@
 
 - [x] **T6-09b** OpenAPI-спецификации `Memberships`, `Clients`, `Sales`, `Billing`, `Platform` (`docs/api/business-core.yaml`, `docs/api/platform.yaml`, `README.md`; валидный YAML).
 
-- [ ] **T6-09c OpenAPI-спецификация `Visits`, `Analytics`, `Notifications`**
-  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты чекинов, QR-экрана, аналитики и уведомлений.
-  - **ТЗ:** Тех. ТЗ 2, 15.
-  - **Файлы:** `docs/api/visits-analytics.yaml`, `README.md`.
-  - **Шаги:** 1) описать `Visits`, `Analytics`, `Notifications`; 2) обновить `README.md`.
-  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+- [x] **T6-09c** OpenAPI-спецификация `Visits`, `Analytics`, `Notifications` (`docs/api/visits-analytics.yaml`, `README.md`; валидный YAML).
 
 - [ ] **T6-10 Наблюдаемость и эксплуатация: JSON-логирование и Docker worker/scheduler**
   - **Цель:** добавить структурированное JSON-логирование с контекстом (`request_id`, `user_id`, `company_id`) и выделить сервисы очереди и планировщика в Docker Compose.

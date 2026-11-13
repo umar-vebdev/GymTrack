@@ -1,0 +1,649 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — посещаемость (QR и ручные визиты), аналитика и уведомления
+  version: 1.0.0
+  description: |
+    Динамический HMAC QR-код зала (интервал 60 секунд), клиентский и ручной чекин,
+    отмена посещения, сводная аналитика и отчёт о выручке, регистрация device-токенов для push-уведомлений.
+paths:
+  /api/v1/business/gyms/{id}/qr:
+    get:
+      summary: Получение актуального динамического QR-токена для входа в зал
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Текущий динамический QR-токен зала (TTL 60 секунд)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GymQrPayload'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Зал не найден (`GYM_NOT_FOUND`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/business/visits:
+    get:
+      summary: Журнал посещений компании
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список посещений компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Visit'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/business/clients/{id}/visits:
+    get:
+      summary: История посещений выбранного клиента компании
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Список посещений клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Visit'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Клиент не найден (`CLIENT_NOT_FOUND`)
+    post:
+      summary: Ручная отметка посещения клиента сотрудником зала (`Idempotency-Key`)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gym_id]
+              properties:
+                gym_id:
+                  type: integer
+                  minimum: 1
+                visited_at:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  description: Момент посещения (приводится к UTC, дневная дата определяется в часовом поясе зала).
+                device:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+      responses:
+        '201':
+          description: Посещение зафиксировано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CheckInResult'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Зал или клиент не найден (`GYM_NOT_FOUND`)
+        '422':
+          description: Отказ в чекине (`DAILY_LIMIT_EXCEEDED`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `NO_ACTIVE_MEMBERSHIP`) или ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/business/visits/{id}/cancel:
+    post:
+      summary: Отмена посещения с обязательной причиной, возвратом списания и записью в аудит
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Посещение отменено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visit'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/visits/check-in:
+    post:
+      summary: Клиентский чекин по динамическому HMAC QR-токену зала (`throttle:30,1`, `Idempotency-Key`)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  maxLength: 255
+                device:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+      responses:
+        '201':
+          description: Чекин выполнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CheckInResult'
+        '422':
+          description: Ошибка QR или правил (`INVALID_QR_TOKEN`, `DAILY_LIMIT_EXCEEDED`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `NO_ACTIVE_MEMBERSHIP`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Превышен лимит частоты запросов (30/мин)
+
+  /api/v1/client/visits:
+    get:
+      summary: История посещений авторизованного клиента по всем залам
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: company_id
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [completed, cancelled]
+      responses:
+        '200':
+          description: История визитов клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClientVisitItem'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /api/v1/business/analytics/revenue:
+    get:
+      summary: Отчёт по выручке за период (только владелец компании)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PeriodFrom'
+        - $ref: '#/components/parameters/PeriodTo'
+      responses:
+        '200':
+          description: Выручка за период с разбивкой по категориям и способам оплаты
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RevenueReport'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/analytics/overview:
+    get:
+      summary: Сводная аналитика зала — выручка, клиенты, посещаемость, популярные позиции (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PeriodFrom'
+        - $ref: '#/components/parameters/PeriodTo'
+        - name: inactive_days
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 14
+      responses:
+        '200':
+          description: Сводка аналитики компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/OverviewAnalytics'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/device-tokens:
+    post:
+      summary: Регистрация push-токена мобильного устройства клиента (FCM/APNs)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token:
+                  type: string
+                  maxLength: 512
+                platform:
+                  type: string
+                  enum: [android, ios]
+      responses:
+        '200':
+          description: Токен зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      registered:
+                        type: boolean
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    delete:
+      summary: Удаление push-токена устройства клиента (например, при выходе)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  maxLength: 512
+      responses:
+        '200':
+          description: Токен удалён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      unregistered:
+                        type: boolean
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+    PeriodFrom:
+      name: from
+      in: query
+      schema:
+        type: string
+        format: date
+    PeriodTo:
+      name: to
+      in: query
+      schema:
+        type: string
+        format: date
+  responses:
+    Forbidden:
+      description: Недостаточно прав или подписка компании истекла
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationFailed:
+      description: Ошибка валидации входных данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    GymQrPayload:
+      type: object
+      required: [gym_id, gym_name, slot, token, ttl_seconds, expires_at]
+      properties:
+        gym_id:
+          type: integer
+        gym_name:
+          type: string
+        slot:
+          type: integer
+        token:
+          type: string
+        ttl_seconds:
+          type: integer
+          example: 60
+        expires_at:
+          type: string
+          format: date-time
+    CheckInResult:
+      type: object
+      required: [id, company_id, gym_id, client_id, membership_id, method, status, visited_at, visit_date]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        gym_id:
+          type: integer
+        client_id:
+          type: integer
+        membership_id:
+          type: integer
+        method:
+          type: string
+          enum: [qr, manual]
+        status:
+          type: string
+          enum: [completed, cancelled]
+        visited_at:
+          type: string
+          format: date-time
+        visit_date:
+          type: string
+          format: date
+        remaining_visits:
+          type: integer
+          nullable: true
+    Visit:
+      type: object
+      required: [id, company_id, gym_id, client_id, membership_id, method, status, visited_at, visit_date]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        gym_id:
+          type: integer
+        client_id:
+          type: integer
+        membership_id:
+          type: integer
+        method:
+          type: string
+          enum: [qr, manual]
+        status:
+          type: string
+          enum: [completed, cancelled]
+        visited_at:
+          type: string
+          format: date-time
+        visit_date:
+          type: string
+          format: date
+        registered_by_user_id:
+          type: integer
+          nullable: true
+        cancel_reason:
+          type: string
+          nullable: true
+        cancelled_by_user_id:
+          type: integer
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+    ClientVisitItem:
+      type: object
+      required: [id, company_id, gym_id, client_id, membership_id, method, status, visited_at]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        gym_id:
+          type: integer
+        client_id:
+          type: integer
+        membership_id:
+          type: integer
+        method:
+          type: string
+          enum: [qr, manual]
+        status:
+          type: string
+          enum: [completed, cancelled]
+        visited_at:
+          type: string
+          format: date-time
+        cancel_reason:
+          type: string
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+    PaginationMeta:
+      type: object
+      required: [page, per_page, total]
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    RevenueSummary:
+      type: object
+      required: [total_minor, memberships_minor, products_minor, by_payment_method, sales_count, currency]
+      properties:
+        total_minor:
+          type: integer
+        memberships_minor:
+          type: integer
+        products_minor:
+          type: integer
+        by_payment_method:
+          type: object
+          required: [cash, card_terminal, transfer]
+          properties:
+            cash:
+              type: integer
+            card_terminal:
+              type: integer
+            transfer:
+              type: integer
+        sales_count:
+          type: integer
+        currency:
+          type: string
+    RevenueReport:
+      allOf:
+        - type: object
+          required: [from, to]
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+        - $ref: '#/components/schemas/RevenueSummary'
+    ItemPopularity:
+      type: object
+      required: [item_id, name, sold_count, revenue_minor, currency]
+      properties:
+        item_id:
+          type: integer
+        name:
+          type: string
+        sold_count:
+          type: integer
+        revenue_minor:
+          type: integer
+        currency:
+          type: string
+    OverviewAnalytics:
+      type: object
+      required: [from, to, revenue, clients, visits, popular_memberships, popular_products]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        revenue:
+          $ref: '#/components/schemas/RevenueSummary'
+        clients:
+          type: object
+          required: [total_clients, new_clients, existing_clients]
+          properties:
+            total_clients:
+              type: integer
+            new_clients:
+              type: integer
+            existing_clients:
+              type: integer
+        visits:
+          type: object
+          required: [total_visits, qr_visits, manual_visits, by_day, inactive_days_threshold, inactive_clients_count]
+          properties:
+            total_visits:
+              type: integer
+            qr_visits:
+              type: integer
+            manual_visits:
+              type: integer
+            by_day:
+              type: object
+              additionalProperties:
+                type: integer
+            inactive_days_threshold:
+              type: integer
+            inactive_clients_count:
+              type: integer
+        popular_memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemPopularity'
+        popular_products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemPopularity'
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
