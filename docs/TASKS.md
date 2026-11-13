@@ -180,12 +180,7 @@
 
 - [x] **T6-04b** HTTP-эндпоинты филиалов (`Companies`): `GymsController` (`GET/POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`), `StoreGymRequest`, `UpdateGymRequest`, `GymResource`, OpenAPI `docs/api/companies.yaml`, feature-тесты `ManageGymsEndpointTest` (права `owner`/`admin`/`trainer`, изоляция компаний); `524 passed, 3492 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-05a Use Cases управления сотрудниками (`Companies` + `Identity`)**
-  - **Цель:** реализовать добавление сотрудника (по подтверждённому телефону), список, смену роли (`admin`/`trainer`) и удаление, с аудит-событиями.
-  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 3.5, 3.7, 8 (аудит изменения ролей).
-  - **Файлы:** `UserQueryInterface.php` (+ `UserSummary` в `Identity/Contracts`), `StaffMemberRepositoryInterface.php`, `EloquentStaffMemberRepository.php`, события `StaffMemberAdded`/`RoleChanged`/`Removed`, Use Cases (`ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`), тесты.
-  - **Шаги:** 1) добавить `findSummaryById` / `findByIds` в `UserQueryInterface`; 2) реализовать Use Cases с запретом дубликатов, запретом назначения/удаления последнего `owner`; 3) события наследуют `AuditableEvent`; 4) тесты.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-05a** Use Cases управления сотрудниками (`Companies` + `Identity`): `UserSummary` и `findSummaryById`/`findSummariesByIds` в `UserQueryInterface`, `StaffMember::withRole`, `StaffMemberNotFound`, расширение `StaffMemberRepositoryInterface`, аудит-события `StaffMemberAdded`/`StaffMemberRoleChanged`/`StaffMemberRemoved`, сценарии `ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`; 2 теста в `StaffUseCasesTest`; `526 passed, 3509 assertions`, `lint`/`analyse`/`deps` зелёные.
 
 - [ ] **T6-05b HTTP-эндпоинты сотрудников (`Companies`)**
   - **Цель:** открыть API `GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`.

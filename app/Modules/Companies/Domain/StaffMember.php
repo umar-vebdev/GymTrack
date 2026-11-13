@@ -32,4 +32,14 @@ final class StaffMember
     {
         return $this->role;
     }
+
+    public function withRole(Role $role): self
+    {
+        return new self(
+            id: $this->id,
+            userId: $this->userId,
+            companyId: $this->companyId,
+            role: $role,
+        );
+    }
 }

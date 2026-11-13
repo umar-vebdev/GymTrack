@@ -2,7 +2,7 @@
 
 **Обновлено:** 2026-11-13
 **Текущий этап:** Этап 6 (`E6-A` → `E6-B` → `E6-C`); план `E6-A` детализирован в `docs/TASKS.md`
-**Текущая задача:** `T6-05a` — Use Cases управления сотрудниками (`Companies` + `Identity`)
+**Текущая задача:** `T6-05b` — HTTP-эндпоинты управления сотрудниками (`Companies`)
 
 ## Что сделано в последней сессии
 
@@ -10,7 +10,8 @@
 - **`T6-02` (часовой пояс в `Visits`, `D-007`)**: локальная дата `visit_date` и окно времени `WithinAllowedTimeRule` переведены на часовой пояс зала с сохранением `visited_at` в UTC (`519 passed, 3446 assertions`).
 - **`T6-03` (подписка для тренера, `D-012`)**: `EnsureActiveCompanySubscription` учитывает `companyIdForTrainer`, добавлен тест в `ReadOnlyExpiredSubscriptionTest` (`520 passed, 3449 assertions`).
 - **`T6-04a` (Use Cases филиалов)**: `ListCompanyGyms`, `CreateGym`, `UpdateGym` и расширение `GymRepositoryInterface` (`522 passed, 3464 assertions`).
-- **`T6-04b` (HTTP-эндпоинты филиалов)**: `GymsController` (`GET/POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`), `docs/api/companies.yaml`, `ManageGymsEndpointTest` (`524 passed, 3492 assertions`, `lint`/`analyse`/`deps` зелёные).
+- **`T6-04b` (HTTP-эндпоинты филиалов)**: `GymsController` (`GET/POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`), `docs/api/companies.yaml`, `ManageGymsEndpointTest` (`524 passed, 3492 assertions`).
+- **`T6-05a` (Use Cases сотрудников)**: `UserSummary` в `Identity`, `ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`, аудит-события `StaffMemberAdded`/`RoleChanged`/`Removed`, `StaffUseCasesTest` (`526 passed, 3509 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 - Проведена сверка `HANDOFF.md`/`TASKS.md` с реальным состоянием репозитория: выявлены и исправлены 32 ошибки стиля Pint (`composer lint:fix`) в файлах `E5-C` (`T5-06a`…`T5-07b`), а также устаревший статус этапа в шапке `docs/TASKS.md`.
 - Полностью обновлён `README.md`: отражены все завершённые этапы 0–5, 14 модулей, структура API (`/business`, `/client`, `/public`, `/platform`), ссылки на 6 спецификаций `docs/api/*.yaml`, исправлен путь health-check (`/api/v1/health`) и актуализирована таблица расписания команд из `routes/console.php`.
@@ -18,8 +19,8 @@
 
 ## Точный следующий шаг
 
-1. Выполнить `T6-05a` — Use Cases управления сотрудниками (`ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`) с `AuditableEvent`.
-2. Далее: `T6-05b` (HTTP-эндпоинты сотрудников), затем переход к эпику `E6-B` (Вариант A).
+1. Выполнить `T6-05b` — HTTP-эндпоинты сотрудников (`GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`), дополнить `docs/api/companies.yaml` и `README.md`.
+2. После завершения `E6-A` — раскрыть и согласовать план эпика `E6-B` (Вариант A).
 
 ## Команды проверки
 
