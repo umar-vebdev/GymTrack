@@ -42,7 +42,8 @@ final class EnsureActiveCompanySubscription
             return $next($request);
         }
 
-        $companyId = $this->companies->companyIdForUser($user->id);
+        $companyId = $this->companies->companyIdForUser($user->id)
+            ?? $this->companies->companyIdForTrainer($user->id);
 
         if ($companyId !== null && $this->subscriptionAccess->isReadOnly($companyId)) {
             return response()->json([

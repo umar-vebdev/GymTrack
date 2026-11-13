@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Modules\Billing\Domain\BillingPeriod;
 use App\Modules\Billing\Domain\PlatformPlanRepositoryInterface;
 use App\Modules\Billing\Infrastructure\Persistence\SubscriptionModel;
+use App\Modules\Companies\Domain\Role;
+use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
 use App\Shared\Domain\Money;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -99,5 +101,38 @@ final class ReadOnlyExpiredSubscriptionTest extends TestCase
             ],
         ])->assertCreated()
             ->assertJsonPath('data.total_minor', 1000);
+    }
+
+    public function test_expired_trial_blocks_mutating_business_requests_for_trainer_role(): void
+    {
+        $owner = User::factory()->create();
+        Sanctum::actingAs($owner);
+
+        $reg = $this->postJson('/api/v1/business/companies', [
+            'company_name' => 'Titan Gym',
+            'gym_name' => 'Titan Central',
+        ])->assertCreated();
+
+        $companyId = (int) $reg->json('data.company_id');
+
+        $trainer = User::factory()->create();
+        /** @var StaffMemberRepositoryInterface $staff */
+        $staff = $this->app->make(StaffMemberRepositoryInterface::class);
+        $staff->create($trainer->id, $companyId, Role::TRAINER);
+
+        SubscriptionModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->update([
+                'starts_at' => new DateTimeImmutable('-16 days'),
+                'ends_at' => new DateTimeImmutable('-2 days'),
+            ]);
+
+        Sanctum::actingAs($trainer);
+
+        $this->postJson('/api/v1/business/products', [
+            'name' => 'Shaker',
+            'price_minor' => 2500,
+        ])->assertForbidden()
+            ->assertJsonPath('error.code', 'SUBSCRIPTION_EXPIRED');
     }
 }

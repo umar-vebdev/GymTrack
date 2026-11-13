@@ -174,12 +174,7 @@
 
 - [x] **T6-02** Локальный пояс зала в отметке посещений (`Visits`, закрытие `D-007`): `CheckInContext::gymTimezone` + `localNow()`, `WithinAllowedTimeRule` и `DailyLimitNotExceededRule` считают время и день в поясе зала, `EloquentVisitRepository::create` хранит `visited_at` в UTC и `visit_date` в поясе зала, `CheckInByQr`/`CheckInManually` передают `$gym->timezone`; +2 новых теста (`CheckInRulesTest`, `CheckInTimezoneTest`), также поправлен стиль 2 файлов `T6-01`; `519 passed, 3446 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-03 Режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, `D-012`)**
-  - **Цель:** распространить блокировку изменяющих запросов при истёкшей подписке компании и на роль тренера.
-  - **ТЗ:** Бизнес-ТЗ 4.1, 12.8; `D-012`.
-  - **Файлы:** `EnsureActiveCompanySubscription.php`, `ReadOnlyExpiredSubscriptionTest.php`.
-  - **Шаги:** 1) если `companyIdForUser` вернул `null`, проверять `companyIdForTrainer`; 2) добавить тесты для тренера при активной и истёкшей подписке.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-03** Режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, закрытие `D-012`): при `companyIdForUser === null` проверяется `companyIdForTrainer`, добавлен тест в `ReadOnlyExpiredSubscriptionTest`; `520 passed, 3449 assertions`, `lint`/`analyse`/`deps` зелёные.
 
 - [ ] **T6-04a Use Cases управления филиалами (`Companies`)**
   - **Цель:** реализовать сценарии просмотра, создания и редактирования залов компании.
