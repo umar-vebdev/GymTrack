@@ -1,0 +1,1302 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — базовые операции зала (компания, клиенты, абонементы, касса и заявки)
+  version: 1.0.0
+  description: |
+    Основные бизнес-маршруты Этапов 1–2: регистрация компании, валюта, CRM клиентов,
+    типы и жизненный цикл абонементов, товары, касса (`PaymentMark`), возвраты и заявки на абонементы.
+paths:
+  /api/v1/business/companies:
+    post:
+      summary: Регистрация компании и первого зала (создатель становится owner, стартует триал 14 дней)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [company_name, gym_name]
+              properties:
+                company_name:
+                  type: string
+                  maxLength: 255
+                gym_name:
+                  type: string
+                  maxLength: 255
+                gym_address:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+      responses:
+        '201':
+          description: Компания и первый зал созданы
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [company_id, gym_id]
+                    properties:
+                      company_id:
+                        type: integer
+                      gym_id:
+                        type: integer
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/currencies:
+    get:
+      summary: Справочник поддерживаемых валют
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список валют
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Currency'
+
+  /api/v1/business/company/currency:
+    patch:
+      summary: Изменение валюты компании по умолчанию (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currency_id]
+              properties:
+                currency_id:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Валюта компании обновлена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [company_id, currency_id, currency_code]
+                    properties:
+                      company_id:
+                        type: integer
+                      currency_id:
+                        type: integer
+                      currency_code:
+                        type: string
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/clients:
+    get:
+      summary: Поиск клиентов компании (владелец и администратор)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Постраничный список клиентов компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClientSummary'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создание карточки клиента зала
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, phone]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                phone:
+                  type: string
+                  pattern: '^\+?[0-9]{9,15}$'
+      responses:
+        '201':
+          description: Клиент создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id]
+                    properties:
+                      id:
+                        type: integer
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Клиент с таким телефоном уже существует в компании (`CLIENT_PHONE_EXISTS`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/clients/merge:
+    post:
+      summary: Объединение дублей карточек клиентов (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_id, target_id]
+              properties:
+                source_id:
+                  type: integer
+                target_id:
+                  type: integer
+      responses:
+        '200':
+          description: Карточки объединены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      merged:
+                        type: boolean
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Клиент не найден (`CLIENT_NOT_FOUND`)
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/membership-types:
+    get:
+      summary: Список типов абонементов компании
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: only_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Типы абонементов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MembershipType'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создание типа абонемента (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMembershipTypePayload'
+      responses:
+        '201':
+          description: Тип абонемента создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id]
+                    properties:
+                      id:
+                        type: integer
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Ошибка валидации или доменных правил (`INVALID_MEMBERSHIP_RULES`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/business/membership-types/{id}/active:
+    patch:
+      summary: Активация/архивация типа абонемента (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_active]
+              properties:
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Статус обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      updated:
+                        type: boolean
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Тип абонемента не найден (`MEMBERSHIP_TYPE_NOT_FOUND`)
+
+  /api/v1/business/clients/{id}/memberships:
+    get:
+      summary: Абонементы выбранного клиента компании
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Список абонементов клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Membership'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Клиент не найден (`CLIENT_NOT_FOUND`)
+
+  /api/v1/business/memberships/expiring:
+    get:
+      summary: Истекающие в ближайшие 7 дней абонементы компании
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список истекающих абонементов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Membership'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/business/memberships/{id}/freeze:
+    post:
+      summary: Заморозка абонемента
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Абонемент заморожен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MembershipFreezeState'
+        '404':
+          description: Абонемент не найден (`MEMBERSHIP_NOT_FOUND`)
+        '409':
+          description: Заморозка запрещена (`MEMBERSHIP_FREEZE_NOT_ALLOWED`)
+
+  /api/v1/business/memberships/{id}/unfreeze:
+    post:
+      summary: Разморозка абонемента (сдвиг даты окончания на дни заморозки)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Абонемент разморожен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MembershipFreezeState'
+        '404':
+          description: Абонемент не найден (`MEMBERSHIP_NOT_FOUND`)
+        '409':
+          description: Разморозка невозможна (`MEMBERSHIP_FREEZE_NOT_ALLOWED`)
+
+  /api/v1/business/memberships/{id}/cancel:
+    post:
+      summary: Отмена абонемента с обязательной причиной и записью в аудит (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Абонемент отменён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      status:
+                        type: string
+                      cancellation_reason:
+                        type: string
+                        nullable: true
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Абонемент не найден (`MEMBERSHIP_NOT_FOUND`)
+        '409':
+          description: Абонемент уже отменён (`MEMBERSHIP_ALREADY_CANCELLED`)
+
+  /api/v1/client/memberships:
+    get:
+      summary: Личные абонементы авторизованного клиента по всем залам
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, past]
+        - name: company_id
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Список абонементов клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClientMembershipItem'
+
+  /api/v1/business/products:
+    get:
+      summary: Список товаров зала
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: only_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Список товаров
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Создание товара зала (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price_minor]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                price_minor:
+                  type: integer
+                  minimum: 0
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                  nullable: true
+                stock_quantity:
+                  type: integer
+                  minimum: 0
+                  nullable: true
+      responses:
+        '201':
+          description: Товар создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id]
+                    properties:
+                      id:
+                        type: integer
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/products/{id}:
+    patch:
+      summary: Обновление активности и остатка товара (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_active:
+                  type: boolean
+                  nullable: true
+                stock_quantity:
+                  type: integer
+                  minimum: 0
+                  nullable: true
+      responses:
+        '200':
+          description: Товар обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Товар не найден (`PRODUCT_NOT_FOUND`)
+
+  /api/v1/business/sales:
+    get:
+      summary: Список продаж (отметок оплаты) компании
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Продажи компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sale'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Проведение продажи товаров и/или абонементов через PaymentMark (с Idempotency-Key)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterSalePayload'
+      responses:
+        '201':
+          description: Продажа проведена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Sale'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Товар или тип абонемента не найден (`NOT_FOUND`)
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/business/sales/{id}/refund:
+    post:
+      summary: Возврат продажи с обязательной причиной и аудитом (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Возврат выполнен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Sale'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Продажа не найдена (`SALE_NOT_FOUND`)
+
+  /api/v1/business/clients/{id}/sales:
+    get:
+      summary: Покупки выбранного клиента в компании
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Список покупок клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sale'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Клиент не найден (`CLIENT_NOT_FOUND`)
+
+  /api/v1/business/membership-requests:
+    get:
+      summary: Заявки клиентов на покупку абонементов в компании
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, paid, cancelled, expired]
+      responses:
+        '200':
+          description: Список заявок компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MembershipRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/business/membership-requests/{id}/pay:
+    post:
+      summary: Подтверждение оплаты заявки сотрудником (`PaymentMark`) и выдача абонемента
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payment_method]
+              properties:
+                payment_method:
+                  type: string
+                  enum: [cash, card_terminal, transfer]
+      responses:
+        '200':
+          description: Оплата подтверждена, продажа и абонемент созданы
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [request_id, sale_id, membership_id, client_id, status, paid_at]
+                    properties:
+                      request_id:
+                        type: integer
+                      sale_id:
+                        type: integer
+                      membership_id:
+                        type: integer
+                      client_id:
+                        type: integer
+                      status:
+                        type: string
+                      paid_at:
+                        type: string
+                        format: date-time
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Заявка не найдена, истекла или уже обработана
+
+  /api/v1/business/membership-requests/{id}/cancel:
+    post:
+      summary: Отмена заявки на абонемент сотрудником зала
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+      responses:
+        '200':
+          description: Заявка отменена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [id, status]
+                    properties:
+                      id:
+                        type: integer
+                      status:
+                        type: string
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Невозможно отменить заявку в текущем статусе
+
+  /api/v1/client/membership-requests:
+    get:
+      summary: Список заявок на абонементы авторизованного клиента
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Заявки клиента
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MembershipRequest'
+    post:
+      summary: Создание клиентом заявки на покупку абонемента (срок действия 24 часа, `Idempotency-Key`)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gym_id, membership_type_id]
+              properties:
+                gym_id:
+                  type: integer
+                membership_type_id:
+                  type: integer
+      responses:
+        '201':
+          description: Заявка создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MembershipRequest'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+  /api/v1/client/purchases:
+    get:
+      summary: История покупок авторизованного клиента (постранично)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: company_id
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [completed, refunded]
+      responses:
+        '200':
+          description: История покупок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sale'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+  responses:
+    Forbidden:
+      description: Недостаточно прав или подписка компании истекла
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationFailed:
+      description: Ошибка валидации входных данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    Currency:
+      type: object
+      required: [id, code, name, symbol]
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+          example: TJS
+        name:
+          type: string
+        symbol:
+          type: string
+          nullable: true
+    ClientSummary:
+      type: object
+      required: [id, name, phone, linked]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        linked:
+          type: boolean
+    PaginationMeta:
+      type: object
+      required: [page, per_page, total]
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    CreateMembershipTypePayload:
+      type: object
+      required: [name, price_minor, kind, start_mode]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        price_minor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          nullable: true
+        kind:
+          type: string
+          enum: [unlimited_time, visits_pack, mixed]
+        start_mode:
+          type: string
+          enum: [on_purchase, on_first_visit]
+        visits_count:
+          type: integer
+          minimum: 1
+          nullable: true
+        duration_days:
+          type: integer
+          minimum: 1
+          nullable: true
+        validity_days:
+          type: integer
+          minimum: 1
+          nullable: true
+        daily_limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          nullable: true
+        time_from:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          nullable: true
+        time_to:
+          type: string
+          pattern: '^\d{2}:\d{2}$'
+          nullable: true
+        freeze_max_days:
+          type: integer
+          minimum: 0
+          nullable: true
+        freeze_max_times:
+          type: integer
+          minimum: 0
+          nullable: true
+    MembershipType:
+      type: object
+      required: [id, name, kind, start_mode, price_minor, currency, daily_limit, is_active]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        kind:
+          type: string
+        start_mode:
+          type: string
+        price_minor:
+          type: integer
+        currency:
+          type: string
+        visits_count:
+          type: integer
+          nullable: true
+        duration_days:
+          type: integer
+          nullable: true
+        validity_days:
+          type: integer
+          nullable: true
+        daily_limit:
+          type: integer
+        time_from_minute:
+          type: integer
+          nullable: true
+        time_to_minute:
+          type: integer
+          nullable: true
+        freeze_max_days:
+          type: integer
+        freeze_max_times:
+          type: integer
+        is_active:
+          type: boolean
+    Membership:
+      type: object
+      required: [id, client_id, type_id, kind, status]
+      properties:
+        id:
+          type: integer
+        client_id:
+          type: integer
+        type_id:
+          type: integer
+        kind:
+          type: string
+        status:
+          type: string
+        remaining_visits:
+          type: integer
+          nullable: true
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        freeze_days_used:
+          type: integer
+        freeze_times_used:
+          type: integer
+        frozen_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancellation_reason:
+          type: string
+          nullable: true
+    MembershipFreezeState:
+      type: object
+      required: [id, status, freeze_days_used, freeze_times_used]
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        freeze_days_used:
+          type: integer
+        freeze_times_used:
+          type: integer
+        frozen_at:
+          type: string
+          format: date-time
+          nullable: true
+    ClientMembershipItem:
+      type: object
+      required: [id, company_id, client_id, type_id, type_name, kind, status, is_usable]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        client_id:
+          type: integer
+        type_id:
+          type: integer
+        type_name:
+          type: string
+        kind:
+          type: string
+        status:
+          type: string
+        remaining_visits:
+          type: integer
+          nullable: true
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        frozen_at:
+          type: string
+          format: date-time
+          nullable: true
+        freeze_days_used:
+          type: integer
+        freeze_times_used:
+          type: integer
+        is_usable:
+          type: boolean
+    Product:
+      type: object
+      required: [id, name, price_minor, currency, is_active]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price_minor:
+          type: integer
+        currency:
+          type: string
+        stock_quantity:
+          type: integer
+          nullable: true
+        is_active:
+          type: boolean
+    RegisterSalePayload:
+      type: object
+      required: [payment_method]
+      properties:
+        client_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        payment_method:
+          type: string
+          enum: [cash, card_terminal, transfer]
+        products:
+          type: array
+          items:
+            type: object
+            required: [product_id, quantity]
+            properties:
+              product_id:
+                type: integer
+                minimum: 1
+              quantity:
+                type: integer
+                minimum: 1
+        membership_type_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+    Sale:
+      type: object
+      required: [id, company_id, status, payment_method, total_minor, currency, accepted_by_user_id, paid_at, items]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        client_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        payment_method:
+          type: string
+        total_minor:
+          type: integer
+        currency:
+          type: string
+        accepted_by_user_id:
+          type: integer
+        paid_at:
+          type: string
+          format: date-time
+        refund_reason:
+          type: string
+          nullable: true
+        refunded_by_user_id:
+          type: integer
+          nullable: true
+        refunded_at:
+          type: string
+          format: date-time
+          nullable: true
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              unit_price_minor:
+                type: integer
+              currency:
+                type: string
+              quantity:
+                type: integer
+              line_total_minor:
+                type: integer
+              product_id:
+                type: integer
+                nullable: true
+              membership_type_id:
+                type: integer
+                nullable: true
+              issued_membership_id:
+                type: integer
+                nullable: true
+    MembershipRequest:
+      type: object
+      required: [id, company_id, gym_id, user_id, membership_type_id, status, expires_at]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        gym_id:
+          type: integer
+        user_id:
+          type: integer
+        client_id:
+          type: integer
+          nullable: true
+        membership_type_id:
+          type: integer
+        status:
+          type: string
+          enum: [pending, paid, cancelled, expired]
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string

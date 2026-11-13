@@ -109,6 +109,8 @@ app/
 
 ### OpenAPI-спецификации (`docs/api/`)
 - [identity-auth.yaml](docs/api/identity-auth.yaml) — аутентификация, OTP-подтверждение, профиль клиента и health-check
+- [business-core.yaml](docs/api/business-core.yaml) — компания, валюты, клиенты, абонементы, товары, продажи и заявки
+- [platform.yaml](docs/api/platform.yaml) — тарифы платформы, подписки компаний и активация оплаты
 - [companies.yaml](docs/api/companies.yaml) — управление филиалами и сотрудниками компании
 - [gym-profiles.yaml](docs/api/gym-profiles.yaml) — редактирование и публикация витрин
 - [gym-photos.yaml](docs/api/gym-photos.yaml) — загрузка и удаление фотографий зала

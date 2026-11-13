@@ -194,12 +194,7 @@
 
 - [x] **T6-09a** OpenAPI-спецификация `Identity` и `Auth` (`docs/api/identity-auth.yaml`, ссылка в `README.md`; валидный YAML).
 
-- [ ] **T6-09b OpenAPI-спецификация `Memberships`, `Clients`, `Billing`, `Platform`**
-  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты тарифов зала, клиентской базы, заявок/оплат и платформенного управления.
-  - **ТЗ:** Тех. ТЗ 2, 15.
-  - **Файлы:** `docs/api/business-core.yaml`, `docs/api/platform.yaml`, `README.md`.
-  - **Шаги:** 1) описать `Memberships`, `Clients`, `Billing` в `business-core.yaml`; 2) описать `Platform` в `platform.yaml`; 3) обновить `README.md`.
-  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+- [x] **T6-09b** OpenAPI-спецификации `Memberships`, `Clients`, `Sales`, `Billing`, `Platform` (`docs/api/business-core.yaml`, `docs/api/platform.yaml`, `README.md`; валидный YAML).
 
 - [ ] **T6-09c OpenAPI-спецификация `Visits`, `Analytics`, `Notifications`**
   - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты чекинов, QR-экрана, аналитики и уведомлений.

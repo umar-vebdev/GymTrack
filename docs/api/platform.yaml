@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — биллинг подписок и администрирование платформы
+  version: 1.0.0
+  description: |
+    Тарифные планы платформы для фитнес-клубов, просмотр текущей подписки зала
+    и ручное подтверждение оплаты подписки администратором платформы.
+    См. также `gym-profiles.yaml` (модерация витрин) и `workouts.yaml` (библиотека упражнений и планов).
+paths:
+  /api/v1/business/billing/plans:
+    get:
+      summary: Список активных тарифных планов платформы для залов
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Активные тарифные планы платформы
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlatformPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/business/billing/subscription:
+    get:
+      summary: Текущая подписка (или 14-дневный триал) компании пользователя
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Состояние подписки компании и флаг read-only
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CompanySubscription'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/platform/companies/{id}/subscription/activate:
+    post:
+      summary: Активация платной подписки компании (только `is_platform_admin`)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор компании
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_id]
+              properties:
+                plan_id:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Подписка активирована на период выбранного тарифного плана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CompanySubscription'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Тарифный план не найден (`PLAN_NOT_FOUND`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    Unauthorized:
+      description: Необходима авторизация
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationFailed:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    PlatformPlan:
+      type: object
+      required: [id, name, period, price_minor, currency, max_gyms, max_staff, is_active]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        period:
+          type: string
+          enum: [month, year]
+        price_minor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          example: TJS
+        max_gyms:
+          type: integer
+          minimum: 1
+        max_staff:
+          type: integer
+          minimum: 1
+        is_active:
+          type: boolean
+    CompanySubscription:
+      type: object
+      required: [id, company_id, status, is_read_only, starts_at, ends_at]
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        plan_id:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [trial, active, expired]
+        is_read_only:
+          type: boolean
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
