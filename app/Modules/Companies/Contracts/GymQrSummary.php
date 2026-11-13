@@ -14,5 +14,6 @@ final class GymQrSummary
         public readonly int $companyId,
         public readonly string $name,
         public readonly string $qrSecret,
+        public readonly string $timezone = 'Asia/Dushanbe',
     ) {}
 }

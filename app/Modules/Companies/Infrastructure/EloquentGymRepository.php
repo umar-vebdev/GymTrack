@@ -18,16 +18,18 @@ final class EloquentGymRepository implements GymRepositoryInterface
             id: $model->id,
             companyId: $model->company_id,
             name: $model->name,
-            address: $model->address
+            address: $model->address,
+            timezone: $model->timezone ?: Gym::DEFAULT_TIMEZONE,
         ) : null;
     }
 
-    public function create(int $companyId, string $name, ?string $address): int
+    public function create(int $companyId, string $name, ?string $address, string $timezone = Gym::DEFAULT_TIMEZONE): int
     {
         $model = GymModel::create([
             'company_id' => $companyId,
             'name' => $name,
             'address' => $address,
+            'timezone' => $timezone,
         ]);
 
         return $model->id;
@@ -37,6 +39,12 @@ final class EloquentGymRepository implements GymRepositoryInterface
     {
         $model = GymModel::query()->withoutGlobalScopes()->lockForUpdate()->find($id);
 
-        return $model ? new Gym($model->id, $model->company_id, $model->name, $model->address) : null;
+        return $model ? new Gym(
+            id: $model->id,
+            companyId: $model->company_id,
+            name: $model->name,
+            address: $model->address,
+            timezone: $model->timezone ?: Gym::DEFAULT_TIMEZONE,
+        ) : null;
     }
 }

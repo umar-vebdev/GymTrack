@@ -18,4 +18,9 @@ interface GymLookupInterface
      * Возвращает ID компании-владельца зала или null, если зал не существует.
      */
     public function findCompanyId(int $gymId): ?int;
+
+    /**
+     * Возвращает IANA часовой пояс зала или null, если зал не существует.
+     */
+    public function findTimezone(int $gymId): ?string;
 }

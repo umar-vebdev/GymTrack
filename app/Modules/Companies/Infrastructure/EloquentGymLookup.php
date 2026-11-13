@@ -27,4 +27,14 @@ final class EloquentGymLookup implements GymLookupInterface
 
         return $companyId !== null ? (int) $companyId : null;
     }
+
+    public function findTimezone(int $gymId): ?string
+    {
+        $timezone = GymModel::query()
+            ->withoutGlobalScopes()
+            ->whereKey($gymId)
+            ->value('timezone');
+
+        return is_string($timezone) && $timezone !== '' ? $timezone : null;
+    }
 }

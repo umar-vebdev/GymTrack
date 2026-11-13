@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $company_id
  * @property string $name
  * @property string|null $address
+ * @property string $timezone
  * @property string|null $qr_secret
  */
 final class GymModel extends Model
@@ -29,7 +30,7 @@ final class GymModel extends Model
 
     protected $table = 'gyms';
 
-    protected $fillable = ['company_id', 'name', 'address', 'qr_secret'];
+    protected $fillable = ['company_id', 'name', 'address', 'timezone', 'qr_secret'];
 
     protected $casts = [
         'qr_secret' => 'encrypted',

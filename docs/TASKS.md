@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** Этапы 0–5 завершены (выбор вектора Этапа 6 на согласовании с разработчиком)
+**Текущий этап:** Этап 6 — Развитие и релизная подготовка (порядок: `E6-A` -> `E6-B` -> `E6-C`; план `E6-A` на подтверждении)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -160,3 +160,64 @@
   - [x] **T5-07a** Use Cases тренировочных сессий и прогресса: `WorkoutResourceNotFound::session()`, `InvalidWorkoutSession::inactiveExercise()`, `WorkoutSessionView`, `WorkoutSessionAssembler`, `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress` (+ `ExerciseProgressView`/`ExerciseProgressPoint`), тесты `WorkoutSessionUseCasesTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
   - [x] **T5-07b** HTTP-эндпоинты сессий и прогресса + OpenAPI: `ClientWorkoutSessionsController`, `ClientExerciseProgressController` (`/api/v1/client/workouts/sessions`, `POST /sessions/{session}/sets`, `POST /sessions/{session}/complete`, `GET /exercises/{exercise}/progress`), `StartWorkoutSessionRequest`, `ListWorkoutSessionsRequest`, `LogWorkoutSetRequest`, `CompleteWorkoutSessionRequest`, `WorkoutSessionResource`, `ExerciseProgressResource`, `docs/api/workouts.yaml`, `WorkoutSessionsEndpointsTest` (`511 passed, 3424 assertions`, lint/analyse/deps и YAML зелёные). Эпик E5-C и этап 5 полностью завершены.
   - [x] **T5-08** Пост-проверка: восстановлен стиль Pint у 32 файлов `E5-C` (лишние пустые строки в конце файлов и форматирование) и актуализирован `README.md` под состояние этапов 0–5 (14 модулей, все маршруты, OpenAPI-спеки, расписание команд). Все проверки (`lint`, `analyse`, `deps`, `test`: 511 passed, 3424 assertions) зелёные.
+
+---
+
+## Этап 6 — Развитие и релизная подготовка
+
+**Порядок эпиков (подтверждён разработчиком):** `E6-A` (Вариант B) → `E6-B` (Вариант A) → `E6-C` (Вариант C).
+**ТЗ:** Бизнес-ТЗ 4.1, 6.2, 6.3, 7, 9, 10, 11; Тех. ТЗ 2, 6.1, 7.2, 7.4, 8, 12, 13, 15; `D-007`, `D-012`.
+
+### E6-A — Филиалы, сотрудники и технические долги (Вариант B, на подтверждении)
+
+- [x] **T6-01** Часовой пояс зала (`gyms.timezone`, default `Asia/Dushanbe`): миграция `2026_11_13_000001_add_timezone_to_gyms_table`, валидация IANA-пояса в `Gym`, поля `timezone` в `GymModel`/`EloquentGymRepository`/`GymQrSummary`, метод `GymLookupInterface::findTimezone`; 6 новых тестов (`GymTest`, `GymTimezoneTest`); `517 passed, 3438 assertions`, `lint`/`analyse`/`deps` зелёные.
+
+- [ ] **T6-02 Локальный пояс зала в отметке посещений (`Visits`, `D-007`)**
+  - **Цель:** считать «день» (`visit_date`) и окно времени (`WithinAllowedTimeRule`) в поясе зала, сохраняя `visited_at` в UTC.
+  - **ТЗ:** Бизнес-ТЗ 4.3, 10; Тех. ТЗ 6.1, 13; `D-007`.
+  - **Файлы:** `CheckInByQr.php`, `CheckInManually.php`, `CheckInContext.php`, `WithinAllowedTimeRule.php`, `DailyLimitNotExceededRule.php`, тесты `CheckInRulesTest.php`, `CheckInByQrEndpointTest.php`, `ManualCheckInTest.php`.
+  - **Шаги:** 1) передавать `gymTimezone` в `CheckInContext`; 2) вычислять локальную дату и минуту дня через `DateTimeZone($gymTimezone)`; 3) проверить переход суток (`23:55` Asia/Dushanbe vs `18:55` UTC) и окно времени в тестах.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-03 Режим «только чтение» для тренера (`EnsureActiveCompanySubscription`, `D-012`)**
+  - **Цель:** распространить блокировку изменяющих запросов при истёкшей подписке компании и на роль тренера.
+  - **ТЗ:** Бизнес-ТЗ 4.1, 12.8; `D-012`.
+  - **Файлы:** `EnsureActiveCompanySubscription.php`, `ReadOnlyExpiredSubscriptionTest.php`.
+  - **Шаги:** 1) если `companyIdForUser` вернул `null`, проверять `companyIdForTrainer`; 2) добавить тесты для тренера при активной и истёкшей подписке.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-04a Use Cases управления филиалами (`Companies`)**
+  - **Цель:** реализовать сценарии просмотра, создания и редактирования залов компании.
+  - **ТЗ:** Бизнес-ТЗ 3, 4.1, 11 (`несколько филиалов`).
+  - **Файлы:** `GymRepositoryInterface.php`, `EloquentGymRepository.php`, `ListCompanyGyms.php`, `CreateGym.php`, `UpdateGym.php`, тесты.
+  - **Шаги:** 1) расширить `GymRepositoryInterface` (`listByCompany`, `create` с `timezone`, `save`); 2) реализовать `ListCompanyGyms`, `CreateGym`, `UpdateGym` с валидацией IANA `timezone`; 3) написать тесты.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-04b HTTP-эндпоинты филиалов (`Companies`)**
+  - **Цель:** открыть API `GET /api/v1/business/gyms`, `POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`.
+  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 7.1, 8, 15.
+  - **Файлы:** контроллеры, `FormRequest`, `GymResource`, `CompanyPolicy`, `Companies/Presentation/routes.php`, `docs/api/companies.yaml`, feature-тесты.
+  - **Шаги:** 1) просмотр доступен `owner`/`admin`, создание и редактирование — только `owner`; 2) изоляция по `company_id` (чужой зал → 404); 3) OpenAPI + feature-тесты.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-05a Use Cases управления сотрудниками (`Companies` + `Identity`)**
+  - **Цель:** реализовать добавление сотрудника (по подтверждённому телефону), список, смену роли (`admin`/`trainer`) и удаление, с аудит-событиями.
+  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 3.5, 3.7, 8 (аудит изменения ролей).
+  - **Файлы:** `UserQueryInterface.php` (+ `UserSummary` в `Identity/Contracts`), `StaffMemberRepositoryInterface.php`, `EloquentStaffMemberRepository.php`, события `StaffMemberAdded`/`RoleChanged`/`Removed`, Use Cases (`ListStaffMembers`, `AddStaffMember`, `UpdateStaffMemberRole`, `RemoveStaffMember`), тесты.
+  - **Шаги:** 1) добавить `findSummaryById` / `findByIds` в `UserQueryInterface`; 2) реализовать Use Cases с запретом дубликатов, запретом назначения/удаления последнего `owner`; 3) события наследуют `AuditableEvent`; 4) тесты.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+- [ ] **T6-05b HTTP-эндпоинты сотрудников (`Companies`)**
+  - **Цель:** открыть API `GET/POST /api/v1/business/staff`, `PATCH/DELETE /api/v1/business/staff/{staff}`.
+  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 7.1, 8, 15.
+  - **Файлы:** контроллеры, `FormRequest`, `StaffMemberResource`, `Companies/Presentation/routes.php`, `docs/api/companies.yaml`, feature-тесты (права, изоляция, аудит).
+  - **Шаги:** 1) доступ только `owner` (`admin`/`trainer` → 403); 2) описать в `docs/api/companies.yaml`; 3) feature-тесты включая проверку записей в аудит-логе.
+  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+
+### E6-B — Релизная готовность и обязательные пробелы ТЗ (Вариант A, крупный блок)
+
+- Сидеры (`PlatformPlan`, базовый справочник упражнений и готовые планы `Workouts`), локализация `ru`/`tg` + `Accept-Language`, rate limiting на auth/OTP, OpenAPI для Этапов 1–2, структурированное JSON-логирование и прод-воркеры/планировщик Docker. Раскрывается перед стартом.
+
+### E6-C — Функции приоритета `Could` (Вариант C, крупный блок)
+
+- Отзывы и рейтинг залов, опциональная геопроверка при чекине, личный QR клиента, объявления зала, реальные SMS/Push адаптеры. Раскрывается перед стартом.

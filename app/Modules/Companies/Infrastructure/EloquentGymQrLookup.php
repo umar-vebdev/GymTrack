@@ -28,6 +28,7 @@ final class EloquentGymQrLookup implements GymQrLookupInterface
             companyId: $model->company_id,
             name: $model->name,
             qrSecret: $model->qr_secret,
+            timezone: $model->timezone ?: 'Asia/Dushanbe',
         );
     }
 }
