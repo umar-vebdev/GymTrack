@@ -54,6 +54,6 @@ final class RegisterUserTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonPath('error.code', 'VALIDATION_FAILED')
-            ->assertJsonPath('error.details.phone.0', 'The phone has already been taken.');
+            ->assertJsonPath('error.details.phone.0', 'Такое значение поля phone уже используется.');
     }
 }

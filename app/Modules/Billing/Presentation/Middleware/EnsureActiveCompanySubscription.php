@@ -49,7 +49,7 @@ final class EnsureActiveCompanySubscription
             return response()->json([
                 'error' => [
                     'code' => 'SUBSCRIPTION_EXPIRED',
-                    'message' => 'Срок действия подписки или пробного периода истёк. Кабинет зала доступен только в режиме чтения.',
+                    'message' => __('api.errors.subscription_expired'),
                 ],
             ], 403);
         }

@@ -1,0 +1,75 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'after' => 'Майдони :attribute бояд санаи баъд аз :date бошад.',
+    'after_or_equal' => 'Майдони :attribute бояд санаи на пештар аз :date бошад.',
+    'array' => 'Майдони :attribute бояд массив бошад.',
+    'before' => 'Майдони :attribute бояд санаи пеш аз :date бошад.',
+    'before_or_equal' => 'Майдони :attribute бояд санаи на баъдтар аз :date бошад.',
+    'between' => [
+        'array' => 'Майдони :attribute бояд аз :min то :max унсур дошта бошад.',
+        'file' => 'Ҳаҷми файли :attribute бояд аз :min то :max КБ бошад.',
+        'numeric' => 'Қимати :attribute бояд аз :min то :max бошад.',
+        'string' => 'Дарозии :attribute бояд аз :min то :max аломат бошад.',
+    ],
+    'boolean' => 'Майдони :attribute бояд қимати мантиқӣ бошад.',
+    'confirmed' => 'Тасдиқи майдони :attribute мувофиқ нест.',
+    'date' => 'Майдони :attribute бояд санаи дуруст бошад.',
+    'date_format' => 'Майдони :attribute ба формати :format мувофиқ нест.',
+    'distinct' => 'Майдони :attribute қимати такрорӣ дорад.',
+    'email' => 'Майдони :attribute бояд суроғаи дурусти почтаи электронӣ бошад.',
+    'exists' => 'Қимати интихобшуда барои :attribute нодуруст аст.',
+    'filled' => 'Майдони :attribute наметавонад холӣ бошад.',
+    'gt' => [
+        'array' => 'Майдони :attribute бояд бештар аз :value унсур дошта бошад.',
+        'numeric' => 'Майдони :attribute бояд аз :value зиёд бошад.',
+        'string' => 'Дарозии :attribute бояд аз :value аломат зиёд бошад.',
+    ],
+    'gte' => [
+        'array' => 'Майдони :attribute бояд на камтар аз :value унсур дошта бошад.',
+        'numeric' => 'Майдони :attribute бояд на камтар аз :value бошад.',
+        'string' => 'Дарозии :attribute бояд на камтар аз :value аломат бошад.',
+    ],
+    'image' => 'Майдони :attribute бояд тасвир бошад.',
+    'in' => 'Қимати интихобшуда барои :attribute номумкин аст.',
+    'integer' => 'Майдони :attribute бояд адади бутун бошад.',
+    'lt' => [
+        'array' => 'Майдони :attribute бояд камтар аз :value унсур дошта бошад.',
+        'numeric' => 'Майдони :attribute бояд аз :value камтар бошад.',
+        'string' => 'Дарозии :attribute бояд аз :value аломат камтар бошад.',
+    ],
+    'lte' => [
+        'array' => 'Майдони :attribute бояд на бештар аз :value унсур дошта бошад.',
+        'numeric' => 'Майдони :attribute бояд на бештар аз :value бошад.',
+        'string' => 'Дарозии :attribute бояд на бештар аз :value аломат бошад.',
+    ],
+    'max' => [
+        'array' => 'Майдони :attribute набояд бештар аз :max унсур дошта бошад.',
+        'file' => 'Ҳаҷми файли :attribute набояд аз :max КБ зиёд бошад.',
+        'numeric' => 'Майдони :attribute набояд аз :max зиёд бошад.',
+        'string' => 'Дарозии :attribute набояд аз :max аломат зиёд бошад.',
+    ],
+    'mimes' => 'Майдони :attribute бояд файли навъи :values бошад.',
+    'min' => [
+        'array' => 'Майдони :attribute бояд на камтар аз :min унсур дошта бошад.',
+        'file' => 'Ҳаҷми файли :attribute бояд на камтар аз :min КБ бошад.',
+        'numeric' => 'Майдони :attribute бояд на камтар аз :min бошад.',
+        'string' => 'Дарозии :attribute бояд на камтар аз :min аломат бошад.',
+    ],
+    'not_in' => 'Қимати интихобшуда барои :attribute номумкин аст.',
+    'numeric' => 'Майдони :attribute бояд адад бошад.',
+    'regex' => 'Формати майдони :attribute нодуруст аст.',
+    'required' => 'Майдони :attribute ҳатмист.',
+    'size' => [
+        'array' => 'Майдони :attribute бояд :size унсур дошта бошад.',
+        'file' => 'Ҳаҷми файли :attribute бояд :size КБ бошад.',
+        'numeric' => 'Майдони :attribute бояд баробари :size бошад.',
+        'string' => 'Дарозии :attribute бояд :size аломат бошад.',
+    ],
+    'string' => 'Майдони :attribute бояд сатр бошад.',
+    'timezone' => 'Майдони :attribute бояд минтақаи вақти дуруст бошад.',
+    'ulid' => 'Майдони :attribute бояд ULID-и дуруст бошад.',
+    'unique' => 'Ин қимат барои :attribute аллакай истифода мешавад.',
+];

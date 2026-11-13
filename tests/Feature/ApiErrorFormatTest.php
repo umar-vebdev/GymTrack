@@ -55,7 +55,7 @@ final class ApiErrorFormatTest extends TestCase
                     'code' => 'VALIDATION_FAILED',
                     'message' => 'Переданные данные не прошли проверку.',
                     'details' => [
-                        'name' => ['The name field is required.'],
+                        'name' => ['Поле name обязательно для заполнения.'],
                     ],
                 ],
             ]);

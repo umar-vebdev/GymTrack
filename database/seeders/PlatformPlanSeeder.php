@@ -88,4 +88,3 @@ final class PlatformPlanSeeder extends Seeder
         ];
     }
 }
-

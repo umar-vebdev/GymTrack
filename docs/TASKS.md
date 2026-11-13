@@ -188,12 +188,7 @@
 
 - [x] **T6-06** Идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`, `DatabaseSeeder`, `DatabaseSeederTest`, `README.md`; `529 passed, 3556 assertions`, `lint`/`analyse`/`deps` зелёные).
 
-- [ ] **T6-07 Локализация `ru`/`tg` и middleware `Accept-Language`**
-  - **Цель:** подключить переводы сообщений API и ошибок на русский (`ru`) и таджикский (`tg`) с выбором локали по заголовку `Accept-Language`.
-  - **ТЗ:** Бизнес-ТЗ 10; Тех. ТЗ 7.2, 13.
-  - **Файлы:** `lang/ru/*.php`, `lang/tg/*.php`, `app/Shared/Presentation/Middleware/SetLocaleFromHeader.php`, `bootstrap/app.php`, feature-тест локализации.
-  - **Шаги:** 1) middleware чтения `Accept-Language` (`ru`/`tg`, fallback `ru`); 2) файлы переводов `lang/ru/` и `lang/tg/`; 3) регистрация в API; 4) feature-тесты переключения локали.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-07** Локализация `ru`/`tg` и middleware `Accept-Language` (`SetLocaleFromHeader`, `lang/ru/{api,validation}.php`, `lang/tg/{api,validation}.php`, `bootstrap/app.php`, `EnsureActiveCompanySubscription`, `AcceptLanguageMiddlewareTest`; обновлены ожидания `ru` в `ApiErrorFormatTest` и `RegisterUserTest`; `531 passed, 3585 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 - [ ] **T6-08 Rate limiting для аутентификации и OTP**
   - **Цель:** защитить эндпоинты входа, регистрации и отправки/проверки OTP от перебора и флуда SMS.

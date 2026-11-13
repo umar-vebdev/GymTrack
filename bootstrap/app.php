@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Modules\Billing\Presentation\Middleware\EnsureActiveCompanySubscription;
+use App\Shared\Presentation\Middleware\SetLocaleFromHeader;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -10,7 +12,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(SetLocaleFromHeader::class);
         $middleware->append(EnsureActiveCompanySubscription::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -36,15 +41,23 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($e instanceof ValidationException) {
                     $code = 'VALIDATION_FAILED';
                     $status = 422;
-                    $message = 'Переданные данные не прошли проверку.';
+                    $message = __('api.errors.validation_failed');
                 } elseif ($e instanceof NotFoundHttpException || $e instanceof ModelNotFoundException) {
                     $code = 'NOT_FOUND';
                     $status = 404;
-                    $message = 'Запрашиваемый ресурс не найден.';
+                    $message = __('api.errors.not_found');
                 } elseif ($e instanceof AuthenticationException) {
                     $code = 'UNAUTHORIZED';
                     $status = 401;
-                    $message = 'Необходима авторизация.';
+                    $message = __('api.errors.unauthorized');
+                } elseif ($e instanceof AccessDeniedHttpException || $e instanceof AuthorizationException) {
+                    $code = 'FORBIDDEN';
+                    $status = 403;
+                    $message = __('api.errors.forbidden');
+                } elseif ($e instanceof TooManyRequestsHttpException) {
+                    $code = 'TOO_MANY_REQUESTS';
+                    $status = 429;
+                    $message = __('api.errors.too_many_requests');
                 } elseif ($e instanceof InvalidArgumentException || $e instanceof DomainException) {
                     $code = 'BAD_REQUEST';
                     $status = 400;
@@ -56,7 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 if ($status === 500 && !config('app.debug')) {
-                    $message = 'Внутренняя ошибка сервера.';
+                    $message = __('api.errors.internal');
                 }
 
                 $response = [

@@ -1,0 +1,75 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'after' => 'Поле :attribute должно содержать дату после :date.',
+    'after_or_equal' => 'Поле :attribute должно содержать дату не ранее :date.',
+    'array' => 'Поле :attribute должно быть массивом.',
+    'before' => 'Поле :attribute должно содержать дату до :date.',
+    'before_or_equal' => 'Поле :attribute должно содержать дату не позднее :date.',
+    'between' => [
+        'array' => 'Поле :attribute должно содержать от :min до :max элементов.',
+        'file' => 'Размер файла :attribute должен быть от :min до :max КБ.',
+        'numeric' => 'Поле :attribute должно быть от :min до :max.',
+        'string' => 'Длина поля :attribute должна быть от :min до :max символов.',
+    ],
+    'boolean' => 'Поле :attribute должно быть логическим значением.',
+    'confirmed' => 'Подтверждение поля :attribute не совпадает.',
+    'date' => 'Поле :attribute должно быть корректной датой.',
+    'date_format' => 'Поле :attribute не соответствует формату :format.',
+    'distinct' => 'Поле :attribute содержит повторяющееся значение.',
+    'email' => 'Поле :attribute должно быть корректным адресом электронной почты.',
+    'exists' => 'Выбранное значение для :attribute некорректно.',
+    'filled' => 'Поле :attribute не может быть пустым.',
+    'gt' => [
+        'array' => 'Поле :attribute должно содержать более :value элементов.',
+        'numeric' => 'Поле :attribute должно быть больше :value.',
+        'string' => 'Длина поля :attribute должна превышать :value символов.',
+    ],
+    'gte' => [
+        'array' => 'Поле :attribute должно содержать не менее :value элементов.',
+        'numeric' => 'Поле :attribute должно быть не меньше :value.',
+        'string' => 'Длина поля :attribute должна быть не менее :value символов.',
+    ],
+    'image' => 'Поле :attribute должно быть изображением.',
+    'in' => 'Выбранное значение для :attribute недопустимо.',
+    'integer' => 'Поле :attribute должно быть целым числом.',
+    'lt' => [
+        'array' => 'Поле :attribute должно содержать менее :value элементов.',
+        'numeric' => 'Поле :attribute должно быть меньше :value.',
+        'string' => 'Длина поля :attribute должна быть меньше :value символов.',
+    ],
+    'lte' => [
+        'array' => 'Поле :attribute должно содержать не более :value элементов.',
+        'numeric' => 'Поле :attribute должно быть не больше :value.',
+        'string' => 'Длина поля :attribute должна быть не более :value символов.',
+    ],
+    'max' => [
+        'array' => 'Поле :attribute не может содержать более :max элементов.',
+        'file' => 'Размер файла :attribute не может превышать :max КБ.',
+        'numeric' => 'Поле :attribute не может быть больше :max.',
+        'string' => 'Длина поля :attribute не может превышать :max символов.',
+    ],
+    'mimes' => 'Поле :attribute должно быть файлом типа: :values.',
+    'min' => [
+        'array' => 'Поле :attribute должно содержать не менее :min элементов.',
+        'file' => 'Размер файла :attribute должен быть не менее :min КБ.',
+        'numeric' => 'Поле :attribute должно быть не менее :min.',
+        'string' => 'Длина поля :attribute должна быть не менее :min символов.',
+    ],
+    'not_in' => 'Выбранное значение для :attribute недопустимо.',
+    'numeric' => 'Поле :attribute должно быть числом.',
+    'regex' => 'Формат поля :attribute некорректен.',
+    'required' => 'Поле :attribute обязательно для заполнения.',
+    'size' => [
+        'array' => 'Поле :attribute должно содержать :size элементов.',
+        'file' => 'Размер файла :attribute должен составлять :size КБ.',
+        'numeric' => 'Поле :attribute должно быть равно :size.',
+        'string' => 'Длина поля :attribute должна составлять :size символов.',
+    ],
+    'string' => 'Поле :attribute должно быть строкой.',
+    'timezone' => 'Поле :attribute должно быть допустимым часовым поясом.',
+    'ulid' => 'Поле :attribute должно быть корректным ULID.',
+    'unique' => 'Такое значение поля :attribute уже используется.',
+];
