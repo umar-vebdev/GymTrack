@@ -13,6 +13,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
@@ -83,7 +84,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     $response['error']['details'] = $e->errors();
                 }
 
-                return response()->json($response, $status);
+                return response()->json(
+                    $response,
+                    $status,
+                    $e instanceof HttpExceptionInterface ? $e->getHeaders() : [],
+                );
             }
 
             return null;

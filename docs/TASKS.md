@@ -190,12 +190,7 @@
 
 - [x] **T6-07** Локализация `ru`/`tg` и middleware `Accept-Language` (`SetLocaleFromHeader`, `lang/ru/{api,validation}.php`, `lang/tg/{api,validation}.php`, `bootstrap/app.php`, `EnsureActiveCompanySubscription`, `AcceptLanguageMiddlewareTest`; обновлены ожидания `ru` в `ApiErrorFormatTest` и `RegisterUserTest`; `531 passed, 3585 assertions`, `lint`/`analyse`/`deps` зелёные).
 
-- [ ] **T6-08 Rate limiting для аутентификации и OTP**
-  - **Цель:** защитить эндпоинты входа, регистрации и отправки/проверки OTP от перебора и флуда SMS.
-  - **ТЗ:** Тех. ТЗ 7.4, 8.
-  - **Файлы:** `app/Providers/AppServiceProvider.php`, `app/Modules/Auth/Presentation/routes.php`, `app/Modules/Identity/Presentation/routes.php`, feature-тесты `429`.
-  - **Шаги:** 1) определить `RateLimiter` (`auth-login`, `auth-otp`, `auth-register`); 2) навесить `throttle` на `/auth/login`, `/auth/send-otp`, `/auth/verify-phone`, `/client/auth/register`; 3) проверить формат ответа `429` тестами.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-08** Rate limiting для auth и OTP (`AppServiceProvider`, `auth-login`, `auth-otp-send`, `auth-otp-verify`, `auth-register`, `routes/api.php`, `Identity/routes.php`, заголовки `429` в `bootstrap/app.php`, `AuthRateLimitingTest`; `534 passed, 3623 assertions`, `lint`/`analyse`/`deps` зелёные).
 
 - [ ] **T6-09a OpenAPI-спецификация `Identity` и `Auth`**
   - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты аутентификации, OTP и профиля клиента.

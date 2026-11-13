@@ -8,7 +8,7 @@ use App\Modules\Identity\Presentation\RegisterClientController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api/v1/client')->group(function () {
-    Route::post('/auth/register', RegisterClientController::class);
+    Route::post('/auth/register', RegisterClientController::class)->middleware('throttle:auth-register');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', GetClientProfileController::class);
