@@ -108,6 +108,7 @@ app/
 - `GET/POST /workouts/exercises`, `PATCH /workouts/exercises/{exercise}`, `GET/POST /workouts/plans`, `GET/PATCH /workouts/plans/{plan}`.
 
 ### OpenAPI-спецификации (`docs/api/`)
+- [identity-auth.yaml](docs/api/identity-auth.yaml) — аутентификация, OTP-подтверждение, профиль клиента и health-check
 - [companies.yaml](docs/api/companies.yaml) — управление филиалами и сотрудниками компании
 - [gym-profiles.yaml](docs/api/gym-profiles.yaml) — редактирование и публикация витрин
 - [gym-photos.yaml](docs/api/gym-photos.yaml) — загрузка и удаление фотографий зала

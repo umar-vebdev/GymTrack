@@ -192,12 +192,7 @@
 
 - [x] **T6-08** Rate limiting для auth и OTP (`AppServiceProvider`, `auth-login`, `auth-otp-send`, `auth-otp-verify`, `auth-register`, `routes/api.php`, `Identity/routes.php`, заголовки `429` в `bootstrap/app.php`, `AuthRateLimitingTest`; `534 passed, 3623 assertions`, `lint`/`analyse`/`deps` зелёные).
 
-- [ ] **T6-09a OpenAPI-спецификация `Identity` и `Auth`**
-  - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты аутентификации, OTP и профиля клиента.
-  - **ТЗ:** Тех. ТЗ 2, 15.
-  - **Файлы:** `docs/api/identity-auth.yaml`, `README.md`.
-  - **Шаги:** 1) описать `/api/v1/auth/*`, `/api/v1/client/auth/register`, `/api/v1/client/profile`; 2) схемы и ошибки; 3) ссылка в `README.md`.
-  - **Готовность:** валидный YAML, маршруты совпадают с кодом.
+- [x] **T6-09a** OpenAPI-спецификация `Identity` и `Auth` (`docs/api/identity-auth.yaml`, ссылка в `README.md`; валидный YAML).
 
 - [ ] **T6-09b OpenAPI-спецификация `Memberships`, `Clients`, `Billing`, `Platform`**
   - **Цель:** задокументировать в OpenAPI 3.1 эндпоинты тарифов зала, клиентской базы, заявок/оплат и платформенного управления.
