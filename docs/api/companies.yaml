@@ -1,0 +1,123 @@
+openapi: 3.0.3
+info:
+  title: GymTrack — управление филиалами и сотрудниками компании
+  version: 1.0.0
+paths:
+  /api/v1/business/gyms:
+    get:
+      summary: Список филиалов (залов) компании (владелец и администратор)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список залов компании
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Gym'
+        '403':
+          description: Недостаточно прав (тренер или посторонний пользователь)
+    post:
+      summary: Создать новый филиал компании (только владелец)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GymPayload'
+      responses:
+        '201':
+          description: Филиал создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Gym'
+        '403':
+          description: Только владелец компании может создавать филиалы
+        '422':
+          description: Ошибка валидации
+  /api/v1/business/gyms/{gym}:
+    patch:
+      summary: Обновить данные филиала компании (только владелец)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: gym
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GymPayload'
+      responses:
+        '200':
+          description: Филиал обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Gym'
+        '403':
+          description: Только владелец компании может редактировать филиалы
+        '404':
+          description: Зал не найден или принадлежит другой компании
+        '422':
+          description: Ошибка валидации
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    GymPayload:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        address:
+          type: string
+          nullable: true
+          maxLength: 255
+        timezone:
+          type: string
+          example: Asia/Dushanbe
+    Gym:
+      type: object
+      required:
+        - id
+        - company_id
+        - name
+        - address
+        - timezone
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+          nullable: true
+        timezone:
+          type: string

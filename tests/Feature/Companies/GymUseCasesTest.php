@@ -84,4 +84,3 @@ final class GymUseCasesTest extends TestCase
             ->toThrow(InvalidArgumentException::class);
     }
 }
-

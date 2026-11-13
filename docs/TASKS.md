@@ -178,12 +178,7 @@
 
 - [x] **T6-04a** Use Cases управления филиалами (`Companies`): `Gym::withDetails`, `GymRepositoryInterface::listByCompany`/`save`, сценарии `ListCompanyGyms`, `CreateGym`, `UpdateGym` с изоляцией компаний (`GymNotFound`) и валидацией IANA `timezone`; 2 новых теста в `GymUseCasesTest`; `522 passed, 3464 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-04b HTTP-эндпоинты филиалов (`Companies`)**
-  - **Цель:** открыть API `GET /api/v1/business/gyms`, `POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`.
-  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 7.1, 8, 15.
-  - **Файлы:** контроллеры, `FormRequest`, `GymResource`, `CompanyPolicy`, `Companies/Presentation/routes.php`, `docs/api/companies.yaml`, feature-тесты.
-  - **Шаги:** 1) просмотр доступен `owner`/`admin`, создание и редактирование — только `owner`; 2) изоляция по `company_id` (чужой зал → 404); 3) OpenAPI + feature-тесты.
-  - **Готовность:** `lint`, `analyse`, `deps`, `test` зелёные.
+- [x] **T6-04b** HTTP-эндпоинты филиалов (`Companies`): `GymsController` (`GET/POST /api/v1/business/gyms`, `PATCH /api/v1/business/gyms/{gym}`), `StoreGymRequest`, `UpdateGymRequest`, `GymResource`, OpenAPI `docs/api/companies.yaml`, feature-тесты `ManageGymsEndpointTest` (права `owner`/`admin`/`trainer`, изоляция компаний); `524 passed, 3492 assertions`, `lint`/`analyse`/`deps` зелёные.
 
 - [ ] **T6-05a Use Cases управления сотрудниками (`Companies` + `Identity`)**
   - **Цель:** реализовать добавление сотрудника (по подтверждённому телефону), список, смену роли (`admin`/`trainer`) и удаление, с аудит-событиями.

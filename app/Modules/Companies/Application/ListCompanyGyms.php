@@ -24,4 +24,3 @@ final class ListCompanyGyms
         return $this->gyms->listByCompany($companyId);
     }
 }
-
