@@ -61,4 +61,3 @@ final class WorkoutSessionModel extends Model
             ->orderBy('id');
     }
 }
-

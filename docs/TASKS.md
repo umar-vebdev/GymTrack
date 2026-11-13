@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** 5 — Дневник тренировок (модуль `Workouts`; в работе эпик `E5-A`)
+**Текущий этап:** Этапы 0–5 завершены (выбор вектора Этапа 6 на согласовании с разработчиком)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -140,7 +140,7 @@
 
 ## Этап 5 — Дневник тренировок (объём: D-016)
 
-**ТЗ:** Бизнес-ТЗ 2, 9; Тех. ТЗ 3.2, 3.3, 6.1, 7.1, 14. Эпики `E5-B` и `E5-C` хранятся крупными блоками и раскрываются перед стартом (4.3 `AGENTS.md`).
+**ТЗ:** Бизнес-ТЗ 2, 9; Тех. ТЗ 3.2, 3.3, 6.1, 7.1, 14. Все эпики (`E5-A`, `E5-B`, `E5-C`) завершены.
 
 - [x] **E5-A Справочник упражнений и библиотека готовых планов платформы** (план подтверждён 2026-11-12, D-016)
   - [x] **T5-01** Каркас модуля `Workouts` (`WorkoutsServiceProvider` зарегистрирован в `bootstrap/providers.php`), миграция `workouts_exercises` (`public_id` ULID, `user_id` nullable с `cascadeOnDelete` на `users`), `MuscleGroup` enum, сущность `Exercise` с инвариантами, `InvalidExercise`, `ExerciseRepositoryInterface` + `EloquentExerciseRepository`, `ExerciseTest` и `ExerciseRepositoryTest` (4 новых теста, 36 проверок; также приведено форматирование Pint у 13 файлов `E4-E`; `lint`/`analyse`/`deps` и 11 связанных тестов зелёные).
@@ -159,3 +159,4 @@
   - [x] **T5-06b** Хранение и репозиторий сессий: миграции `workouts_sessions` и `workouts_sets`, модели `WorkoutSessionModel`, `WorkoutSetModel`, `EloquentWorkoutSessionRepository` (с блокировкой строки в `addSet()` и выборкой прогресса), привязка в `WorkoutsServiceProvider`, `WorkoutSessionRepositoryTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
   - [x] **T5-07a** Use Cases тренировочных сессий и прогресса: `WorkoutResourceNotFound::session()`, `InvalidWorkoutSession::inactiveExercise()`, `WorkoutSessionView`, `WorkoutSessionAssembler`, `StartWorkoutSession`, `LogWorkoutSet`, `CompleteWorkoutSession`, `ListWorkoutSessions`, `GetWorkoutSession`, `GetExerciseProgress` (+ `ExerciseProgressView`/`ExerciseProgressPoint`), тесты `WorkoutSessionUseCasesTest` (1 тест, 14 проверок; lint/analyse/deps зелёные).
   - [x] **T5-07b** HTTP-эндпоинты сессий и прогресса + OpenAPI: `ClientWorkoutSessionsController`, `ClientExerciseProgressController` (`/api/v1/client/workouts/sessions`, `POST /sessions/{session}/sets`, `POST /sessions/{session}/complete`, `GET /exercises/{exercise}/progress`), `StartWorkoutSessionRequest`, `ListWorkoutSessionsRequest`, `LogWorkoutSetRequest`, `CompleteWorkoutSessionRequest`, `WorkoutSessionResource`, `ExerciseProgressResource`, `docs/api/workouts.yaml`, `WorkoutSessionsEndpointsTest` (`511 passed, 3424 assertions`, lint/analyse/deps и YAML зелёные). Эпик E5-C и этап 5 полностью завершены.
+  - [x] **T5-08** Пост-проверка: восстановлен стиль Pint у 32 файлов `E5-C` (лишние пустые строки в конце файлов и форматирование) и актуализирован `README.md` под состояние этапов 0–5 (14 модулей, все маршруты, OpenAPI-спеки, расписание команд). Все проверки (`lint`, `analyse`, `deps`, `test`: 511 passed, 3424 assertions) зелёные.

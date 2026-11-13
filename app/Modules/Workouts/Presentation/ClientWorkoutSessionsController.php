@@ -141,4 +141,3 @@ final class ClientWorkoutSessionsController extends Controller
         ], 404);
     }
 }
-

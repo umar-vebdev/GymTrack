@@ -73,4 +73,3 @@ final class WorkoutSet
         return $this->weightGrams * $this->reps;
     }
 }
-

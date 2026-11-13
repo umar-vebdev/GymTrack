@@ -23,4 +23,3 @@ final readonly class ExerciseProgressView
         public array $entries,
     ) {}
 }
-

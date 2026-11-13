@@ -62,4 +62,3 @@ final class StartWorkoutSession
         throw WorkoutResourceNotFound::plan($planId);
     }
 }
-

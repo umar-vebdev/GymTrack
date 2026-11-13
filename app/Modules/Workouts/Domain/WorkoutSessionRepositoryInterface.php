@@ -42,4 +42,3 @@ interface WorkoutSessionRepositoryInterface
      */
     public function listExerciseProgress(int $userId, int $exerciseId): array;
 }
-

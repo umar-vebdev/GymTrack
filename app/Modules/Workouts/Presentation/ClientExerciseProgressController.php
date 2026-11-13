@@ -34,4 +34,3 @@ final class ClientExerciseProgressController extends Controller
         return response()->json(['data' => ExerciseProgressResource::toArray($view)]);
     }
 }
-

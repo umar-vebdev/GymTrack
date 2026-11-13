@@ -82,4 +82,3 @@ final class WorkoutSessionRepositoryTest extends TestCase
         $this->assertSame(90000, $progress[1]->sets[0]->weightGrams());
     }
 }
-

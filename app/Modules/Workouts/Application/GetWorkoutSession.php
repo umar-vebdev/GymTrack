@@ -28,4 +28,3 @@ final class GetWorkoutSession
         return $this->assembler->buildView($session);
     }
 }
-

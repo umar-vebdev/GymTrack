@@ -29,4 +29,3 @@ final readonly class ExerciseProgressPoint
         public array $sets,
     ) {}
 }
-

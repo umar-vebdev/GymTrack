@@ -25,4 +25,3 @@ final class ListWorkoutSessionsRequest extends FormRequest
         ];
     }
 }
-

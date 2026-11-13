@@ -161,4 +161,3 @@ final class WorkoutSessionsEndpointsTest extends TestCase
             ->assertJsonPath('data.entries.1.max_weight_grams', 100000);
     }
 }
-

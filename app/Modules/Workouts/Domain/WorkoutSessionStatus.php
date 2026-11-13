@@ -13,4 +13,3 @@ enum WorkoutSessionStatus: string
     case Completed = 'completed';
     case Cancelled = 'cancelled';
 }
-

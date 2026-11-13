@@ -93,4 +93,3 @@ final class WorkoutSessionTest extends TestCase
         $session->complete(new DateTimeImmutable('2026-11-12T10:06:00+00:00'));
     }
 }
-

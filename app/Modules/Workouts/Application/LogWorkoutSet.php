@@ -49,4 +49,3 @@ final class LogWorkoutSet
         return $this->assembler->buildView($updated);
     }
 }
-
