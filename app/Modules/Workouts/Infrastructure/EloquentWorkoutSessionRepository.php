@@ -24,8 +24,10 @@ final class EloquentWorkoutSessionRepository implements WorkoutSessionRepository
         ?int $planId,
         string $title,
         DateTimeImmutable $startedAt,
+        ?string $idempotencyKey = null,
     ): WorkoutSession {
         $utcStart = $this->toUtc($startedAt);
+        $cleanedKey = WorkoutSession::cleanIdempotencyKey($idempotencyKey);
 
         $validated = new WorkoutSession(
             id: 0,
@@ -37,17 +39,33 @@ final class EloquentWorkoutSessionRepository implements WorkoutSessionRepository
             startedAt: $utcStart,
         );
 
-        $model = WorkoutSessionModel::query()->create([
-            'user_id' => $validated->userId(),
-            'plan_id' => $validated->planId(),
-            'title' => $validated->title(),
-            'status' => $validated->status()->value,
-            'started_at' => CarbonImmutable::instance($validated->startedAt()),
-            'finished_at' => null,
-            'notes' => null,
-        ]);
+        /** @var WorkoutSession */
+        return DB::transaction(function () use ($userId, $cleanedKey, $validated): WorkoutSession {
+            if ($cleanedKey !== null) {
+                $existing = WorkoutSessionModel::query()
+                    ->with('sets')
+                    ->where('user_id', $userId)
+                    ->where('idempotency_key', $cleanedKey)
+                    ->first();
 
-        return $this->toDomain($model->refresh()->load('sets'));
+                if ($existing !== null) {
+                    return $this->toDomain($existing);
+                }
+            }
+
+            $model = WorkoutSessionModel::query()->create([
+                'user_id' => $validated->userId(),
+                'plan_id' => $validated->planId(),
+                'title' => $validated->title(),
+                'status' => $validated->status()->value,
+                'started_at' => CarbonImmutable::instance($validated->startedAt()),
+                'finished_at' => null,
+                'notes' => null,
+                'idempotency_key' => $cleanedKey,
+            ]);
+
+            return $this->toDomain($model->refresh()->load('sets'));
+        });
     }
 
     public function addSet(
@@ -57,11 +75,13 @@ final class EloquentWorkoutSessionRepository implements WorkoutSessionRepository
         int $weightGrams,
         int $reps,
         DateTimeImmutable $performedAt,
+        ?string $idempotencyKey = null,
     ): ?WorkoutSession {
         $utcPerformed = $this->toUtc($performedAt);
+        $cleanedKey = WorkoutSession::cleanIdempotencyKey($idempotencyKey);
 
         /** @var ?WorkoutSession */
-        return DB::transaction(function () use ($userId, $sessionId, $exerciseId, $weightGrams, $reps, $utcPerformed): ?WorkoutSession {
+        return DB::transaction(function () use ($userId, $sessionId, $exerciseId, $weightGrams, $reps, $utcPerformed, $cleanedKey): ?WorkoutSession {
             $model = WorkoutSessionModel::query()
                 ->where('user_id', $userId)
                 ->whereKey($sessionId)
@@ -73,6 +93,14 @@ final class EloquentWorkoutSessionRepository implements WorkoutSessionRepository
             }
 
             $model->load('sets');
+
+            if ($cleanedKey !== null && WorkoutSetModel::query()
+                ->where('session_id', $model->id)
+                ->where('idempotency_key', $cleanedKey)
+                ->exists()) {
+                return $this->toDomain($model);
+            }
+
             $session = $this->toDomain($model);
             $newSet = $session->logSet($exerciseId, $weightGrams, $reps, $utcPerformed);
 
@@ -83,6 +111,7 @@ final class EloquentWorkoutSessionRepository implements WorkoutSessionRepository
                 'weight_grams' => $newSet->weightGrams(),
                 'reps' => $newSet->reps(),
                 'performed_at' => CarbonImmutable::instance($newSet->performedAt()),
+                'idempotency_key' => $cleanedKey,
             ]);
 
             $model->load('sets');

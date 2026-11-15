@@ -7,6 +7,7 @@ namespace App\Modules\Workouts\Application;
 use App\Modules\Workouts\Domain\Exceptions\InvalidWorkoutSession;
 use App\Modules\Workouts\Domain\Exceptions\WorkoutResourceNotFound;
 use App\Modules\Workouts\Domain\ExerciseRepositoryInterface;
+use App\Modules\Workouts\Domain\WorkoutSession;
 use App\Modules\Workouts\Domain\WorkoutSessionRepositoryInterface;
 use App\Shared\Domain\Clock;
 
@@ -24,6 +25,7 @@ final class LogWorkoutSet
 
     public function execute(LogWorkoutSetCommand $command): WorkoutSessionView
     {
+        $idempotencyKey = WorkoutSession::cleanIdempotencyKey($command->idempotencyKey);
         $exercise = $this->exercises->findByIds([$command->exerciseId])[$command->exerciseId] ?? null;
 
         if ($exercise === null || (!$exercise->isPlatform() && !$exercise->isOwnedBy($command->userId))) {
@@ -40,6 +42,7 @@ final class LogWorkoutSet
             weightGrams: $command->weightGrams,
             reps: $command->reps,
             performedAt: $this->clock->now(),
+            idempotencyKey: $idempotencyKey,
         );
 
         if ($updated === null) {

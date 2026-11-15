@@ -67,6 +67,7 @@ final class ClientWorkoutSessionsController extends Controller
                 userId: $user->id,
                 planId: isset($data['plan_id']) ? (int) $data['plan_id'] : null,
                 title: $data['title'] ?? null,
+                idempotencyKey: $request->header('Idempotency-Key'),
             ));
         } catch (WorkoutResourceNotFound $e) {
             return $this->notFoundResponse($e);
@@ -104,6 +105,7 @@ final class ClientWorkoutSessionsController extends Controller
                 exerciseId: (int) $data['exercise_id'],
                 weightGrams: (int) $data['weight_grams'],
                 reps: (int) $data['reps'],
+                idempotencyKey: $request->header('Idempotency-Key'),
             ));
         } catch (WorkoutResourceNotFound $e) {
             return $this->notFoundResponse($e);

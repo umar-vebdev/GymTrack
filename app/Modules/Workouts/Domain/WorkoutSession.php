@@ -16,6 +16,8 @@ final class WorkoutSession
 
     public const NOTES_MAX = 1000;
 
+    public const IDEMPOTENCY_KEY_MAX = 128;
+
     private string $title;
 
     private ?string $notes;
@@ -76,6 +78,20 @@ final class WorkoutSession
         }
         if (mb_strlen($trimmed) > self::NOTES_MAX) {
             throw InvalidWorkoutSession::notesTooLong(self::NOTES_MAX);
+        }
+
+        return $trimmed;
+    }
+
+    public static function cleanIdempotencyKey(?string $key): ?string
+    {
+        $trimmed = $key !== null ? trim($key) : null;
+
+        if ($trimmed === null || $trimmed === '') {
+            return null;
+        }
+        if (mb_strlen($trimmed) > self::IDEMPOTENCY_KEY_MAX) {
+            throw InvalidWorkoutSession::idempotencyKeyTooLong(self::IDEMPOTENCY_KEY_MAX);
         }
 
         return $trimmed;

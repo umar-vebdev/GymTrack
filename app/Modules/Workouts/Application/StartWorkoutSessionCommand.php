@@ -10,5 +10,6 @@ final readonly class StartWorkoutSessionCommand
         public int $userId,
         public ?int $planId = null,
         public ?string $title = null,
+        public ?string $idempotencyKey = null,
     ) {}
 }

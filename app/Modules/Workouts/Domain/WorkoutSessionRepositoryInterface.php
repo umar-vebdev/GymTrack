@@ -13,6 +13,7 @@ interface WorkoutSessionRepositoryInterface
         ?int $planId,
         string $title,
         DateTimeImmutable $startedAt,
+        ?string $idempotencyKey = null,
     ): WorkoutSession;
 
     public function addSet(
@@ -22,6 +23,7 @@ interface WorkoutSessionRepositoryInterface
         int $weightGrams,
         int $reps,
         DateTimeImmutable $performedAt,
+        ?string $idempotencyKey = null,
     ): ?WorkoutSession;
 
     public function save(WorkoutSession $session): WorkoutSession;

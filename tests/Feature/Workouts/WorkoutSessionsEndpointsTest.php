@@ -160,4 +160,98 @@ final class WorkoutSessionsEndpointsTest extends TestCase
             ->assertJsonPath('data.entries.0.max_weight_grams', 90000)
             ->assertJsonPath('data.entries.1.max_weight_grams', 100000);
     }
+
+    public function test_idempotency_key_prevents_duplicate_sessions_and_sets(): void
+    {
+        $client1 = User::factory()->create();
+        $client2 = User::factory()->create();
+
+        $exercises = $this->app->make(ExerciseRepositoryInterface::class);
+        $bench = $exercises->create(null, 'Bench Press', MuscleGroup::CHEST);
+
+        Sanctum::actingAs($client1);
+
+        // Повторный старт сессии с тем же Idempotency-Key возвращает ту же сессию без дубля
+        $firstStart = $this->withHeaders(['Idempotency-Key' => '  session-key-1  '])
+            ->postJson('/api/v1/client/workouts/sessions', ['title' => 'Push Day']);
+
+        $firstStart->assertCreated();
+        $session1Id = (int) $firstStart->json('data.id');
+
+        $secondStart = $this->withHeaders(['Idempotency-Key' => 'session-key-1'])
+            ->postJson('/api/v1/client/workouts/sessions', ['title' => 'Push Day Retry']);
+
+        $secondStart->assertCreated()
+            ->assertJsonPath('data.id', $session1Id)
+            ->assertJsonPath('data.title', 'Push Day');
+
+        $this->assertDatabaseCount('workouts_sessions', 1);
+
+        // Пустой/пробельный Idempotency-Key игнорируется и не склеивает запросы
+        $secondBlankStart = $this->withHeaders(['Idempotency-Key' => '   '])
+            ->postJson('/api/v1/client/workouts/sessions', ['title' => 'Second Session'])
+            ->assertCreated();
+        $session2Id = (int) $secondBlankStart->json('data.id');
+        $this->assertNotSame($session1Id, $session2Id);
+        $this->assertDatabaseCount('workouts_sessions', 2);
+
+        // Повторный подход с тем же Idempotency-Key не создаёт дубль подхода
+        $firstSet = $this->withHeaders(['Idempotency-Key' => 'set-key-1'])
+            ->postJson("/api/v1/client/workouts/sessions/{$session1Id}/sets", [
+                'exercise_id' => $bench->id(),
+                'weight_grams' => 60000,
+                'reps' => 10,
+            ]);
+
+        $firstSet->assertCreated()->assertJsonCount(1, 'data.sets');
+
+        $retrySet = $this->withHeaders(['Idempotency-Key' => 'set-key-1'])
+            ->postJson("/api/v1/client/workouts/sessions/{$session1Id}/sets", [
+                'exercise_id' => $bench->id(),
+                'weight_grams' => 65000,
+                'reps' => 8,
+            ]);
+
+        $retrySet->assertCreated()
+            ->assertJsonCount(1, 'data.sets')
+            ->assertJsonPath('data.sets.0.weight_grams', 60000);
+
+        $this->assertDatabaseCount('workouts_sets', 1);
+
+        // Тот же Idempotency-Key в другой сессии создаёт свой подход
+        $this->withHeaders(['Idempotency-Key' => 'set-key-1'])
+            ->postJson("/api/v1/client/workouts/sessions/{$session2Id}/sets", [
+                'exercise_id' => $bench->id(),
+                'weight_grams' => 70000,
+                'reps' => 6,
+            ])
+            ->assertCreated()
+            ->assertJsonCount(1, 'data.sets');
+
+        $this->assertDatabaseCount('workouts_sets', 2);
+
+        // Тот же Idempotency-Key у другого клиента не пересекается
+        Sanctum::actingAs($client2);
+        $otherClientSession = $this->withHeaders(['Idempotency-Key' => 'session-key-1'])
+            ->postJson('/api/v1/client/workouts/sessions', ['title' => 'Client2 Push'])
+            ->assertCreated();
+        $this->assertNotSame($session1Id, (int) $otherClientSession->json('data.id'));
+
+        // Слишком длинный Idempotency-Key (> 128 символов) отклоняется с 400 BAD_REQUEST
+        Sanctum::actingAs($client1);
+        $tooLong = str_repeat('a', 129);
+        $this->withHeaders(['Idempotency-Key' => $tooLong])
+            ->postJson('/api/v1/client/workouts/sessions', ['title' => 'Too Long'])
+            ->assertStatus(400)
+            ->assertJsonPath('error.code', 'BAD_REQUEST');
+
+        $this->withHeaders(['Idempotency-Key' => $tooLong])
+            ->postJson("/api/v1/client/workouts/sessions/{$session1Id}/sets", [
+                'exercise_id' => $bench->id(),
+                'weight_grams' => 60000,
+                'reps' => 8,
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('error.code', 'BAD_REQUEST');
+    }
 }

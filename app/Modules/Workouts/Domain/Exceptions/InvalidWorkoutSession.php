@@ -70,4 +70,9 @@ final class InvalidWorkoutSession extends DomainException
     {
         return new self(sprintf('Упражнение #%d неактивно и не может использоваться в тренировке.', $exerciseId));
     }
+
+    public static function idempotencyKeyTooLong(int $maxLength): self
+    {
+        return new self("Ключ идемпотентности не может быть длиннее {$maxLength} символов.");
+    }
 }

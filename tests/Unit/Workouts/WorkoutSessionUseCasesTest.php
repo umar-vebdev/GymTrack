@@ -242,24 +242,49 @@ final class WorkoutSessionUseCasesTest extends TestCase
             /** @var array<int, WorkoutSession> */
             private array $byId = [];
 
+            /** @var array<string, WorkoutSession> */
+            private array $sessionsByKey = [];
+
+            /** @var array<string, true> */
+            private array $setsByKey = [];
+
             private int $nextId = 1;
 
-            public function start(int $userId, ?int $planId, string $title, DateTimeImmutable $startedAt): WorkoutSession
+            public function start(int $userId, ?int $planId, string $title, DateTimeImmutable $startedAt, ?string $idempotencyKey = null): WorkoutSession
             {
+                $cleanedKey = WorkoutSession::cleanIdempotencyKey($idempotencyKey);
+                if ($cleanedKey !== null && isset($this->sessionsByKey["{$userId}:{$cleanedKey}"])) {
+                    return $this->sessionsByKey["{$userId}:{$cleanedKey}"];
+                }
+
                 $id = $this->nextId++;
                 $s = new WorkoutSession($id, '01S'.str_pad((string) $id, 23, '0', STR_PAD_LEFT), $userId, $planId, $title, WorkoutSessionStatus::InProgress, $startedAt);
                 $this->byId[$id] = $s;
 
+                if ($cleanedKey !== null) {
+                    $this->sessionsByKey["{$userId}:{$cleanedKey}"] = $s;
+                }
+
                 return $s;
             }
 
-            public function addSet(int $userId, int $sessionId, int $exerciseId, int $weightGrams, int $reps, DateTimeImmutable $performedAt): ?WorkoutSession
+            public function addSet(int $userId, int $sessionId, int $exerciseId, int $weightGrams, int $reps, DateTimeImmutable $performedAt, ?string $idempotencyKey = null): ?WorkoutSession
             {
+                $cleanedKey = WorkoutSession::cleanIdempotencyKey($idempotencyKey);
                 $s = $this->findOwnedById($userId, $sessionId);
                 if ($s === null) {
                     return null;
                 }
+
+                if ($cleanedKey !== null && isset($this->setsByKey["{$sessionId}:{$cleanedKey}"])) {
+                    return $s;
+                }
+
                 $s->logSet($exerciseId, $weightGrams, $reps, $performedAt);
+
+                if ($cleanedKey !== null) {
+                    $this->setsByKey["{$sessionId}:{$cleanedKey}"] = true;
+                }
 
                 return $s;
             }

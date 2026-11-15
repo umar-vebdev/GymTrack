@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable $started_at
  * @property CarbonImmutable|null $finished_at
  * @property string|null $notes
+ * @property string|null $idempotency_key
  * @property-read Collection<int, WorkoutSetModel> $sets
  */
 final class WorkoutSessionModel extends Model
@@ -36,6 +37,7 @@ final class WorkoutSessionModel extends Model
         'started_at',
         'finished_at',
         'notes',
+        'idempotency_key',
     ];
 
     protected $casts = [

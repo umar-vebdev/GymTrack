@@ -244,14 +244,9 @@
 
 - [x] **T8-02** Поддержка публичных ULID (`public_id`) наряду с числовыми ID в клиентских заявках на абонемент и расписании зала (`Companies`, `Memberships`, `Sales`, `Schedule`): `GymLookupInterface::resolveId()`, `GymQrLookupInterface::findByIdOrPublicId()`, `MembershipTypeRepositoryInterface::findByPublicId()`, `MembershipIssuerInterface::resolveTypeId()`, `ClassSessionRepositoryInterface::resolveId()`, `CreateMembershipRequest*`, маршруты и контроллеры клиентского расписания/бронирования в `Schedule`, тесты в `ClientMembershipRequestsTest`, `ManageClassSessionsTest` и `ClientClassBookingsTest` (`199 passed, 1689 assertions` по таргетным сьютам, `lint`/`analyse`/`deps` зелёные).
 
-- [~] **T8-03** Поддержка `Idempotency-Key` в создании тренировочной сессии и логировании подходов (`Workouts`)
-  - **Цель:** исключить дублирование тренировок и подходов при сетевых сбоях и повторах из мобильного приложения.
-  - **Ссылки на ТЗ:** Mobile TZ 3.1, 3.5, 3.6, 5.6; Тех. ТЗ 7.1; D-021.
-  - **Файлы:** `app/Modules/Workouts/Infrastructure/Migrations/2026_11_15_000004_add_idempotency_key_to_workouts_tables.php`, `app/Modules/Workouts/Domain/{Exceptions/InvalidWorkoutSession,WorkoutSession,WorkoutSessionRepositoryInterface}.php`, `app/Modules/Workouts/Infrastructure/{Persistence/WorkoutSessionModel,Persistence/WorkoutSetModel,EloquentWorkoutSessionRepository}.php`, `app/Modules/Workouts/Application/{StartWorkoutSessionCommand,StartWorkoutSession,LogWorkoutSetCommand,LogWorkoutSet}.php`, `app/Modules/Workouts/Presentation/ClientWorkoutSessionsController.php`, `tests/Unit/Workouts/WorkoutSessionUseCasesTest.php`, `tests/Feature/Workouts/WorkoutSessionsEndpointsTest.php`.
-  - **Шаги:** (1) миграция `idempotency_key` + уникальные индексы в `workouts_sessions` и `workouts_sets`; (2) `cleanIdempotencyKey` и модели Eloquent; (3) идемпотентный lookup в `start()` и `addSet()`; (4) проброс заголовка в контроллере и команды; (5) unit- и feature-тесты.
-  - **Критерий готовности:** `docker compose exec -T app vendor/bin/pest tests/Feature/Workouts tests/Unit/Workouts`, `composer lint`, `composer analyse`, `composer deps` зелёные.
+- [x] **T8-03** Поддержка `Idempotency-Key` в создании тренировочной сессии и логировании подходов (`Workouts`): миграция `2026_11_15_000004_add_idempotency_key_to_workouts_tables` (колонка `idempotency_key` и уникальные индексы `(user_id, idempotency_key)` / `(session_id, idempotency_key)`), `WorkoutSession::cleanIdempotencyKey()` (макс. 128 символов, ошибка `400 BAD_REQUEST`), идемпотентный lookup в `EloquentWorkoutSessionRepository::start()`/`addSet()`, проброс заголовка в `ClientWorkoutSessionsController`, unit- и feature-тесты (`25 passed, 350 assertions`, `lint`/`analyse`/`deps` зелёные).
 
-- [ ] **T8-04** Актуализация OpenAPI (`docs/api/*.yaml`), `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`
+- [~] **T8-04** Актуализация OpenAPI (`docs/api/*.yaml`), `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`
   - **Цель:** синхронизировать документацию API, мобильное ТЗ и список маршрутов с изменениями `T8-01`–`T8-03`.
   - **Ссылки на ТЗ:** Mobile TZ 3.1, 3.2, 3.5, 3.6, 5.1, 5.3, 5.5, 5.6; D-021.
   - **Файлы:** `docs/api/{identity-auth,business-core,schedule,workouts}.yaml`, `docs/specs/GymTrack_Mobile_TZ.md`, `README.md`.

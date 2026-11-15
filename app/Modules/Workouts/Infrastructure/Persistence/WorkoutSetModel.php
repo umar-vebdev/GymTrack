@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $weight_grams
  * @property int $reps
  * @property CarbonImmutable $performed_at
+ * @property string|null $idempotency_key
  */
 final class WorkoutSetModel extends Model
 {
@@ -27,6 +28,7 @@ final class WorkoutSetModel extends Model
         'weight_grams',
         'reps',
         'performed_at',
+        'idempotency_key',
     ];
 
     protected $casts = [

@@ -12,5 +12,6 @@ final readonly class LogWorkoutSetCommand
         public int $exerciseId,
         public int $weightGrams,
         public int $reps,
+        public ?string $idempotencyKey = null,
     ) {}
 }

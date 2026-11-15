@@ -8,6 +8,7 @@ use App\Modules\Workouts\Domain\Exceptions\InvalidWorkoutSession;
 use App\Modules\Workouts\Domain\Exceptions\WorkoutResourceNotFound;
 use App\Modules\Workouts\Domain\WorkoutPlan;
 use App\Modules\Workouts\Domain\WorkoutPlanRepositoryInterface;
+use App\Modules\Workouts\Domain\WorkoutSession;
 use App\Modules\Workouts\Domain\WorkoutSessionRepositoryInterface;
 use App\Shared\Domain\Clock;
 
@@ -25,6 +26,7 @@ final class StartWorkoutSession
 
     public function execute(StartWorkoutSessionCommand $command): WorkoutSessionView
     {
+        $idempotencyKey = WorkoutSession::cleanIdempotencyKey($command->idempotencyKey);
         $title = $command->title;
 
         if ($command->planId !== null) {
@@ -42,6 +44,7 @@ final class StartWorkoutSession
             planId: $command->planId,
             title: $title,
             startedAt: $this->clock->now(),
+            idempotencyKey: $idempotencyKey,
         );
 
         return $this->assembler->buildView($session);
