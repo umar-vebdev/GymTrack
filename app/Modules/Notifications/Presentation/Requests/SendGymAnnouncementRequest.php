@@ -25,4 +25,3 @@ final class SendGymAnnouncementRequest extends FormRequest
         ];
     }
 }
-

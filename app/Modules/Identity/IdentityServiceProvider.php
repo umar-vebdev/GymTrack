@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity;
 
+use App\Modules\Identity\Contracts\EmailOtpGateway;
 use App\Modules\Identity\Contracts\SmsGateway;
 use App\Modules\Identity\Contracts\TokenGenerator;
 use App\Modules\Identity\Contracts\UserQueryInterface;
@@ -12,6 +13,7 @@ use App\Modules\Identity\Infrastructure\EloquentUserQuery;
 use App\Modules\Identity\Infrastructure\EloquentUserRepository;
 use App\Modules\Identity\Infrastructure\HttpSmsGateway;
 use App\Modules\Identity\Infrastructure\LogSmsGateway;
+use App\Modules\Identity\Infrastructure\MailEmailOtpGateway;
 use App\Modules\Identity\Infrastructure\SanctumTokenGenerator;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,6 +29,11 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->bind(
             UserQueryInterface::class,
             EloquentUserQuery::class
+        );
+
+        $this->app->bind(
+            EmailOtpGateway::class,
+            MailEmailOtpGateway::class
         );
 
         $this->app->bind(

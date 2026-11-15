@@ -16,12 +16,14 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property bool $is_platform_admin
+ * @property Carbon|null $email_verified_at
  * @property Carbon|null $birth_date
  * @property Carbon|null $personal_data_consented_at
  */
 #[Fillable([
     'name',
     'email',
+    'email_verified_at',
     'phone',
     'birth_date',
     'personal_data_consented_at',

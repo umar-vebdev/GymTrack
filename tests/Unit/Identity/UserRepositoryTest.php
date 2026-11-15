@@ -5,11 +5,20 @@ declare(strict_types=1);
 namespace Tests\Unit\Identity;
 
 use App\Models\User as EloquentUser;
+use App\Modules\Identity\Application\SendEmailVerificationOtp;
+use App\Modules\Identity\Application\VerifyEmail;
+use App\Modules\Identity\Contracts\EmailVerified;
+use App\Modules\Identity\Contracts\UserQueryInterface;
 use App\Modules\Identity\Domain\ClientRegistrationPolicy;
 use App\Modules\Identity\Domain\Exceptions\ClientRegistrationDenied;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
+use InvalidArgumentException;
 use Tests\TestCase;
 
 final class UserRepositoryTest extends TestCase
@@ -86,13 +95,17 @@ final class UserRepositoryTest extends TestCase
 
         $user = $this->repository->findById($id);
         $this->assertNotNull($user);
+        $this->assertFalse($user->isEmailVerified());
         $user->markPhoneAsVerified();
+        $user->markEmailAsVerified(new DateTimeImmutable('2026-11-15 12:00:00'));
 
         $this->repository->update($user);
 
         $updatedUser = $this->repository->findById($id);
         $this->assertNotNull($updatedUser);
         $this->assertTrue($updatedUser->isPhoneVerified());
+        $this->assertTrue($updatedUser->isEmailVerified());
+        $this->assertSame('2026-11-15 12:00:00', $updatedUser->emailVerifiedAt()?->format('Y-m-d H:i:s'));
 
         $updatedUser->anonymize('invalidated_hash');
         $this->repository->update($updatedUser);
@@ -104,8 +117,62 @@ final class UserRepositoryTest extends TestCase
         $this->assertNull($anonymized->email());
         $this->assertNull($anonymized->birthDate());
         $this->assertFalse($anonymized->isPhoneVerified());
+        $this->assertFalse($anonymized->isEmailVerified());
         // Дата согласия при этом сохраняется для юридической отчётности
         $this->assertNotNull($anonymized->personalDataConsentedAt());
+    }
+
+    public function test_it_sends_and_verifies_email_otp_and_queries_verified_user(): void
+    {
+        $userId = $this->repository->create(
+            phone: null,
+            email: 'Alice@Example.COM',
+            passwordHash: 'hashed',
+            isPhoneVerified: false,
+            name: 'Алиса',
+            birthDate: new DateTimeImmutable('1997-01-10'),
+            personalDataConsentedAt: new DateTimeImmutable('2026-11-15 10:00:00'),
+        );
+
+        /** @var UserQueryInterface $userQuery */
+        $userQuery = $this->app->make(UserQueryInterface::class);
+        $this->assertNull($userQuery->findVerifiedUserIdByEmail('alice@example.com'));
+
+        /** @var SendEmailVerificationOtp $sender */
+        $sender = $this->app->make(SendEmailVerificationOtp::class);
+        $sender->execute('  ALICE@example.com  ');
+
+        $cachedCode = Cache::get('otp:email:alice@example.com');
+        $this->assertIsString($cachedCode);
+        $this->assertSame(6, strlen($cachedCode));
+
+        $transport = Mail::mailer('array')->getSymfonyTransport();
+        $this->assertInstanceOf(ArrayTransport::class, $transport);
+        $messages = $transport->messages();
+        $this->assertCount(1, $messages);
+        $this->assertStringContainsString($cachedCode, $messages[0]->toString());
+
+        Event::fake([EmailVerified::class]);
+
+        /** @var VerifyEmail $verifier */
+        $verifier = $this->app->make(VerifyEmail::class);
+
+        try {
+            $verifier->execute('alice@example.com', '000000');
+            $this->fail('Ожидалось исключение при неверном OTP-коде.');
+        } catch (InvalidArgumentException) {
+            $this->addToAssertionCount(1);
+        }
+
+        $verifier->execute('ALICE@example.com', $cachedCode);
+
+        Event::assertDispatched(
+            EmailVerified::class,
+            static fn (EmailVerified $event): bool => $event->userId === $userId
+                && $event->email === 'alice@example.com',
+        );
+        $this->assertFalse(Cache::has('otp:email:alice@example.com'));
+        $this->assertSame($userId, $userQuery->findVerifiedUserIdByEmail('Alice@Example.com'));
     }
 
     public function test_client_registration_policy_enforces_18_plus_and_consent(): void

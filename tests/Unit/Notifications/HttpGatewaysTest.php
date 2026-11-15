@@ -140,4 +140,3 @@ final class HttpGatewaysTest extends TestCase
         }
     }
 }
-

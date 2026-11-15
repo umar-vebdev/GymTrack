@@ -24,4 +24,3 @@ final class ListPublicGymReviewsRequest extends FormRequest
         ];
     }
 }
-

@@ -17,6 +17,7 @@ final class User
         private ?string $name = null,
         private ?DateTimeImmutable $birthDate = null,
         private ?DateTimeImmutable $personalDataConsentedAt = null,
+        private ?DateTimeImmutable $emailVerifiedAt = null,
     ) {}
 
     public function id(): int
@@ -59,9 +60,24 @@ final class User
         return $this->personalDataConsentedAt;
     }
 
+    public function emailVerifiedAt(): ?DateTimeImmutable
+    {
+        return $this->emailVerifiedAt;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->emailVerifiedAt !== null;
+    }
+
     public function markPhoneAsVerified(): void
     {
         $this->isPhoneVerified = true;
+    }
+
+    public function markEmailAsVerified(DateTimeImmutable $at): void
+    {
+        $this->emailVerifiedAt = $at;
     }
 
     public function anonymize(string $invalidatedPasswordHash): void
@@ -71,6 +87,7 @@ final class User
         $this->email = null;
         $this->birthDate = null;
         $this->isPhoneVerified = false;
+        $this->emailVerifiedAt = null;
         $this->passwordHash = $invalidatedPasswordHash;
     }
 }

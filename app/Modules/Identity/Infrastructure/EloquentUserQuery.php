@@ -22,6 +22,13 @@ final class EloquentUserQuery implements UserQueryInterface
         return $user !== null && $user->isPhoneVerified() ? $user->id() : null;
     }
 
+    public function findVerifiedUserIdByEmail(string $email): ?int
+    {
+        $user = $this->users->findByEmail($email);
+
+        return $user !== null && $user->isEmailVerified() ? $user->id() : null;
+    }
+
     public function findSummaryById(int $userId): ?UserSummary
     {
         $user = $this->users->findById($userId);

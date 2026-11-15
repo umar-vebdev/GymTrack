@@ -31,4 +31,3 @@ final class EloquentClientGymVisitCheck implements ClientGymVisitCheckInterface
             ->exists();
     }
 }
-

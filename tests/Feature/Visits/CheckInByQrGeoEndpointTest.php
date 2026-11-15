@@ -158,4 +158,3 @@ final class CheckInByQrGeoEndpointTest extends TestCase
             ->assertJsonPath('data.gym_id', $this->gymId);
     }
 }
-

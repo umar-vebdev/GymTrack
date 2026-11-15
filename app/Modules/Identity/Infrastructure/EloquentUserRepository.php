@@ -27,7 +27,8 @@ final class EloquentUserRepository implements UserRepositoryInterface
 
     public function findByEmail(string $email): ?User
     {
-        $model = EloquentUser::where('email', $email)->first();
+        $normalized = mb_strtolower(trim($email));
+        $model = EloquentUser::whereRaw('LOWER(email) = ?', [$normalized])->first();
 
         return $model ? $this->mapToDomain($model) : null;
     }
@@ -40,11 +41,15 @@ final class EloquentUserRepository implements UserRepositoryInterface
         ?string $name = null,
         ?DateTimeImmutable $birthDate = null,
         ?DateTimeImmutable $personalDataConsentedAt = null,
+        ?DateTimeImmutable $emailVerifiedAt = null,
     ): int {
+        $normalizedEmail = $email !== null ? mb_strtolower(trim($email)) : null;
+
         $model = EloquentUser::create([
             'name' => $name,
             'phone' => $phone,
-            'email' => $email,
+            'email' => $normalizedEmail,
+            'email_verified_at' => $emailVerifiedAt?->format('Y-m-d H:i:s'),
             'password' => $passwordHash,
             'is_phone_verified' => $isPhoneVerified,
             'birth_date' => $birthDate?->format('Y-m-d'),
@@ -56,10 +61,14 @@ final class EloquentUserRepository implements UserRepositoryInterface
 
     public function update(User $user): void
     {
+        $email = $user->email();
+        $normalizedEmail = $email !== null ? mb_strtolower(trim($email)) : null;
+
         EloquentUser::where('id', $user->id())->update([
             'name' => $user->name(),
             'phone' => $user->phone(),
-            'email' => $user->email(),
+            'email' => $normalizedEmail,
+            'email_verified_at' => $user->emailVerifiedAt()?->format('Y-m-d H:i:s'),
             'password' => $user->passwordHash(),
             'is_phone_verified' => $user->isPhoneVerified(),
             'birth_date' => $user->birthDate()?->format('Y-m-d'),
@@ -80,6 +89,7 @@ final class EloquentUserRepository implements UserRepositoryInterface
                 ? new DateTimeImmutable($model->birth_date->format('Y-m-d'))
                 : null,
             personalDataConsentedAt: $model->personal_data_consented_at?->toDateTimeImmutable(),
+            emailVerifiedAt: $model->email_verified_at?->toDateTimeImmutable(),
         );
     }
 }

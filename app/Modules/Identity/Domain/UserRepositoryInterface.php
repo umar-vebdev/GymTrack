@@ -26,6 +26,7 @@ interface UserRepositoryInterface
         ?string $name = null,
         ?DateTimeImmutable $birthDate = null,
         ?DateTimeImmutable $personalDataConsentedAt = null,
+        ?DateTimeImmutable $emailVerifiedAt = null,
     ): int;
 
     public function update(User $user): void;

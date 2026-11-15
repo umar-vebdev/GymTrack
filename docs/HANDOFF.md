@@ -1,25 +1,22 @@
 # Handoff — GymTrack
 
 **Обновлено:** 2026-11-15
-**Текущий этап:** Этап 6 завершён (`E6-A`, `E6-B` и `E6-C` выполнены; открытых задач в `docs/TASKS.md` нет)
-**Текущая задача:** нет (все задачи `T6-11a`–`T6-15` эпика `E6-C` закрыты)
+**Текущий этап:** Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`)
+**Текущая задача:** `T7-02` — Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`)
 
-## Что сделано в последней сессии (`E6-C`)
+## Что сделано в последней сессии
 
-- **`D-019`:** зафиксирован план эпика `E6-C` (`Could`-функции).
-- **`T6-11a`–`T6-11b`:** опциональная геопроверка чекина (`geo_check_enabled`, `geo_check_radius_meters`, `WithinGymGeoFenceRule`, координаты в `POST /api/v1/client/visits/check-in`).
-- **`T6-12a`–`T6-12b`:** личный динамический QR клиента (`GET /api/v1/client/visits/qr`, `POST /api/v1/business/gyms/{id}/check-in-qr`).
-- **`T6-13a`–`T6-13b`:** отзывы и рейтинг залов (`ClientGymVisitCheckInterface`, `companies_gym_reviews`, `UpsertGymReview`, `ListPublicGymReviews`, `PUT /api/v1/client/gyms/{publicId}/review`, `GET /api/v1/public/gyms/{publicId}/reviews`, `rating_avg`/`reviews_count` в каталоге).
-- **`T6-14`:** массовая рассылка объявлений зала (`ClientLookupInterface::listRecipientsForCompany`, `NotificationType::GymAnnouncement`, `SendGymAnnouncement`, `POST /api/v1/business/notifications/announcements`).
-- **`T6-15`:** HTTP-адаптеры SMS и Push шлюзов (`HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, `SMS_DRIVER`/`PUSH_DRIVER=log|http` в `config/services.php` и `.env.example`, `IdentityServiceProvider`, `NotificationsServiceProvider`, обновление `README.md`).
+- Принято архитектурное решение **`D-020`**: полный перевод OTP-подтверждения, регистрации клиента, автосвязывания CRM-карточек и добавления сотрудников на `email` (без платного SMS OTP; уведомления залов в `Notifications` сохранены).
+- **`T7-01`** (готово): в `Identity` добавлены `emailVerifiedAt` и `markEmailAsVerified()` в доменную сущность `User` и `EloquentUserRepository`, нормализация/case-insensitive поиск по `email`, событие `EmailVerified`, контракт `EmailOtpGateway` и реализация `MailEmailOtpGateway` (на Laravel `Mail::raw`), `findVerifiedUserIdByEmail` в `UserQueryInterface`/`EloquentUserQuery`, use case'ы `SendEmailVerificationOtp` и `VerifyEmail`, тесты в `UserRepositoryTest`.
 
 ## Актуальное состояние проверок
 
 - `composer lint` (`pint --test`) — ✓
 - `composer analyse` (`phpstan`, level 8) — ✓ (0 errors)
 - `composer deps` (`deptrac`) — ✓ (0 violations)
-- `docker compose exec -T app composer test -- --compact --colors=never` — ✓ (`560 passed, 3864 assertions`)
+- `docker compose exec -T app php artisan test --filter=UserRepositoryTest` — ✓ (`6 passed, 39 assertions`)
 
 ## Точный следующий шаг
 
-1. Приступить к релизному развёртыванию или сформулировать следующий этап / продуктовые задачи при участии разработчика.
+1. Выполнить **`T7-02`**: перевести `RegisterClient*`, `LoginUser*`/`IssueToken`, `SendOtp*`, `VerifyEmail*`, `GetClientProfileController`, rate limiters в `AppServiceProvider` и маршруты `/api/v1/auth/verify-email` на Email; удалить устаревшие SMS OTP классы из `Identity` (кроме `PhoneVerified.php` до завершения `T7-03`) и обновить тесты.
+2. После этого выполнить `T7-03` (`Clients`) и `T7-04` (`Companies` + OpenAPI/README).

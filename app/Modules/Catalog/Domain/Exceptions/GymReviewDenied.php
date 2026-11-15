@@ -33,4 +33,3 @@ final class GymReviewDenied extends DomainException
         return $this->reasonCode;
     }
 }
-

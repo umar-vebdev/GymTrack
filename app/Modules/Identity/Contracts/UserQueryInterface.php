@@ -15,6 +15,11 @@ interface UserQueryInterface
     public function findVerifiedUserIdByPhone(string $phone): ?int;
 
     /**
+     * ID пользователя с таким ПОДТВЕРЖДЁННЫМ email или null.
+     */
+    public function findVerifiedUserIdByEmail(string $email): ?int;
+
+    /**
      * Краткая сводка пользователя по ID или null.
      */
     public function findSummaryById(int $userId): ?UserSummary;

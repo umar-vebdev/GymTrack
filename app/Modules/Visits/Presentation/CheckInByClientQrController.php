@@ -81,4 +81,3 @@ final class CheckInByClientQrController extends Controller
         ], 201);
     }
 }
-

@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** Этап 6 завершён (`E6-A`, `E6-B` и `E6-C` по решению `D-019` выполнены полностью)
+**Текущий этап:** Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -217,3 +217,28 @@
 - [x] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`): метод `listRecipientsForCompany` в `ClientLookupInterface`/`EloquentClientLookup`, `NotificationType::GymAnnouncement`, сценарий `SendGymAnnouncement`, `SendGymAnnouncementRequest`, `SendGymAnnouncementController` (`POST /api/v1/business/notifications/announcements`, доступ `owner`/`admin`), обновление `docs/api/visits-analytics.yaml`; `SendGymAnnouncementTest` + Notifications-набор (28 passed), `lint`/`analyse`/`deps` зелёные.
 
 - [x] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`): секции `sms` и `push` в `config/services.php` и `.env.example` (`SMS_DRIVER`/`PUSH_DRIVER=log|http`, по умолчанию `log`), реализации `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, динамическое переключение драйвера в `IdentityServiceProvider` и `NotificationsServiceProvider`, обновление `README.md`; `HttpGatewaysTest` (3 passed), полный прогон `composer test` (**560 passed, 3864 assertions**), `lint`/`analyse`/`deps` зелёные.
+
+---
+
+## Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`)
+
+**ТЗ / решения:** Бизнес-ТЗ 2, 4.1, 5.1, 12.9, 15.1; Тех. ТЗ 3.7, 4.4, 8, 9.3; `D-020`.
+
+### E7-A — Подтверждение учётной записи, вход и связывание CRM по Email
+
+- [x] **T7-01** Домен, шлюз `EmailOtpGateway` и сценарии подтверждения Email (`Identity`): `emailVerifiedAt`/`markEmailAsVerified`/`anonymize` в `User` и `EloquentUserRepository` (case-insensitive `findByEmail`), событие `EmailVerified`, шлюз `EmailOtpGateway` (`MailEmailOtpGateway`), `findVerifiedUserIdByEmail` в `UserQueryInterface`/`EloquentUserQuery`, `SendEmailVerificationOtp`, `VerifyEmail`, обновление `UserRepositoryTest` (6 passed, 39 assertions; также `lint:fix` поправил стиль хвостов из прошлых коммитов), `lint`/`analyse`/`deps` зелёные.
+
+- [~] **T7-02** Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`)
+  - **ТЗ:** Бизнес-ТЗ 5.1, 10; Тех. ТЗ 7.2, 8; `D-020`.
+  - **Файлы:** `ClientRegistrationDenied`, `RegisterClient`, `RegisterClientRequest`, `RegisterClientController`, `LoginUserRequest`, `IssueToken`, `LoginUserController`, `SendOtpRequest`, `SendOtpController`, `VerifyEmailRequest`, `VerifyEmailController`, `GetClientProfileController`, `routes/api.php`, `AppServiceProvider`, удаление устаревшего SMS OTP в `Identity`, `tests/Feature/Identity/*`, `tests/Unit/Notifications/HttpGatewaysTest.php`.
+  - **Готовность:** `PhoneVerificationTest|ClientProfileAndDeletionTest|AuthRateLimitingTest|RegisterUserTest|HttpGatewaysTest` и `lint`/`analyse`/`deps` зелёные.
+
+- [ ] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`)
+  - **ТЗ:** Бизнес-ТЗ 12.9; Тех. ТЗ 3.7, 9.3; `D-020`.
+  - **Файлы:** миграция `2026_11_15_000003_add_email_to_clients_table`, `ClientModel`, `Client`, `ClientRepositoryInterface`, `EloquentClientRepository`, `CreateClientRequest`, `CreateClient`, `CreateClientController`, `LinkUserToClients`, `ClientsServiceProvider`, `EloquentClientLookup`, `tests/Feature/Clients/ClientUserLinkingTest.php`, `tests/Feature/Identity/RegisterClientAndLinkingTest.php`.
+  - **Готовность:** `ClientUserLinkingTest|RegisterClientAndLinkingTest|Clients` и `lint`/`analyse`/`deps` зелёные.
+
+- [ ] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs)
+  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 14, 15; `D-020`.
+  - **Файлы:** `AddStaffMemberRequest`, `AddStaffMember`, `StaffController`, `UserQueryInterface`, `EloquentUserQuery`, `StaffUseCasesTest`, `ManageStaffEndpointTest`, `docs/api/{identity-auth,business-core,companies}.yaml`, `README.md`.
+  - **Готовность:** полный `composer test` и `lint`/`analyse`/`deps` + проверка YAML зелёные.

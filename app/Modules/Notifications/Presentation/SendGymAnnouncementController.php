@@ -58,4 +58,3 @@ final class SendGymAnnouncementController extends Controller
         ], 202);
     }
 }
-

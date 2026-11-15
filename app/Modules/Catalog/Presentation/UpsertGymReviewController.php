@@ -60,4 +60,3 @@ final class UpsertGymReviewController extends Controller
         ]);
     }
 }
-

@@ -52,4 +52,3 @@ final class WithinGymGeoFenceRule implements CheckInRuleInterface
         return 2.0 * self::EARTH_RADIUS_METERS * asin(min(1.0, sqrt($a)));
     }
 }
-
