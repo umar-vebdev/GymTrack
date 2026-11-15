@@ -212,12 +212,9 @@
 
 - [x] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`): контракт `ClientGymVisitCheckInterface`/`EloquentClientGymVisitCheck`, таблица `companies_gym_reviews`, `GymReview`, `GymReviewModel`, `PublicGymReviewDto`, `GymReviewCatalogContractInterface`/`EloquentGymReviewCatalog`, агрегация `ratingAvg`/`reviewsCount` в `PublicGymProfile`/`EloquentPublicGymQuery` через `leftJoinSub` (без дополнительных SQL-запросов); `GymReviewRepositoryTest` + `PublicGymQueryTest` (12 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`)
-  - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 7.1, 15.
-  - **Файлы:** `GymReviewDenied`, `UpsertGymReview`, `ListPublicGymReviews`, `UpsertGymReviewController`, `ListPublicGymReviewsController`, `UpsertGymReviewRequest`, `ListPublicGymReviewsRequest`, `PublicGymResource`, `Catalog/Presentation/routes.php`, `tests/Feature/Catalog/SearchGymsTest.php`, `docs/api/public-catalog.yaml`, `tests/Feature/Catalog/GymReviewsEndpointsTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewsEndpointsTest` и полный набор проверок зелёные.
+- [x] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`): `GymReviewDenied`, `UpsertGymReview`, `ListPublicGymReviews`, `UpsertGymReviewRequest`, `ListPublicGymReviewsRequest`, `PublicGymReviewResource`, контроллеры `PUT /api/v1/client/gyms/{publicId}/review` (`VISIT_REQUIRED_FOR_REVIEW` при отсутствии завершённого визита) и `GET /api/v1/public/gyms/{publicId}/reviews`, `rating_avg`/`reviews_count` в `PublicGymResource`, обновление `SearchGymsTest` и `docs/api/public-catalog.yaml`; `GymReviewsEndpointsTest` + `SearchGymsTest` + `ListPublicGymsTest` + `ShowPublicGymTest` + `PublicCatalogIdsTest` (24 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`)
+- [~] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`)
   - **ТЗ:** Бизнес-ТЗ 5.3; Тех. ТЗ 9.4, 15.
   - **Файлы:** `ClientLookupInterface`, `EloquentClientLookup`, `NotificationType`, `SendGymAnnouncement`, `SendGymAnnouncementController`, `SendGymAnnouncementRequest`, `Notifications/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Notifications/SendGymAnnouncementTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=SendGymAnnouncementTest` и полный набор проверок зелёные.

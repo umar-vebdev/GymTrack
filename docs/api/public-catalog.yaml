@@ -224,7 +224,139 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/v1/public/gyms/{publicId}/reviews:
+    get:
+      summary: Список публичных отзывов опубликованного зала с пагинацией
+      description: |
+        Доступно без авторизации. Возвращает отзывы только для одобренных и опубликованных
+        витрин залов (отсортированы от новых к старым).
+      parameters:
+        - in: path
+          name: publicId
+          required: true
+          description: Публичный идентификатор зала (ULID)
+          schema:
+            type: string
+            example: 01JCXYZ0000000000000000000
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Страница отзывов о зале
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicGymReview'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '404':
+          description: NOT_FOUND — зал не найден или скрыт из каталога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+        '422':
+          description: VALIDATION_FAILED — некорректные параметры пагинации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+  /api/v1/client/gyms/{publicId}/review:
+    put:
+      summary: Создать или обновить отзыв клиента о зале
+      description: |
+        Доступно авторизованному клиенту (`auth:sanctum`). Один пользователь может иметь
+        не более одного отзыва на конкретный зал; повторный запрос обновляет оценку и текст.
+        Оставить отзыв можно только при наличии хотя бы одного подтверждённого (`completed`)
+        посещения этого зала.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: publicId
+          required: true
+          description: Публичный идентификатор зала (ULID)
+          schema:
+            type: string
+            example: 01JCXYZ0000000000000000000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                comment:
+                  type: string
+                  nullable: true
+                  maxLength: 1000
+                  example: Отличный зал и вежливый персонал.
+      responses:
+        '200':
+          description: Отзыв сохранён или обновлён
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicGymReview'
+        '401':
+          description: UNAUTHORIZED — требуется авторизация клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
+        '403':
+          description: VISIT_REQUIRED_FOR_REVIEW — нет завершённого посещения этого зала
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleErrorResponse'
+        '404':
+          description: NOT_FOUND — зал не найден или скрыт из каталога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorResponse'
+        '422':
+          description: VALIDATION_FAILED — некорректная оценка или комментарий
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
   schemas:
     PublicGym:
       type: object
@@ -240,6 +372,8 @@ components:
         - working_hours
         - amenities
         - photos
+        - rating_avg
+        - reviews_count
       properties:
         id:
           type: string
@@ -279,6 +413,16 @@ components:
           items:
             type: string
             format: uri
+        rating_avg:
+          type: number
+          nullable: true
+          description: Средняя оценка зала (1–5), null если отзывов нет
+          example: 4.5
+        reviews_count:
+          type: integer
+          minimum: 0
+          description: Количество отзывов о зале
+          example: 2
     PublicGymCard:
       allOf:
         - $ref: '#/components/schemas/PublicGym'
@@ -458,3 +602,42 @@ components:
               example: NOT_FOUND
             message:
               type: string
+    SimpleErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VISIT_REQUIRED_FOR_REVIEW
+            message:
+              type: string
+    PublicGymReview:
+      type: object
+      required: [id, rating, comment, author_name, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          description: Публичный идентификатор отзыва (ULID)
+          example: 01JCXYZ4444444444444444444
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          nullable: true
+          example: Отличный зал и удобное расположение.
+        author_name:
+          type: string
+          example: Самир
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

@@ -305,7 +305,8 @@ final class SearchGymsTest extends TestCase
                 $isOwnModule = str_starts_with($importedClass, 'App\\Modules\\Catalog\\');
                 $isAllowedContract = str_starts_with($importedClass, 'App\\Modules\\Companies\\Contracts\\')
                     || str_starts_with($importedClass, 'App\\Modules\\Memberships\\Contracts\\')
-                    || str_starts_with($importedClass, 'App\\Modules\\Schedule\\Contracts\\');
+                    || str_starts_with($importedClass, 'App\\Modules\\Schedule\\Contracts\\')
+                    || str_starts_with($importedClass, 'App\\Modules\\Visits\\Contracts\\');
 
                 $this->assertTrue(
                     $isOwnModule || $isAllowedContract,

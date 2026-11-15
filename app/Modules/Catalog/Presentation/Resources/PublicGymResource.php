@@ -25,6 +25,8 @@ final class PublicGymResource
             'working_hours' => $profile->workingHours,
             'amenities' => $profile->amenities,
             'photos' => $profile->photos,
+            'rating_avg' => $profile->ratingAvg,
+            'reviews_count' => $profile->reviewsCount,
         ];
     }
 }
