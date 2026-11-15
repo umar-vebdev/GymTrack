@@ -214,6 +214,7 @@ docker compose exec -T app composer test -- --compact --colors=never
 
 - [Бизнес-требования (ТЗ v2)](docs/specs/GymTrack_TZ_v2.md)
 - [Техническое задание](docs/specs/GymTrack_Technical_TZ.md)
+- [ТЗ мобильного приложения (iOS / Android)](docs/specs/GymTrack_Mobile_TZ.md)
 - [Чек-лист задач](docs/TASKS.md)
 - [Журнал архитектурных решений](docs/DECISIONS.md)
 - [Текущее состояние (Handoff)](docs/HANDOFF.md)
