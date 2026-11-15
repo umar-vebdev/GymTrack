@@ -24,11 +24,16 @@ final class MergeClientsTest extends TestCase
         return $owner;
     }
 
-    private function add(User $staff, string $phone): int
+    private function add(User $staff, string $phone, ?string $email = null): int
     {
-        return (int) $this->actingAs($staff, 'sanctum')->postJson('/api/v1/business/clients', [
-            'name' => 'C'.$phone, 'phone' => $phone,
-        ])->assertStatus(201)->json('data.id');
+        $payload = ['name' => 'C'.$phone, 'phone' => $phone];
+        if ($email !== null) {
+            $payload['email'] = $email;
+        }
+
+        return (int) $this->actingAs($staff, 'sanctum')->postJson('/api/v1/business/clients', $payload)
+            ->assertStatus(201)
+            ->json('data.id');
     }
 
     public function test_owner_merges_duplicates(): void
@@ -48,8 +53,12 @@ final class MergeClientsTest extends TestCase
     public function test_account_of_source_moves_to_target(): void
     {
         $owner = $this->owner();
-        $account = User::factory()->create(['phone' => '+992900000001', 'is_phone_verified' => true]);
-        $source = $this->add($owner, '+992900000001');
+        $account = User::factory()->create([
+            'email' => 'source@example.test',
+            'email_verified_at' => now(),
+            'phone' => '+992900000001',
+        ]);
+        $source = $this->add($owner, '+992900000001', 'source@example.test');
         $target = $this->add($owner, '+992900000002');
 
         $this->actingAs($owner, 'sanctum')->postJson('/api/v1/business/clients/merge', [

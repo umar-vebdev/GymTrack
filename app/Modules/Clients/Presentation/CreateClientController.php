@@ -30,11 +30,15 @@ final class CreateClientController extends Controller
             return $this->error('FORBIDDEN', 'Доступ только для сотрудников зала.', 403);
         }
 
+        /** @var array{name: string, phone: string, email?: string|null} $validated */
+        $validated = $request->validated();
+
         try {
             $id = $this->createClient->execute(
                 companyId: $companyId,
-                name: $request->validated('name'),
-                phone: $request->validated('phone')
+                name: $validated['name'],
+                phone: $validated['phone'],
+                email: $validated['email'] ?? null,
             );
         } catch (ClientPhoneAlreadyExists $e) {
             return $this->error('CLIENT_PHONE_EXISTS', $e->getMessage(), 409);

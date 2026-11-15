@@ -11,7 +11,8 @@ final class Client
         private readonly int $companyId,
         private readonly ?int $userId,
         private readonly string $name,
-        private readonly string $phone
+        private readonly string $phone,
+        private readonly ?string $email = null,
     ) {}
 
     public function id(): int
@@ -37,5 +38,10 @@ final class Client
     public function phone(): string
     {
         return $this->phone;
+    }
+
+    public function email(): ?string
+    {
+        return $this->email;
     }
 }

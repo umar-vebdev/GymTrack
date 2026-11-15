@@ -230,12 +230,9 @@
 
 - [x] **T7-02** Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`): `emailAlreadyRegistered` в `ClientRegistrationDenied`, `RegisterClient` (обязательный `email`, опциональный `phone`, отправка OTP через `SendEmailVerificationOtp`), `RegisterClientRequest`/`Controller` (`is_email_verified: false`), вход в `IssueToken`/`LoginUser*` по `email` или `phone`, `SendOtp*`/`VerifyEmail*`/`POST /api/v1/auth/verify-email`, `GetClientProfileController`, rate limiters по email/phone в `AppServiceProvider`, удаление устаревшего SMS OTP из `Identity` (`PhoneVerified.php` сохраняется до `T7-03`), обновление тестов (`PhoneVerificationTest|ClientProfileAndDeletionTest|AuthRateLimitingTest|RegisterUserTest|LoginUserTest|HttpGatewaysTest`: 19 passed, 109 assertions), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`)
-  - **ТЗ:** Бизнес-ТЗ 12.9; Тех. ТЗ 3.7, 9.3; `D-020`.
-  - **Файлы:** миграция `2026_11_15_000003_add_email_to_clients_table`, `ClientModel`, `Client`, `ClientRepositoryInterface`, `EloquentClientRepository`, `CreateClientRequest`, `CreateClient`, `CreateClientController`, `LinkUserToClients`, `ClientsServiceProvider`, `EloquentClientLookup`, `tests/Feature/Clients/ClientUserLinkingTest.php`, `tests/Feature/Identity/RegisterClientAndLinkingTest.php`.
-  - **Готовность:** `ClientUserLinkingTest|RegisterClientAndLinkingTest|Clients` и `lint`/`analyse`/`deps` зелёные.
+- [x] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`): миграция `2026_11_15_000003_add_email_to_clients_table` (`email` nullable + индекс `(company_id, email)`), обновление `ClientModel`/`Client`/`ClientRepositoryInterface`/`EloquentClientRepository` (`linkUserByEmail` с case-insensitive сравнением, поиск по `email`), `CreateClientRequest`/`CreateClient`/`CreateClientController`/`SearchClientsController`, `LinkUserToClients` и `ClientsServiceProvider` на событие `EmailVerified`, обновление `EloquentClientLookup::findOrCreateForUser`, удаление `PhoneVerified.php`, обновление `ClientUserLinkingTest`/`RegisterClientAndLinkingTest`/`MergeClientsTest`/`CreateClientTest`/`SearchClientsTest` (32 passed, 163 assertions), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs)
+- [~] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs)
   - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 14, 15; `D-020`.
   - **Файлы:** `AddStaffMemberRequest`, `AddStaffMember`, `StaffController`, `UserQueryInterface`, `EloquentUserQuery`, `StaffUseCasesTest`, `ManageStaffEndpointTest`, `docs/api/{identity-auth,business-core,companies}.yaml`, `README.md`.
   - **Готовность:** полный `composer test` и `lint`/`analyse`/`deps` + проверка YAML зелёные.

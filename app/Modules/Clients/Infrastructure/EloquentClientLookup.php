@@ -46,8 +46,12 @@ final class EloquentClientLookup implements ClientLookupInterface
             );
         }
 
-        if (is_string($user->phone) && $user->phone !== '') {
-            $this->clients->linkUserByPhone($userId, $user->phone);
+        $email = is_string($user->email) && trim($user->email) !== ''
+            ? mb_strtolower(trim($user->email))
+            : null;
+
+        if ($email !== null && $user->email_verified_at !== null) {
+            $this->clients->linkUserByEmail($userId, $email);
             $linkedId = $this->clients->findIdByUser($userId, $companyId);
             if ($linkedId !== null) {
                 return $linkedId;
@@ -58,7 +62,8 @@ final class EloquentClientLookup implements ClientLookupInterface
             companyId: $companyId,
             name: is_string($user->name) && $user->name !== '' ? $user->name : 'Клиент',
             phone: is_string($user->phone) ? $user->phone : '',
-            userId: $userId
+            userId: $userId,
+            email: $email,
         );
     }
 

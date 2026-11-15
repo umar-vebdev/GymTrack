@@ -23,7 +23,7 @@ final class RegisterClientAndLinkingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_client_registers_verifies_phone_and_automatically_links_gym_cards_preserving_history(): void
+    public function test_client_registers_verifies_email_and_automatically_links_gym_cards_preserving_history(): void
     {
         $owner = User::factory()->create();
         $companyA = CompanyModel::create(['owner_id' => $owner->id, 'name' => 'Gym A']);
@@ -38,11 +38,12 @@ final class RegisterClientAndLinkingTest extends TestCase
         /** @var ClientRepositoryInterface $clients */
         $clients = $this->app->make(ClientRepositoryInterface::class);
 
+        $email = 'rustam@example.test';
         $phone = '+992900777888';
 
         // Карточки клиента созданы вручную в двух залах до регистрации человека в приложении
-        $cardAId = $clients->create($companyA->id, 'Рустам Каримов', $phone);
-        $cardBId = $clients->create($companyB->id, 'Рустам', $phone);
+        $cardAId = $clients->create($companyA->id, 'Рустам Каримов', $phone, null, $email);
+        $cardBId = $clients->create($companyB->id, 'Рустам', $phone, null, $email);
 
         // Зал A продал клиенту абонемент на кассе
         /** @var MembershipTypeRepositoryInterface $types */
@@ -61,8 +62,9 @@ final class RegisterClientAndLinkingTest extends TestCase
             'membership_type_ids' => [$typeId],
         ])->assertCreated();
 
-        // Человек регистрируется в мобильном приложении с тем же номером (критерий приёмки 12.9)
+        // Человек регистрируется в мобильном приложении с тем же email (критерий приёмки 12.9, D-020)
         $registerRes = $this->postJson('/api/v1/client/auth/register', [
+            'email' => 'Rustam@Example.TEST',
             'phone' => $phone,
             'name' => 'Рустам Каримов',
             'password' => 'secret1234',
@@ -71,26 +73,27 @@ final class RegisterClientAndLinkingTest extends TestCase
         ]);
 
         $registerRes->assertCreated()
+            ->assertJsonPath('data.email', $email)
             ->assertJsonPath('data.phone', $phone)
             ->assertJsonPath('data.name', 'Рустам Каримов')
             ->assertJsonPath('data.birth_date', '1998-04-12')
-            ->assertJsonPath('data.is_phone_verified', false);
+            ->assertJsonPath('data.is_email_verified', false);
 
         $userId = (int) $registerRes->json('data.id');
 
-        // До подтверждения номера карточки залов ещё НЕ привязаны (D-002)
+        // До подтверждения email карточки залов ещё НЕ привязаны (D-002, D-020)
         $this->assertDatabaseHas('clients', [
             'id' => $cardAId,
             'user_id' => null,
         ]);
 
         // OTP-код был отправлен при регистрации
-        $otpCode = Cache::get("otp:{$phone}");
+        $otpCode = Cache::get("otp:email:{$email}");
         $this->assertIsString($otpCode);
 
-        // Клиент подтверждает номер телефона
-        $this->postJson('/api/v1/auth/verify-phone', [
-            'phone' => $phone,
+        // Клиент подтверждает email
+        $this->postJson('/api/v1/auth/verify-email', [
+            'email' => $email,
             'code' => $otpCode,
         ])->assertOk();
 
@@ -119,7 +122,7 @@ final class RegisterClientAndLinkingTest extends TestCase
     {
         // Несовершеннолетний (младше 18 лет) — Бизнес-ТЗ 5.1
         $this->postJson('/api/v1/client/auth/register', [
-            'phone' => '+992900111001',
+            'email' => 'teen@example.test',
             'name' => 'Подросток',
             'password' => 'secret1234',
             'birth_date' => '2012-06-01',
@@ -129,7 +132,7 @@ final class RegisterClientAndLinkingTest extends TestCase
 
         // Без согласия на обработку персональных данных — Бизнес-ТЗ 5.1, 10
         $this->postJson('/api/v1/client/auth/register', [
-            'phone' => '+992900111002',
+            'email' => 'noconsent@example.test',
             'name' => 'Без согласия',
             'password' => 'secret1234',
             'birth_date' => '1995-06-01',
@@ -137,8 +140,9 @@ final class RegisterClientAndLinkingTest extends TestCase
         ])->assertStatus(422)
             ->assertJsonPath('error.code', 'PERSONAL_DATA_CONSENT_REQUIRED');
 
-        // Повторная регистрация с тем же номером
+        // Повторная регистрация с тем же email
         $this->postJson('/api/v1/client/auth/register', [
+            'email' => 'first@example.test',
             'phone' => '+992900111003',
             'name' => 'Первый',
             'password' => 'secret1234',
@@ -147,8 +151,19 @@ final class RegisterClientAndLinkingTest extends TestCase
         ])->assertCreated();
 
         $this->postJson('/api/v1/client/auth/register', [
+            'email' => 'FIRST@example.test',
+            'name' => 'Дубликат Email',
+            'password' => 'secret1234',
+            'birth_date' => '1995-06-01',
+            'consent' => true,
+        ])->assertStatus(409)
+            ->assertJsonPath('error.code', 'EMAIL_ALREADY_REGISTERED');
+
+        // Повторная регистрация с тем же опциональным телефоном
+        $this->postJson('/api/v1/client/auth/register', [
+            'email' => 'second@example.test',
             'phone' => '+992900111003',
-            'name' => 'Дубликат',
+            'name' => 'Дубликат Телефона',
             'password' => 'secret1234',
             'birth_date' => '1995-06-01',
             'consent' => true,

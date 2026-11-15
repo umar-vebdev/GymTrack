@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $user_id
  * @property string $name
  * @property string $phone
+ * @property string|null $email
  */
 final class ClientModel extends Model
 {
@@ -20,5 +21,5 @@ final class ClientModel extends Model
 
     protected $table = 'clients';
 
-    protected $fillable = ['company_id', 'user_id', 'name', 'phone'];
+    protected $fillable = ['company_id', 'user_id', 'name', 'phone', 'email'];
 }

@@ -18,17 +18,23 @@ final class CreateClient
     /**
      * @throws ClientPhoneAlreadyExists
      */
-    public function execute(int $companyId, string $name, string $phone): int
+    public function execute(int $companyId, string $name, string $phone, ?string $email = null): int
     {
         if ($this->clients->existsByPhone($companyId, $phone)) {
             throw ClientPhoneAlreadyExists::forPhone($phone);
         }
 
+        $normalizedEmail = $email !== null && trim($email) !== '' ? mb_strtolower(trim($email)) : null;
+        $userId = $normalizedEmail !== null
+            ? $this->users->findVerifiedUserIdByEmail($normalizedEmail)
+            : null;
+
         return $this->clients->create(
-            $companyId,
-            $name,
-            $phone,
-            $this->users->findVerifiedUserIdByPhone($phone)
+            companyId: $companyId,
+            name: $name,
+            phone: $phone,
+            userId: $userId,
+            email: $normalizedEmail,
         );
     }
 }

@@ -21,6 +21,7 @@ final class CreateClientRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'regex:/^\+?[0-9]{9,15}$/'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
         ];
     }
 }

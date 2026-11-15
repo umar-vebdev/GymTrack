@@ -22,24 +22,33 @@ final class SearchClientsTest extends TestCase
         return $staff;
     }
 
-    private function add(User $staff, string $name, string $phone): void
+    private function add(User $staff, string $name, string $phone, ?string $email = null): void
     {
-        $this->actingAs($staff, 'sanctum')->postJson('/api/v1/business/clients', [
-            'name' => $name, 'phone' => $phone,
-        ])->assertStatus(201);
+        $payload = ['name' => $name, 'phone' => $phone];
+        if ($email !== null) {
+            $payload['email'] = $email;
+        }
+
+        $this->actingAs($staff, 'sanctum')->postJson('/api/v1/business/clients', $payload)->assertStatus(201);
     }
 
-    public function test_it_finds_client_by_part_of_phone(): void
+    public function test_it_finds_client_by_part_of_phone_or_email(): void
     {
         $staff = $this->staff();
-        $this->add($staff, 'Alice', '+992900111222');
-        $this->add($staff, 'Bob', '+992933444555');
+        $this->add($staff, 'Alice', '+992900111222', 'alice@example.test');
+        $this->add($staff, 'Bob', '+992933444555', 'bob@gym.test');
 
         $this->actingAs($staff, 'sanctum')->getJson('/api/v1/business/clients?search=111')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Alice')
+            ->assertJsonPath('data.0.email', 'alice@example.test')
             ->assertJsonPath('meta.total', 1);
+
+        $this->actingAs($staff, 'sanctum')->getJson('/api/v1/business/clients?search=GYM.test')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Bob');
     }
 
     public function test_it_finds_client_by_name_case_insensitive_and_lists_all(): void

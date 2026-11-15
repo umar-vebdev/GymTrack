@@ -30,9 +30,14 @@ final class CreateClientTest extends TestCase
         $this->actingAs($user, 'sanctum')->postJson('/api/v1/business/clients', [
             'name' => 'John Doe',
             'phone' => '+992900111222',
+            'email' => 'John.Doe@Example.TEST',
         ])->assertStatus(201)->assertJsonStructure(['data' => ['id']]);
 
-        $this->assertDatabaseHas('clients', ['name' => 'John Doe', 'phone' => '+992900111222']);
+        $this->assertDatabaseHas('clients', [
+            'name' => 'John Doe',
+            'phone' => '+992900111222',
+            'email' => 'john.doe@example.test',
+        ]);
     }
 
     public function test_duplicate_phone_in_same_company_is_rejected(): void

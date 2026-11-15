@@ -9,7 +9,7 @@ interface ClientRepositoryInterface
     public function findById(int $id): ?Client;
 
     /**
-     * Список клиентов компании с необязательным поиском по имени или части телефона.
+     * Список клиентов компании с необязательным поиском по имени, части телефона или email.
      *
      * @return array{items: list<Client>, total: int}
      */
@@ -27,9 +27,9 @@ interface ClientRepositoryInterface
     public function findIdByUser(int $userId, int $companyId): ?int;
 
     /**
-     * Проставляет user_id всем карточкам с этим телефоном (во всех компаниях), где он ещё не задан.
+     * Проставляет user_id всем карточкам с этим email (во всех компаниях), где он ещё не задан.
      */
-    public function linkUserByPhone(int $userId, string $phone): void;
+    public function linkUserByEmail(int $userId, string $email): void;
 
-    public function create(int $companyId, string $name, string $phone, ?int $userId = null): int;
+    public function create(int $companyId, string $name, string $phone, ?int $userId = null, ?string $email = null): int;
 }

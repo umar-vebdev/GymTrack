@@ -11,7 +11,7 @@ use App\Modules\Clients\Domain\ClientRepositoryInterface;
 use App\Modules\Clients\Infrastructure\EloquentClientLookup;
 use App\Modules\Clients\Infrastructure\EloquentClientRepository;
 use App\Modules\Clients\Infrastructure\EloquentClientsAnalyticsQuery;
-use App\Modules\Identity\Contracts\PhoneVerified;
+use App\Modules\Identity\Contracts\EmailVerified;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,7 +37,7 @@ final class ClientsServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/Infrastructure/Migrations');
 
-        Event::listen(PhoneVerified::class, [LinkUserToClients::class, 'handle']);
+        Event::listen(EmailVerified::class, [LinkUserToClients::class, 'handle']);
 
         if (file_exists(__DIR__.'/Presentation/routes.php')) {
             $this->loadRoutesFrom(__DIR__.'/Presentation/routes.php');

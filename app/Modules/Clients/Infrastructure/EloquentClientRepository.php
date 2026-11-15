@@ -19,7 +19,8 @@ final class EloquentClientRepository implements ClientRepositoryInterface
             companyId: $model->company_id,
             userId: $model->user_id,
             name: $model->name,
-            phone: $model->phone
+            phone: $model->phone,
+            email: $model->email,
         ) : null;
     }
 
@@ -30,7 +31,9 @@ final class EloquentClientRepository implements ClientRepositoryInterface
         if ($search !== null) {
             $like = '%'.addcslashes($search, '\\%_').'%';
             $query->where(function ($q) use ($like): void {
-                $q->where('name', 'ilike', $like)->orWhere('phone', 'like', $like);
+                $q->where('name', 'ilike', $like)
+                    ->orWhere('phone', 'like', $like)
+                    ->orWhere('email', 'ilike', $like);
             });
         }
 
@@ -44,7 +47,8 @@ final class EloquentClientRepository implements ClientRepositoryInterface
                 companyId: $m->company_id,
                 userId: $m->user_id,
                 name: $m->name,
-                phone: $m->phone
+                phone: $m->phone,
+                email: $m->email,
             ))
             ->all();
 
@@ -80,21 +84,29 @@ final class EloquentClientRepository implements ClientRepositoryInterface
         return $id === null ? null : (int) $id;
     }
 
-    public function linkUserByPhone(int $userId, string $phone): void
+    public function linkUserByEmail(int $userId, string $email): void
     {
+        $normalizedEmail = mb_strtolower(trim($email));
+        if ($normalizedEmail === '') {
+            return;
+        }
+
         ClientModel::withoutGlobalScopes()
-            ->where('phone', $phone)
+            ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
             ->whereNull('user_id')
             ->update(['user_id' => $userId]);
     }
 
-    public function create(int $companyId, string $name, string $phone, ?int $userId = null): int
+    public function create(int $companyId, string $name, string $phone, ?int $userId = null, ?string $email = null): int
     {
+        $normalizedEmail = $email !== null && trim($email) !== '' ? mb_strtolower(trim($email)) : null;
+
         $model = ClientModel::create([
             'company_id' => $companyId,
             'user_id' => $userId,
             'name' => $name,
             'phone' => $phone,
+            'email' => $normalizedEmail,
         ]);
 
         return $model->id;

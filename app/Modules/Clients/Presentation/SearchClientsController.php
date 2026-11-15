@@ -48,6 +48,7 @@ final class SearchClientsController extends Controller
                 'id' => $c->id(),
                 'name' => $c->name(),
                 'phone' => $c->phone(),
+                'email' => $c->email(),
                 'linked' => $c->userId() !== null,
             ], $result['items']),
             'meta' => ['page' => $page, 'per_page' => $perPage, 'total' => $result['total']],
