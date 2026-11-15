@@ -35,3 +35,4 @@ final class UpsertGymReview
         return $this->reviews->upsertReview($gym->companyId, $gym->gymId, $userId, $rating, $comment);
     }
 }
+

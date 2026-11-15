@@ -90,3 +90,4 @@ test('gym entity validates geofence radius boundaries', function (): void {
     expect(fn () => new Gym(1, 10, 'Bad', null, geoCheckRadiusMeters: 5001))
         ->toThrow(InvalidArgumentException::class);
 });
+

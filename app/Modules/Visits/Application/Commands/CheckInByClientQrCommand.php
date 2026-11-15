@@ -15,3 +15,4 @@ final class CheckInByClientQrCommand
         public readonly ?string $device = null,
     ) {}
 }
+

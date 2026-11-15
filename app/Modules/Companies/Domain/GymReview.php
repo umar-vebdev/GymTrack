@@ -100,3 +100,4 @@ final class GymReview
         return $this->updatedAt;
     }
 }
+

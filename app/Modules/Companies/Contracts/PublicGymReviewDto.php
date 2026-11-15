@@ -15,3 +15,4 @@ final readonly class PublicGymReviewDto
         public string $updatedAt,
     ) {}
 }
+

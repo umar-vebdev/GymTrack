@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** Этап 6 — Развитие и релизная подготовка (эпики `E6-A` и `E6-B` завершены; активен `E6-C` по решению `D-019`)
+**Текущий этап:** Этап 6 завершён (`E6-A`, `E6-B` и `E6-C` по решению `D-019` выполнены полностью)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -216,7 +216,4 @@
 
 - [x] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`): метод `listRecipientsForCompany` в `ClientLookupInterface`/`EloquentClientLookup`, `NotificationType::GymAnnouncement`, сценарий `SendGymAnnouncement`, `SendGymAnnouncementRequest`, `SendGymAnnouncementController` (`POST /api/v1/business/notifications/announcements`, доступ `owner`/`admin`), обновление `docs/api/visits-analytics.yaml`; `SendGymAnnouncementTest` + Notifications-набор (28 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`)
-  - **ТЗ:** Бизнес-ТЗ 15.1; Тех. ТЗ 4.4, 16.3.
-  - **Файлы:** `config/services.php`, `.env.example`, `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, `IdentityServiceProvider`, `NotificationsServiceProvider`, `README.md`, `tests/Unit/Notifications/HttpGatewaysTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=HttpGatewaysTest` и полный набор проверок зелёные.
+- [x] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`): секции `sms` и `push` в `config/services.php` и `.env.example` (`SMS_DRIVER`/`PUSH_DRIVER=log|http`, по умолчанию `log`), реализации `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, динамическое переключение драйвера в `IdentityServiceProvider` и `NotificationsServiceProvider`, обновление `README.md`; `HttpGatewaysTest` (3 passed), полный прогон `composer test` (**560 passed, 3864 assertions**), `lint`/`analyse`/`deps` зелёные.

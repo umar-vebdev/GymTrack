@@ -13,6 +13,8 @@ use App\Modules\Notifications\Domain\PushGatewayInterface;
 use App\Modules\Notifications\Domain\SmsGatewayInterface;
 use App\Modules\Notifications\Infrastructure\EloquentDeviceTokenRepository;
 use App\Modules\Notifications\Infrastructure\EloquentNotificationLogRepository;
+use App\Modules\Notifications\Infrastructure\HttpNotificationsSmsGateway;
+use App\Modules\Notifications\Infrastructure\HttpPushGateway;
 use App\Modules\Notifications\Infrastructure\LogNotificationsSmsGateway;
 use App\Modules\Notifications\Infrastructure\LogPushGateway;
 use App\Modules\Notifications\Presentation\Console\SendExpiringMembershipRemindersCommand;
@@ -25,8 +27,39 @@ final class NotificationsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(PushGatewayInterface::class, LogPushGateway::class);
-        $this->app->bind(SmsGatewayInterface::class, LogNotificationsSmsGateway::class);
+        $this->app->bind(PushGatewayInterface::class, static function (): PushGatewayInterface {
+            if (config('services.push.driver') === 'http') {
+                $url = config('services.push.url');
+                $token = config('services.push.token');
+                $timeout = config('services.push.timeout');
+
+                return new HttpPushGateway(
+                    url: is_string($url) ? trim($url) : '',
+                    token: is_string($token) && trim($token) !== '' ? trim($token) : null,
+                    timeoutSeconds: is_numeric($timeout) ? max(1, (int) $timeout) : 5,
+                );
+            }
+
+            return new LogPushGateway;
+        });
+
+        $this->app->bind(SmsGatewayInterface::class, static function (): SmsGatewayInterface {
+            if (config('services.sms.driver') === 'http') {
+                $url = config('services.sms.url');
+                $token = config('services.sms.token');
+                $sender = config('services.sms.sender');
+                $timeout = config('services.sms.timeout');
+
+                return new HttpNotificationsSmsGateway(
+                    url: is_string($url) ? trim($url) : '',
+                    token: is_string($token) && trim($token) !== '' ? trim($token) : null,
+                    sender: is_string($sender) && trim($sender) !== '' ? trim($sender) : null,
+                    timeoutSeconds: is_numeric($timeout) ? max(1, (int) $timeout) : 5,
+                );
+            }
+
+            return new LogNotificationsSmsGateway;
+        });
         $this->app->bind(NotificationLogRepositoryInterface::class, EloquentNotificationLogRepository::class);
         $this->app->bind(DeviceTokenRepositoryInterface::class, EloquentDeviceTokenRepository::class);
 

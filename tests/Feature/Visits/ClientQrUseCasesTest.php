@@ -226,3 +226,4 @@ final class ClientQrUseCasesTest extends TestCase
         ));
     }
 }
+

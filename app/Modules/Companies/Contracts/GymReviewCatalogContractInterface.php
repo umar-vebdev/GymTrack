@@ -19,3 +19,4 @@ interface GymReviewCatalogContractInterface
      */
     public function listForGym(int $gymId, int $page = 1, int $perPage = 20): array;
 }
+

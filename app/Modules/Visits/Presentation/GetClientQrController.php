@@ -33,3 +33,4 @@ final class GetClientQrController extends Controller
         ]);
     }
 }
+

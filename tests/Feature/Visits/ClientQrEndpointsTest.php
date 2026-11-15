@@ -161,3 +161,4 @@ final class ClientQrEndpointsTest extends TestCase
             ->assertJsonPath('error.code', 'INVALID_QR_TOKEN');
     }
 }
+

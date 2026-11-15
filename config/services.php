@@ -37,4 +37,19 @@ return [
         ],
     ],
 
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'url' => env('SMS_GATEWAY_URL'),
+        'token' => env('SMS_GATEWAY_TOKEN'),
+        'sender' => env('SMS_GATEWAY_SENDER', 'GymTrack'),
+        'timeout' => (int) env('SMS_GATEWAY_TIMEOUT', 5),
+    ],
+
+    'push' => [
+        'driver' => env('PUSH_DRIVER', 'log'),
+        'url' => env('PUSH_GATEWAY_URL'),
+        'token' => env('PUSH_GATEWAY_TOKEN'),
+        'timeout' => (int) env('PUSH_GATEWAY_TIMEOUT', 5),
+    ],
+
 ];

@@ -119,3 +119,4 @@ final class EloquentGymReviewCatalog implements GymReviewCatalogContractInterfac
         );
     }
 }
+

@@ -31,3 +31,4 @@ final class ListPublicGymReviews
         return $this->reviews->listForGym($gym->gymId, $page, $perPage);
     }
 }
+

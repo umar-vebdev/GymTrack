@@ -64,3 +64,4 @@ final class SendGymAnnouncement
         return $queued;
     }
 }
+

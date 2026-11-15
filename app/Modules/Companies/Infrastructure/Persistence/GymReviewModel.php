@@ -46,3 +46,4 @@ final class GymReviewModel extends Model
         'rating' => 'integer',
     ];
 }
+

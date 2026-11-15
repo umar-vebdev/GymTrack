@@ -10,6 +10,7 @@ use App\Modules\Identity\Contracts\UserQueryInterface;
 use App\Modules\Identity\Domain\UserRepositoryInterface;
 use App\Modules\Identity\Infrastructure\EloquentUserQuery;
 use App\Modules\Identity\Infrastructure\EloquentUserRepository;
+use App\Modules\Identity\Infrastructure\HttpSmsGateway;
 use App\Modules\Identity\Infrastructure\LogSmsGateway;
 use App\Modules\Identity\Infrastructure\SanctumTokenGenerator;
 use Illuminate\Support\ServiceProvider;
@@ -30,7 +31,23 @@ final class IdentityServiceProvider extends ServiceProvider
 
         $this->app->bind(
             SmsGateway::class,
-            LogSmsGateway::class
+            static function (): SmsGateway {
+                if (config('services.sms.driver') === 'http') {
+                    $url = config('services.sms.url');
+                    $token = config('services.sms.token');
+                    $sender = config('services.sms.sender');
+                    $timeout = config('services.sms.timeout');
+
+                    return new HttpSmsGateway(
+                        url: is_string($url) ? trim($url) : '',
+                        token: is_string($token) && trim($token) !== '' ? trim($token) : null,
+                        sender: is_string($sender) && trim($sender) !== '' ? trim($sender) : null,
+                        timeoutSeconds: is_numeric($timeout) ? max(1, (int) $timeout) : 5,
+                    );
+                }
+
+                return new LogSmsGateway;
+            }
         );
 
         $this->app->bind(

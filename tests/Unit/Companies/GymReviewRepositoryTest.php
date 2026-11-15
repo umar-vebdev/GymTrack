@@ -239,3 +239,4 @@ final class GymReviewRepositoryTest extends TestCase
         return $gymId;
     }
 }
+

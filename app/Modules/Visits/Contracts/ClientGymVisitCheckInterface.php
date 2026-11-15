@@ -11,3 +11,4 @@ interface ClientGymVisitCheckInterface
 {
     public function hasCompletedVisitInGym(int $userId, int $companyId, int $gymId): bool;
 }
+

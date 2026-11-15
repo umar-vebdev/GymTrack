@@ -19,9 +19,9 @@
 - [x] **Этап 3 (Каталог и модерация):** Витрины и фото залов (`Companies`), модерация платформой, явная публикация, ULID (`public_id`), публичный каталог (`Catalog`) с поиском, фильтрами и геопоиском.
 - [x] **Этап 4 (Расписание и тренеры):** Роль тренера и профили тренеров (`Trainers`), шаблоны и сессии групповых занятий (`Schedule`), запись/отмена с `Idempotency-Key` и списанием/возвратом посещений абонемента (`Memberships`), публичное расписание в каталоге (`Catalog`).
 - [x] **Этап 5 (Дневник тренировок):** Модуль `Workouts` — системные и личные упражнения, библиотека готовых планов платформы, собственные планы клиента и копирование из библиотеки, тренировочные сессии с фиксацией подходов и история прогресса по упражнениям.
-- [x] **Этап 6 (`E6-A`, `E6-B` — мультифилиальность, персонал и релизная готовность):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`) и Docker-сервисы `worker` и `scheduler`.
+- [x] **Этап 6 (`E6-A`, `E6-B`, `E6-C` — мультифилиальность, релизная подготовка и функции `Could`):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`), Docker-сервисы `worker` и `scheduler`, опциональная геопроверка чекина, личный динамический QR клиента, отзывы и рейтинг залов, массовые объявления залов (`push`/`sms`) и HTTP-шлюзы `HttpSmsGateway`/`HttpPushGateway`.
 
-Покрытие и качество: **536 тестов (3657 проверок)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
+Покрытие и качество: **560 тестов (3864 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
 
 ---
 
@@ -85,13 +85,14 @@ app/
 - **Клиенты (CRM):** `GET/POST /clients`, `POST /clients/merge`.
 - **Абонементы:** `GET/POST /membership-types`, `PATCH /membership-types/{id}/active`, `GET /clients/{id}/memberships`, `GET /memberships/expiring`, `POST /memberships/{id}/{freeze,unfreeze,cancel}`.
 - **Товары, касса и заявки:** `GET/POST /products`, `PATCH /products/{id}`, `GET/POST /sales`, `POST /sales/{id}/refund`, `GET /clients/{id}/sales`, `GET /membership-requests`, `POST /membership-requests/{id}/{pay,cancel}`.
-- **Посещения и QR:** `GET /gyms/{id}/qr`, `GET /visits`, `GET/POST /clients/{id}/visits`, `POST /visits/{id}/cancel`.
+- **Посещения и QR:** `GET /gyms/{id}/qr`, `POST /gyms/{id}/check-in-qr`, `GET /visits`, `GET/POST /clients/{id}/visits`, `POST /visits/{id}/cancel`.
+- **Уведомления:** `POST /notifications/announcements` (рассылка объявлений по `push` или `sms`).
 - **Тренеры и расписание:** `GET/POST /trainers`, `GET/PATCH /trainers/{trainer}`, `GET/POST /schedule/templates`, `PATCH /schedule/templates/{template}`, `GET /schedule/sessions`, `POST /schedule/sessions/generate`, `POST /schedule/sessions/{session}/cancel`, `GET /schedule/sessions/{session}/bookings`.
 - **Биллинг и аналитика:** `GET /billing/plans`, `GET /billing/subscription`, `GET /analytics/revenue`, `GET /analytics/overview`.
 
 ### Приложение клиента (`/api/v1/client/...`, Sanctum)
 - **Профиль и уведомления:** `POST /auth/register`, `GET/DELETE /profile`, `POST/DELETE /device-tokens`.
-- **Абонементы, покупки и посещения:** `POST /visits/check-in`, `GET /visits`, `GET/POST /membership-requests`, `GET /memberships`, `GET /purchases`.
+- **Абонементы, покупки, посещения и отзывы:** `GET /visits/qr`, `POST /visits/check-in`, `GET /visits`, `GET/POST /membership-requests`, `GET /memberships`, `GET /purchases`, `PUT /gyms/{publicId}/review`.
 - **Расписание и запись:** `GET /gyms/{gym}/schedule`, `POST /schedule/sessions/{session}/book`, `POST /schedule/bookings/{booking}/cancel`, `GET /schedule/bookings`.
 - **Дневник тренировок (`/workouts`):**
   - упражнения: `GET/POST /exercises`, `PATCH /exercises/{exercise}`, `GET /exercises/{exercise}/progress`;
@@ -100,8 +101,9 @@ app/
 
 ### Публичный каталог (`/api/v1/public/...`, без авторизации)
 - `GET /gyms` — поиск и фильтрация опубликованных залов (`q`, `district`, `amenities[]`, `price_min`/`price_max` + `currency`, геофильтры `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng`).
-- `GET /gyms/{publicId}` — карточка зала с актуальными тарифами абонементов.
+- `GET /gyms/{publicId}` — карточка зала с актуальными тарифами абонементов, средней оценкой (`rating_avg`) и числом отзывов (`reviews_count`).
 - `GET /gyms/{publicId}/schedule` — открытое расписание предстоящих групповых занятий зала.
+- `GET /gyms/{publicId}/reviews` — список отзывов о зале с пагинацией.
 
 ### Администрирование платформы (`/api/v1/platform/...`, `is_platform_admin`)
 - `POST /companies/{id}/subscription/activate` — активация подписки компании.
@@ -198,6 +200,11 @@ docker compose exec -T app composer test -- --compact --colors=never
 
 - Каждый HTTP-запрос получает заголовок и контекст трассировки `X-Request-Id` (через `RequestContextMiddleware`), а также `user_id` и `company_id` в контексте `Log::withContext()`.
 - По умолчанию (`.env.example`: `LOG_CHANNEL=stack`, `LOG_STACK=json`) логи пишутся в формате JSON (`Monolog\Formatter\JsonFormatter`); для контейнерного вывода доступен канал `json_stderr`.
+
+### Шлюзы SMS и Push
+
+- Выбор реализации задаётся переменными `SMS_DRIVER` и `PUSH_DRIVER` (`log` по умолчанию для локальной разработки и тестов; `http` — отправка JSON POST-запросов через `HttpSmsGateway`, `HttpNotificationsSmsGateway` и `HttpPushGateway`).
+- Параметры подключения (`SMS_GATEWAY_URL`, `SMS_GATEWAY_TOKEN`, `SMS_GATEWAY_SENDER`, `SMS_GATEWAY_TIMEOUT`, `PUSH_GATEWAY_URL`, `PUSH_GATEWAY_TOKEN`, `PUSH_GATEWAY_TIMEOUT`) описаны в `.env.example` и `config/services.php`.
 
 ---
 
