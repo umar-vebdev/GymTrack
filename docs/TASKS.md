@@ -210,12 +210,9 @@
 
 - [x] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`): `GetClientQrController` (`GET /api/v1/client/visits/qr`), `CheckInByClientQrController` (`POST /api/v1/business/gyms/{id}/check-in-qr`, доступ `owner`/`admin`, `Idempotency-Key`), `CheckInByClientQrRequest`, маршруты в `Visits/Presentation/routes.php`, обновление `docs/api/visits-analytics.yaml`; `ClientQrEndpointsTest` (2 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`)
-  - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 3.7, 6.1.
-  - **Файлы:** `ClientGymVisitCheckInterface`, `EloquentClientGymVisitCheck`, `VisitsServiceProvider`, миграция `2026_11_15_000002_create_companies_gym_reviews_table`, `GymReview`, `GymReviewModel`, `PublicGymReviewDto`, `GymReviewCatalogContractInterface`, `EloquentGymReviewCatalog`, `PublicGymProfile`, `EloquentPublicGymQuery`, `CompaniesServiceProvider`, `tests/Unit/Companies/GymReviewRepositoryTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewRepositoryTest` и полный набор проверок зелёные.
+- [x] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`): контракт `ClientGymVisitCheckInterface`/`EloquentClientGymVisitCheck`, таблица `companies_gym_reviews`, `GymReview`, `GymReviewModel`, `PublicGymReviewDto`, `GymReviewCatalogContractInterface`/`EloquentGymReviewCatalog`, агрегация `ratingAvg`/`reviewsCount` в `PublicGymProfile`/`EloquentPublicGymQuery` через `leftJoinSub` (без дополнительных SQL-запросов); `GymReviewRepositoryTest` + `PublicGymQueryTest` (12 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`)
+- [~] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`)
   - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 7.1, 15.
   - **Файлы:** `GymReviewDenied`, `UpsertGymReview`, `ListPublicGymReviews`, `UpsertGymReviewController`, `ListPublicGymReviewsController`, `UpsertGymReviewRequest`, `ListPublicGymReviewsRequest`, `PublicGymResource`, `Catalog/Presentation/routes.php`, `tests/Feature/Catalog/SearchGymsTest.php`, `docs/api/public-catalog.yaml`, `tests/Feature/Catalog/GymReviewsEndpointsTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewsEndpointsTest` и полный набор проверок зелёные.

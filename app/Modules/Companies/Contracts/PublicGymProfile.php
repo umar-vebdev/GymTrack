@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Companies\Contracts;
 
 /**
- * Публичные данные витрины зала для модуля Catalog (Бизнес-ТЗ 4.2, 7; Тех. ТЗ 3.5, 3.7; D-010).
+ * Публичные данные витрины зала для модуля Catalog (Бизнес-ТЗ 4.2, 7; Тех. ТЗ 3.5, 3.7; D-010, D-019).
  */
 final class PublicGymProfile
 {
@@ -28,5 +28,7 @@ final class PublicGymProfile
         public readonly array $workingHours,
         public readonly array $amenities,
         public readonly array $photos,
+        public readonly ?float $ratingAvg = null,
+        public readonly int $reviewsCount = 0,
     ) {}
 }

@@ -7,6 +7,7 @@ namespace App\Modules\Companies;
 use App\Modules\Companies\Contracts\CompanyCurrencyLookupInterface;
 use App\Modules\Companies\Contracts\GymLookupInterface;
 use App\Modules\Companies\Contracts\GymQrLookupInterface;
+use App\Modules\Companies\Contracts\GymReviewCatalogContractInterface;
 use App\Modules\Companies\Contracts\PublicGymQueryInterface;
 use App\Modules\Companies\Contracts\StaffCompanyResolverInterface;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
@@ -23,6 +24,7 @@ use App\Modules\Companies\Infrastructure\EloquentGymPhotoRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymProfileRepository;
 use App\Modules\Companies\Infrastructure\EloquentGymQrLookup;
 use App\Modules\Companies\Infrastructure\EloquentGymRepository;
+use App\Modules\Companies\Infrastructure\EloquentGymReviewCatalog;
 use App\Modules\Companies\Infrastructure\EloquentPublicGymQuery;
 use App\Modules\Companies\Infrastructure\EloquentStaffCompanyResolver;
 use App\Modules\Companies\Infrastructure\EloquentStaffMemberRepository;
@@ -69,6 +71,10 @@ final class CompaniesServiceProvider extends ServiceProvider
         $this->app->bind(
             PublicGymQueryInterface::class,
             EloquentPublicGymQuery::class
+        );
+        $this->app->bind(
+            GymReviewCatalogContractInterface::class,
+            EloquentGymReviewCatalog::class
         );
         $this->app->bind(GymLookupInterface::class, EloquentGymLookup::class);
     }

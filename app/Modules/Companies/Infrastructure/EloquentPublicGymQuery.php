@@ -13,6 +13,7 @@ use App\Modules\Companies\Domain\ModerationStatus;
 use App\Modules\Companies\Infrastructure\Persistence\GymPhotoModel;
 use App\Modules\Companies\Infrastructure\Persistence\GymProfileModel;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 final class EloquentPublicGymQuery implements PublicGymQueryInterface
@@ -60,7 +61,7 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
             return ['items' => [], 'total' => 0];
         }
 
-        $models = $query
+        $models = $this->withReviewStats($query)
             ->orderBy('gyms.public_id', 'asc')
             ->forPage($filter->page, $filter->perPage)
             ->get();
@@ -71,10 +72,14 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
 
         /** @var list<PublicGymProfile> $items */
         $items = $models
-            ->map(fn (GymProfileModel $model): PublicGymProfile => $this->toPublicProfile(
-                $model,
-                $photosByGym[(int) $model->gym_id] ?? [],
-            ))
+            ->map(function (GymProfileModel $model) use ($photosByGym): PublicGymProfile {
+                $gymId = (int) $model->gym_id;
+
+                return $this->toPublicProfile(
+                    $model,
+                    $photosByGym[$gymId] ?? [],
+                );
+            })
             ->values()
             ->all();
 
@@ -91,7 +96,7 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
             return null;
         }
 
-        $model = $this->publishedProfilesQuery()
+        $model = $this->withReviewStats($this->publishedProfilesQuery())
             ->where('gyms.public_id', $normalizedId)
             ->first();
 
@@ -102,7 +107,10 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
         $gymId = (int) $model->gym_id;
         $photosByGym = $this->loadPhotosByGymIds([$gymId]);
 
-        return $this->toPublicProfile($model, $photosByGym[$gymId] ?? []);
+        return $this->toPublicProfile(
+            $model,
+            $photosByGym[$gymId] ?? [],
+        );
     }
 
     /**
@@ -190,6 +198,24 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
     }
 
     /**
+     * @param  Builder<GymProfileModel>  $query
+     * @return Builder<GymProfileModel>
+     */
+    private function withReviewStats(Builder $query): Builder
+    {
+        $reviewStatsSub = DB::table('companies_gym_reviews')
+            ->selectRaw('gym_id, AVG(rating) as avg_rating, COUNT(*) as reviews_count')
+            ->groupBy('gym_id');
+
+        return $query
+            ->leftJoinSub($reviewStatsSub, 'review_stats', 'review_stats.gym_id', '=', 'companies_gym_profiles.gym_id')
+            ->addSelect([
+                'review_stats.avg_rating as review_avg_rating',
+                'review_stats.reviews_count as review_count',
+            ]);
+    }
+
+    /**
      * @param  list<string>  $photos
      */
     private function toPublicProfile(GymProfileModel $model, array $photos): PublicGymProfile
@@ -198,6 +224,11 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
         $publicId = $model->getAttribute('gym_public_id');
         /** @var string $name */
         $name = $model->getAttribute('gym_name');
+
+        $countRaw = $model->getAttribute('review_count');
+        $avgRaw = $model->getAttribute('review_avg_rating');
+        $reviewsCount = is_numeric($countRaw) ? (int) $countRaw : 0;
+        $ratingAvg = ($reviewsCount > 0 && is_numeric($avgRaw)) ? round((float) $avgRaw, 2) : null;
 
         return new PublicGymProfile(
             publicId: $publicId,
@@ -213,6 +244,8 @@ final class EloquentPublicGymQuery implements PublicGymQueryInterface
             workingHours: $model->working_hours ?? [],
             amenities: $model->amenities ?? [],
             photos: $photos,
+            ratingAvg: $ratingAvg,
+            reviewsCount: $reviewsCount,
         );
     }
 }
