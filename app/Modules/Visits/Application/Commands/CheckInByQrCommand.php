@@ -11,5 +11,7 @@ final class CheckInByQrCommand
         public readonly string $qrToken,
         public readonly ?string $idempotencyKey = null,
         public readonly ?string $device = null,
+        public readonly ?float $latitude = null,
+        public readonly ?float $longitude = null,
     ) {}
 }

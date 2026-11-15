@@ -21,6 +21,8 @@ final class CheckInByQrRequest extends FormRequest
         return [
             'token' => ['required', 'string', 'max:255'],
             'device' => ['nullable', 'string', 'max:255'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
         ];
     }
 }

@@ -9,7 +9,7 @@ use App\Modules\Companies\Domain\Gym;
 final class GymResource
 {
     /**
-     * @return array{id: int, company_id: int, name: string, address: string|null, timezone: string}
+     * @return array{id: int, company_id: int, name: string, address: string|null, timezone: string, geo_check_enabled: bool, geo_check_radius_meters: int}
      */
     public static function toArray(Gym $gym): array
     {
@@ -19,6 +19,8 @@ final class GymResource
             'name' => $gym->name(),
             'address' => $gym->address(),
             'timezone' => $gym->timezone(),
+            'geo_check_enabled' => $gym->geoCheckEnabled(),
+            'geo_check_radius_meters' => $gym->geoCheckRadiusMeters(),
         ];
     }
 }

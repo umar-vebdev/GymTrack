@@ -334,6 +334,15 @@ components:
           maxLength: 255
         timezone:
           type: string
+          example: Asia/Dushanbe
+        geo_check_enabled:
+          type: boolean
+          default: false
+        geo_check_radius_meters:
+          type: integer
+          minimum: 50
+          maximum: 5000
+          default: 200
     StaffMember:
       type: object
       required:
@@ -369,6 +378,8 @@ components:
         - name
         - address
         - timezone
+        - geo_check_enabled
+        - geo_check_radius_meters
       properties:
         id:
           type: integer
@@ -381,6 +392,10 @@ components:
           nullable: true
         timezone:
           type: string
+        geo_check_enabled:
+          type: boolean
+        geo_check_radius_meters:
+          type: integer
     StaffMember:
       type: object
       required:

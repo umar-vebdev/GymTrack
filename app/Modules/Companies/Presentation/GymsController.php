@@ -54,7 +54,7 @@ final class GymsController extends Controller
             return $this->forbiddenResponse('Создавать филиалы может только владелец компании.');
         }
 
-        /** @var array{name: string, address?: string|null, timezone?: string} $data */
+        /** @var array{name: string, address?: string|null, timezone?: string, geo_check_enabled?: bool, geo_check_radius_meters?: int} $data */
         $data = $request->validated();
 
         $gym = $this->createGym->execute(
@@ -62,6 +62,8 @@ final class GymsController extends Controller
             name: $data['name'],
             address: $data['address'] ?? null,
             timezone: $data['timezone'] ?? Gym::DEFAULT_TIMEZONE,
+            geoCheckEnabled: isset($data['geo_check_enabled']) ? (bool) $data['geo_check_enabled'] : false,
+            geoCheckRadiusMeters: isset($data['geo_check_radius_meters']) ? (int) $data['geo_check_radius_meters'] : Gym::DEFAULT_GEO_RADIUS_METERS,
         );
 
         return response()->json([
@@ -79,7 +81,7 @@ final class GymsController extends Controller
             return $this->forbiddenResponse('Редактировать филиалы может только владелец компании.');
         }
 
-        /** @var array{name: string, address?: string|null, timezone?: string|null} $data */
+        /** @var array{name: string, address?: string|null, timezone?: string|null, geo_check_enabled?: bool, geo_check_radius_meters?: int} $data */
         $data = $request->validated();
 
         try {
@@ -89,6 +91,8 @@ final class GymsController extends Controller
                 name: $data['name'],
                 address: $data['address'] ?? null,
                 timezone: $data['timezone'] ?? null,
+                geoCheckEnabled: array_key_exists('geo_check_enabled', $data) ? (bool) $data['geo_check_enabled'] : null,
+                geoCheckRadiusMeters: array_key_exists('geo_check_radius_meters', $data) ? (int) $data['geo_check_radius_meters'] : null,
             );
         } catch (GymNotFound $e) {
             return response()->json([

@@ -178,6 +178,18 @@ paths:
                   type: string
                   maxLength: 255
                   nullable: true
+                latitude:
+                  type: number
+                  minimum: -90
+                  maximum: 90
+                  nullable: true
+                  description: Широта клиента для опциональной геопроверки зала (передаётся вместе с longitude)
+                longitude:
+                  type: number
+                  minimum: -180
+                  maximum: 180
+                  nullable: true
+                  description: Долгота клиента для опциональной геопроверки зала (передаётся вместе с latitude)
       responses:
         '201':
           description: Чекин выполнен
@@ -189,7 +201,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/CheckInResult'
         '422':
-          description: Ошибка QR или правил (`INVALID_QR_TOKEN`, `DAILY_LIMIT_EXCEEDED`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `NO_ACTIVE_MEMBERSHIP`)
+          description: Ошибка QR или правил (`INVALID_QR_TOKEN`, `DAILY_LIMIT_EXCEEDED`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`, `NO_ACTIVE_MEMBERSHIP`, `GEO_LOCATION_REQUIRED`, `OUTSIDE_GYM_GEOFENCE`)
           content:
             application/json:
               schema:

@@ -24,9 +24,11 @@ final class UpdateGym
         string $name,
         ?string $address,
         ?string $timezone = null,
+        ?bool $geoCheckEnabled = null,
+        ?int $geoCheckRadiusMeters = null,
     ): Gym {
         /** @var Gym */
-        return DB::transaction(function () use ($companyId, $gymId, $name, $address, $timezone): Gym {
+        return DB::transaction(function () use ($companyId, $gymId, $name, $address, $timezone, $geoCheckEnabled, $geoCheckRadiusMeters): Gym {
             $gym = $this->gyms->findByIdForUpdate($gymId);
 
             if ($gym === null || $gym->companyId() !== $companyId) {
@@ -37,6 +39,8 @@ final class UpdateGym
                 name: $name,
                 address: $address,
                 timezone: $timezone ?? $gym->timezone(),
+                geoCheckEnabled: $geoCheckEnabled,
+                geoCheckRadiusMeters: $geoCheckRadiusMeters,
             );
 
             $this->gyms->save($updated);

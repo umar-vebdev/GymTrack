@@ -204,12 +204,9 @@
 
 - [x] **T6-11a** Настройка геопроверки зала и правило `WithinGymGeoFenceRule` (`Companies` + `Visits`): миграция `2026_11_15_000001_add_geo_check_to_gyms_table` (`geo_check_enabled`, `geo_check_radius_meters`), валидация радиуса `50..5000` в `Gym`, `GymModel`/`EloquentGymRepository`, передача координат и настроек через `GymQrSummary`/`EloquentGymQrLookup`, `CheckInDenied`/`CheckInContext`/`WithinGymGeoFenceRule` в `VisitsServiceProvider`; `CheckInGeoFenceTest` (4 passed), всего `540 passed, 3670 assertions`, `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-11b** Координаты в `POST /api/v1/client/visits/check-in` и настройках зала (`Visits` + `Companies`)
-  - **ТЗ:** Бизнес-ТЗ 6.2, 11; Тех. ТЗ 7.2, 15.
-  - **Файлы:** `CreateGym`, `UpdateGym`, `GymsController`, `StoreGymRequest`, `UpdateGymRequest`, `GymResource`, `CheckInByQrCommand`, `CheckInByQr`, `CheckInByQrRequest`, `CheckInByQrController`, `docs/api/companies.yaml`, `docs/api/visits-analytics.yaml`, `tests/Feature/Visits/CheckInByQrGeoEndpointTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=CheckInByQrGeoEndpointTest` и полный набор проверок зелёные.
+- [x] **T6-11b** Координаты в `POST /api/v1/client/visits/check-in` и настройках зала (`Visits` + `Companies`): поддержка `geo_check_enabled`/`geo_check_radius_meters` в `CreateGym`/`UpdateGym`/`GymsController`/`StoreGymRequest`/`UpdateGymRequest`/`GymResource`, передача `latitude`/`longitude` в `CheckInByQrRequest`/`CheckInByQrCommand`/`CheckInByQr`, маппинг `GEO_LOCATION_REQUIRED`/`OUTSIDE_GYM_GEOFENCE` в `CheckInByQrController`, обновление `docs/api/companies.yaml` и `docs/api/visits-analytics.yaml`; `CheckInByQrGeoEndpointTest` + `ManageGymsEndpointTest` + `CheckInByQrEndpointTest` зелёные, `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`)
+- [~] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`)
   - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 8, 9.1.
   - **Файлы:** `VisitMethod`, `ClientQrPayload`, `QrTokenServiceInterface`, `HmacQrTokenService`, `GenerateClientQr`, `CheckInByClientQrCommand`, `CheckInByClientQr`, `VisitsServiceProvider`, `tests/Feature/Visits/ClientQrUseCasesTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrUseCasesTest` и полный набор проверок зелёные.

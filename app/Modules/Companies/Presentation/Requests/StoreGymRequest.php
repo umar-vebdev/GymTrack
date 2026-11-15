@@ -22,6 +22,8 @@ final class StoreGymRequest extends FormRequest
             'name' => ['required', 'string', 'min:1', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'timezone' => ['sometimes', 'string', 'timezone:all'],
+            'geo_check_enabled' => ['sometimes', 'boolean'],
+            'geo_check_radius_meters' => ['sometimes', 'integer', 'min:50', 'max:5000'],
         ];
     }
 }

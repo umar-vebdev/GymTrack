@@ -35,12 +35,17 @@ final class CheckInByQrController extends Controller
             ? mb_substr(trim($rawDevice), 0, 255)
             : null;
 
+        $latitude = $request->validated('latitude');
+        $longitude = $request->validated('longitude');
+
         try {
             $result = $this->checkInByQr->execute(new CheckInByQrCommand(
                 userId: $user->id,
                 qrToken: (string) $request->validated('token'),
                 idempotencyKey: $idempotencyKey,
                 device: $device,
+                latitude: is_numeric($latitude) ? (float) $latitude : null,
+                longitude: is_numeric($longitude) ? (float) $longitude : null,
             ));
         } catch (InvalidQrToken) {
             return response()->json([
@@ -77,6 +82,14 @@ final class CheckInByQrController extends Controller
             CheckInDenied::REASON_OUT_OF_TIME_WINDOW => [
                 'code' => 'OUTSIDE_ALLOWED_TIME',
                 'message' => 'Абонемент не подходит по времени суток.',
+            ],
+            CheckInDenied::REASON_GEO_LOCATION_REQUIRED => [
+                'code' => 'GEO_LOCATION_REQUIRED',
+                'message' => 'Для отметки в этом зале требуется передать координаты.',
+            ],
+            CheckInDenied::REASON_OUTSIDE_GYM_GEOFENCE => [
+                'code' => 'OUTSIDE_GYM_GEOFENCE',
+                'message' => 'Вы находитесь слишком далеко от зала.',
             ],
             default => [
                 'code' => 'NO_ACTIVE_MEMBERSHIP',

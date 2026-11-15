@@ -124,6 +124,12 @@ final class CheckInByQr
                 timeFromMinute: $candidate->timeFromMinute,
                 timeToMinute: $candidate->timeToMinute,
                 gymTimezone: $gym->timezone,
+                geoCheckEnabled: $gym->geoCheckEnabled,
+                geoCheckRadiusMeters: $gym->geoCheckRadiusMeters,
+                gymLatitude: $gym->latitude,
+                gymLongitude: $gym->longitude,
+                clientLatitude: $command->latitude,
+                clientLongitude: $command->longitude,
             );
 
             foreach ($this->rules as $rule) {
