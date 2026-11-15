@@ -82,4 +82,52 @@ final class LoginUserTest extends TestCase
         ])->assertStatus(422)
             ->assertJsonPath('error.code', 'VALIDATION_FAILED');
     }
+
+    public function test_logout_revokes_only_current_device_token(): void
+    {
+        User::factory()->create([
+            'email' => 'multi@example.test',
+            'password' => Hash::make('secret123'),
+        ]);
+
+        $phoneToken = (string) $this->postJson('/api/v1/auth/login', [
+            'email' => 'multi@example.test',
+            'password' => 'secret123',
+            'device' => 'phone',
+        ])->assertOk()->json('data.token');
+
+        $tabletToken = (string) $this->postJson('/api/v1/auth/login', [
+            'email' => 'multi@example.test',
+            'password' => 'secret123',
+            'device' => 'tablet',
+        ])->assertOk()->json('data.token');
+
+        $this->assertDatabaseCount('personal_access_tokens', 2);
+
+        $this->withToken($phoneToken)
+            ->postJson('/api/v1/auth/logout')
+            ->assertOk()
+            ->assertJsonPath('data.logged_out', true);
+
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+
+        $this->app->make('auth')->forgetGuards();
+
+        $this->withToken($phoneToken)
+            ->getJson('/api/v1/client/profile')
+            ->assertStatus(401);
+
+        $this->app->make('auth')->forgetGuards();
+
+        $this->withToken($tabletToken)
+            ->getJson('/api/v1/client/profile')
+            ->assertOk();
+    }
+
+    public function test_logout_requires_authentication(): void
+    {
+        $this->postJson('/api/v1/auth/logout')
+            ->assertStatus(401)
+            ->assertJsonPath('error.code', 'UNAUTHORIZED');
+    }
 }

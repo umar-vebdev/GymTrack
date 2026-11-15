@@ -22,8 +22,11 @@ final class VerifyEmailController extends Controller
             code: $request->string('code')->toString(),
         );
 
+        $message = 'Email успешно подтверждён.';
+
         return response()->json([
-            'message' => 'Email успешно подтверждён.',
+            'data' => ['message' => $message],
+            'message' => $message,
         ]);
     }
 }

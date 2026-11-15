@@ -21,8 +21,11 @@ final class SendOtpController extends Controller
             email: $request->string('email')->toString(),
         );
 
+        $message = 'Код подтверждения отправлен.';
+
         return response()->json([
-            'message' => 'Код подтверждения отправлен.',
+            'data' => ['message' => $message],
+            'message' => $message,
         ]);
     }
 }

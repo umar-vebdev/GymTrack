@@ -233,3 +233,32 @@
 - [x] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`): миграция `2026_11_15_000003_add_email_to_clients_table` (`email` nullable + индекс `(company_id, email)`), обновление `ClientModel`/`Client`/`ClientRepositoryInterface`/`EloquentClientRepository` (`linkUserByEmail` с case-insensitive сравнением, поиск по `email`), `CreateClientRequest`/`CreateClient`/`CreateClientController`/`SearchClientsController`, `LinkUserToClients` и `ClientsServiceProvider` на событие `EmailVerified`, обновление `EloquentClientLookup::findOrCreateForUser`, удаление `PhoneVerified.php`, обновление `ClientUserLinkingTest`/`RegisterClientAndLinkingTest`/`MergeClientsTest`/`CreateClientTest`/`SearchClientsTest` (32 passed, 163 assertions), `lint`/`analyse`/`deps` зелёные.
 
 - [x] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs): перевод `AddStaffMemberRequest`/`AddStaffMember`/`StaffController` на поиск по подтверждённому `email` (`findVerifiedUserIdByEmail`), удаление `findVerifiedUserIdByPhone` из `UserQueryInterface`/`EloquentUserQuery`, обновление `StaffUseCasesTest`/`ManageStaffEndpointTest` и фикстуры `ClassBookingUseCasesTest`, обновление `docs/api/{identity-auth,business-core,companies}.yaml` (в т.ч. удаление дублирующих путей/схем в `companies.yaml`) и `README.md`; проверка 11 OpenAPI YAML-файлов через `Symfony\Component\Yaml\Yaml::parseFile`, полный прогон `composer test` (**564 passed, 3903 assertions**), `lint`/`analyse`/`deps` зелёные.
+
+---
+
+## Этап 8 — Подготовка API к мобильному приложению (решение `D-021`)
+
+**ТЗ / решения:** Mobile TZ 3.1, 3.2, 3.5, 3.6, 5.1, 5.3, 5.5, 5.6; Тех. ТЗ 3.4, 3.5, 4.4, 7.1, 8; `D-021`.
+
+- [x] **T8-01** Серверный выход (`POST /api/v1/auth/logout`), сброс пароля по Email OTP (`POST /api/v1/auth/reset-password`) и обёртка `data.message` в `send-otp` / `verify-email` (`Identity`): `User::changePasswordHash()`, `ResetPasswordWithOtp`, `ResetPasswordRequest`, `ResetPasswordController`, `LogoutUserController` (удаляет текущий токен при наличии `bearerToken()`), обёртка `data.message` + `message`, маршруты в `routes/api.php`, тесты в `PhoneVerificationTest` и `LoginUserTest` (`32 passed, 195 assertions`, `lint`/`analyse`/`deps` зелёные).
+
+- [~] **T8-02** Поддержка публичных ULID (`public_id`) наряду с числовыми ID в клиентских заявках на абонемент и расписании зала (`Companies`, `Memberships`, `Sales`, `Schedule`)
+  - **Цель:** позволить мобильному приложению передавать ULID из витрины каталога в `POST /api/v1/client/membership-requests`, `GET /api/v1/client/gyms/{gym}/schedule` и `POST /api/v1/client/schedule/sessions/{session}/book`.
+  - **Ссылки на ТЗ:** Mobile TZ 3.6, 5.3, 5.5; D-021.
+  - **Файлы:** `app/Modules/Companies/{Contracts/GymLookupInterface,Contracts/GymQrLookupInterface,Infrastructure/EloquentGymLookup,Infrastructure/EloquentGymQrLookup}.php`, `app/Modules/Memberships/{Domain/MembershipTypeRepositoryInterface,Infrastructure/EloquentMembershipTypeRepository,Contracts/MembershipIssuerInterface,Application/IssueMembership}.php`, `app/Modules/Sales/{Presentation/Requests/CreateMembershipRequestRequest,Presentation/CreateMembershipRequestController,Application/CreateMembershipRequest}.php`, `app/Modules/Schedule/{Domain/ClassSessionRepositoryInterface,Infrastructure/EloquentClassSessionRepository,Presentation/routes,Presentation/ListClientGymScheduleController,Presentation/BookClassSessionController}.php`, feature-тесты в `Sales` и `Schedule`.
+  - **Шаги:** (1) добавить методы резолвинга `int|string` по `id` или `public_id` в `GymLookupInterface`, `GymQrLookupInterface`, `MembershipTypeRepositoryInterface`/`MembershipIssuerInterface`, `ClassSessionRepositoryInterface`; (2) обновить валидацию и Use Case `CreateMembershipRequest`; (3) снять `whereNumber` на клиентских маршрутах `Schedule` и резолвить `{gym}`/`{session}` в контроллерах; (4) покрыть тестами.
+  - **Критерий готовности:** `docker compose exec -T app vendor/bin/pest tests/Feature/Modules/Sales tests/Feature/Modules/Schedule`, `composer lint`, `composer analyse`, `composer deps` зелёные.
+
+- [ ] **T8-03** Поддержка `Idempotency-Key` в создании тренировочной сессии и логировании подходов (`Workouts`)
+  - **Цель:** исключить дублирование тренировок и подходов при сетевых сбоях и повторах из мобильного приложения.
+  - **Ссылки на ТЗ:** Mobile TZ 3.1, 3.5, 3.6, 5.6; Тех. ТЗ 7.1; D-021.
+  - **Файлы:** `app/Modules/Workouts/Infrastructure/Migrations/2026_11_15_000004_add_idempotency_key_to_workouts_tables.php`, `app/Modules/Workouts/Domain/{Exceptions/InvalidWorkoutSession,WorkoutSession,WorkoutSessionRepositoryInterface}.php`, `app/Modules/Workouts/Infrastructure/{Persistence/WorkoutSessionModel,Persistence/WorkoutSetModel,EloquentWorkoutSessionRepository}.php`, `app/Modules/Workouts/Application/{StartWorkoutSessionCommand,StartWorkoutSession,LogWorkoutSetCommand,LogWorkoutSet}.php`, `app/Modules/Workouts/Presentation/ClientWorkoutSessionsController.php`, `tests/Feature/Modules/Workouts/WorkoutSessionsEndpointsTest.php`.
+  - **Шаги:** (1) миграция `idempotency_key` + уникальные индексы в `workouts_sessions` и `workouts_sets`; (2) `cleanIdempotencyKey` и модели Eloquent; (3) идемпотентный lookup в `start()` и `addSet()`; (4) проброс заголовка в контроллере и команды; (5) feature-тесты.
+  - **Критерий готовности:** `docker compose exec -T app vendor/bin/pest tests/Feature/Modules/Workouts tests/Unit/Modules/Workouts`, `composer lint`, `composer analyse`, `composer deps` зелёные.
+
+- [ ] **T8-04** Актуализация OpenAPI (`docs/api/*.yaml`), `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`
+  - **Цель:** синхронизировать документацию API, мобильное ТЗ и список маршрутов с изменениями `T8-01`–`T8-03`.
+  - **Ссылки на ТЗ:** Mobile TZ 3.1, 3.2, 3.5, 3.6, 5.1, 5.3, 5.5, 5.6; D-021.
+  - **Файлы:** `docs/api/{identity-auth,business-core,schedule,workouts}.yaml`, `docs/specs/GymTrack_Mobile_TZ.md`, `README.md`.
+  - **Шаги:** (1) обновить 4 OpenAPI YAML-файла; (2) актуализировать `GymTrack_Mobile_TZ.md` и `README.md`; (3) проверить все 11 YAML-файлов и прогнать полный стек проверок.
+  - **Критерий готовности:** валидны все 11 YAML-файлов, `composer lint`, `composer analyse`, `composer deps` и `docker compose exec -T app composer test` зелёные.

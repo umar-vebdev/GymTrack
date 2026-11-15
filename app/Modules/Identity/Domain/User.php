@@ -80,6 +80,11 @@ final class User
         $this->emailVerifiedAt = $at;
     }
 
+    public function changePasswordHash(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
+    }
+
     public function anonymize(string $invalidatedPasswordHash): void
     {
         $this->name = 'Deleted User';
