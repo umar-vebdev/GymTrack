@@ -40,13 +40,21 @@ final class EloquentGymRepository implements GymRepositoryInterface
         );
     }
 
-    public function create(int $companyId, string $name, ?string $address, string $timezone = Gym::DEFAULT_TIMEZONE): int
-    {
+    public function create(
+        int $companyId,
+        string $name,
+        ?string $address,
+        string $timezone = Gym::DEFAULT_TIMEZONE,
+        bool $geoCheckEnabled = false,
+        int $geoCheckRadiusMeters = Gym::DEFAULT_GEO_RADIUS_METERS,
+    ): int {
         $model = GymModel::create([
             'company_id' => $companyId,
             'name' => $name,
             'address' => $address,
             'timezone' => $timezone,
+            'geo_check_enabled' => $geoCheckEnabled,
+            'geo_check_radius_meters' => $geoCheckRadiusMeters,
         ]);
 
         return $model->id;
@@ -62,17 +70,23 @@ final class EloquentGymRepository implements GymRepositoryInterface
                 'name' => $gym->name(),
                 'address' => $gym->address(),
                 'timezone' => $gym->timezone(),
+                'geo_check_enabled' => $gym->geoCheckEnabled(),
+                'geo_check_radius_meters' => $gym->geoCheckRadiusMeters(),
             ]);
     }
 
     private function mapToDomain(GymModel $model): Gym
     {
+        $radius = (int) $model->geo_check_radius_meters;
+
         return new Gym(
             id: $model->id,
             companyId: $model->company_id,
             name: $model->name,
             address: $model->address,
             timezone: $model->timezone ?: Gym::DEFAULT_TIMEZONE,
+            geoCheckEnabled: (bool) $model->geo_check_enabled,
+            geoCheckRadiusMeters: $radius > 0 ? $radius : Gym::DEFAULT_GEO_RADIUS_METERS,
         );
     }
 }

@@ -15,7 +15,14 @@ interface GymRepositoryInterface
      */
     public function listByCompany(int $companyId): array;
 
-    public function create(int $companyId, string $name, ?string $address, string $timezone = Gym::DEFAULT_TIMEZONE): int;
+    public function create(
+        int $companyId,
+        string $name,
+        ?string $address,
+        string $timezone = Gym::DEFAULT_TIMEZONE,
+        bool $geoCheckEnabled = false,
+        int $geoCheckRadiusMeters = Gym::DEFAULT_GEO_RADIUS_METERS,
+    ): int;
 
     public function save(Gym $gym): void;
 }

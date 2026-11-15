@@ -13,6 +13,7 @@ use App\Modules\Visits\Domain\Rules\DailyLimitNotExceededRule;
 use App\Modules\Visits\Domain\Rules\MembershipIsAvailableRule;
 use App\Modules\Visits\Domain\Rules\NotFrozenRule;
 use App\Modules\Visits\Domain\Rules\WithinAllowedTimeRule;
+use App\Modules\Visits\Domain\Rules\WithinGymGeoFenceRule;
 use App\Modules\Visits\Domain\VisitRepositoryInterface;
 use App\Modules\Visits\Infrastructure\EloquentVisitRepository;
 use App\Modules\Visits\Infrastructure\EloquentVisitsAnalyticsQuery;
@@ -41,6 +42,7 @@ final class VisitsServiceProvider extends ServiceProvider
             MembershipIsAvailableRule::class,
             DailyLimitNotExceededRule::class,
             WithinAllowedTimeRule::class,
+            WithinGymGeoFenceRule::class,
         ], CheckInRuleInterface::class);
 
         $this->app->when([CheckInByQr::class, CheckInManually::class])

@@ -22,6 +22,10 @@ final class CheckInDenied extends DomainException
 
     public const string REASON_DAILY_LIMIT_EXCEEDED = 'daily_limit_exceeded';
 
+    public const string REASON_GEO_LOCATION_REQUIRED = 'geo_location_required';
+
+    public const string REASON_OUTSIDE_GYM_GEOFENCE = 'outside_gym_geofence';
+
     private function __construct(
         public readonly string $reason,
     ) {

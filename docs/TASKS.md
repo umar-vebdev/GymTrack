@@ -1,6 +1,6 @@
 # GymTrack — чек-лист задач
 
-**Текущий этап:** Этап 6 — Развитие и релизная подготовка (порядок: `E6-A` -> `E6-B` -> `E6-C`; план `E6-A` на подтверждении)
+**Текущий этап:** Этап 6 — Развитие и релизная подготовка (эпики `E6-A` и `E6-B` завершены; активен `E6-C` по решению `D-019`)
 **Статусы:** `[ ]` не начата · `[~]` в работе · `[x]` готова · `[!]` заблокирована (причина в заметках)
 
 ## Правила ведения файла
@@ -200,6 +200,41 @@
 
 - [x] **T6-10** Наблюдаемость и эксплуатация: JSON-логирование и Docker worker/scheduler (`RequestContextMiddleware`, `config/logging.php`, `bootstrap/app.php`, `.env.example`, `docker-compose.yml`, `README.md`, `RequestContextLoggingTest`; `536 passed, 3657 assertions`, `lint`/`analyse`/`deps` зелёные, `docker compose config -q` ок).
 
-### E6-C — Функции приоритета `Could` (Вариант C, крупный блок)
+### E6-C — Функции приоритета `Could` (Вариант C, план подтверждён `D-019`)
 
-- Отзывы и рейтинг залов, опциональная геопроверка при чекине, личный QR клиента, объявления зала, реальные SMS/Push адаптеры. Раскрывается перед стартом.
+- [x] **T6-11a** Настройка геопроверки зала и правило `WithinGymGeoFenceRule` (`Companies` + `Visits`): миграция `2026_11_15_000001_add_geo_check_to_gyms_table` (`geo_check_enabled`, `geo_check_radius_meters`), валидация радиуса `50..5000` в `Gym`, `GymModel`/`EloquentGymRepository`, передача координат и настроек через `GymQrSummary`/`EloquentGymQrLookup`, `CheckInDenied`/`CheckInContext`/`WithinGymGeoFenceRule` в `VisitsServiceProvider`; `CheckInGeoFenceTest` (4 passed), всего `540 passed, 3670 assertions`, `lint`/`analyse`/`deps` зелёные.
+
+- [~] **T6-11b** Координаты в `POST /api/v1/client/visits/check-in` и настройках зала (`Visits` + `Companies`)
+  - **ТЗ:** Бизнес-ТЗ 6.2, 11; Тех. ТЗ 7.2, 15.
+  - **Файлы:** `CreateGym`, `UpdateGym`, `GymsController`, `StoreGymRequest`, `UpdateGymRequest`, `GymResource`, `CheckInByQrCommand`, `CheckInByQr`, `CheckInByQrRequest`, `CheckInByQrController`, `docs/api/companies.yaml`, `docs/api/visits-analytics.yaml`, `tests/Feature/Visits/CheckInByQrGeoEndpointTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=CheckInByQrGeoEndpointTest` и полный набор проверок зелёные.
+
+- [ ] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`)
+  - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 8, 9.1.
+  - **Файлы:** `VisitMethod`, `ClientQrPayload`, `QrTokenServiceInterface`, `HmacQrTokenService`, `GenerateClientQr`, `CheckInByClientQrCommand`, `CheckInByClientQr`, `VisitsServiceProvider`, `tests/Feature/Visits/ClientQrUseCasesTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrUseCasesTest` и полный набор проверок зелёные.
+
+- [ ] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`)
+  - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 7.1, 7.3, 15.
+  - **Файлы:** `GetClientQrController`, `CheckInByClientQrController`, `CheckInByClientQrRequest`, `Visits/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Visits/ClientQrEndpointsTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrEndpointsTest` и полный набор проверок зелёные.
+
+- [ ] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`)
+  - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 3.7, 6.1.
+  - **Файлы:** `ClientGymVisitCheckInterface`, `EloquentClientGymVisitCheck`, `VisitsServiceProvider`, миграция `2026_11_15_000002_create_companies_gym_reviews_table`, `GymReview`, `GymReviewModel`, `PublicGymReviewDto`, `GymReviewCatalogContractInterface`, `EloquentGymReviewCatalog`, `PublicGymProfile`, `EloquentPublicGymQuery`, `CompaniesServiceProvider`, `tests/Unit/Companies/GymReviewRepositoryTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewRepositoryTest` и полный набор проверок зелёные.
+
+- [ ] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`)
+  - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 7.1, 15.
+  - **Файлы:** `GymReviewDenied`, `UpsertGymReview`, `ListPublicGymReviews`, `UpsertGymReviewController`, `ListPublicGymReviewsController`, `UpsertGymReviewRequest`, `ListPublicGymReviewsRequest`, `PublicGymResource`, `Catalog/Presentation/routes.php`, `tests/Feature/Catalog/SearchGymsTest.php`, `docs/api/public-catalog.yaml`, `tests/Feature/Catalog/GymReviewsEndpointsTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewsEndpointsTest` и полный набор проверок зелёные.
+
+- [ ] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`)
+  - **ТЗ:** Бизнес-ТЗ 5.3; Тех. ТЗ 9.4, 15.
+  - **Файлы:** `ClientLookupInterface`, `EloquentClientLookup`, `NotificationType`, `SendGymAnnouncement`, `SendGymAnnouncementController`, `SendGymAnnouncementRequest`, `Notifications/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Notifications/SendGymAnnouncementTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=SendGymAnnouncementTest` и полный набор проверок зелёные.
+
+- [ ] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`)
+  - **ТЗ:** Бизнес-ТЗ 15.1; Тех. ТЗ 4.4, 16.3.
+  - **Файлы:** `config/services.php`, `.env.example`, `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, `IdentityServiceProvider`, `NotificationsServiceProvider`, `README.md`, `tests/Unit/Notifications/HttpGatewaysTest.php`.
+  - **Готовность:** `docker compose exec -T app php artisan test --filter=HttpGatewaysTest` и полный набор проверок зелёные.

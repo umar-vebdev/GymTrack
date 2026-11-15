@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $name
  * @property string|null $address
  * @property string $timezone
+ * @property bool $geo_check_enabled
+ * @property int $geo_check_radius_meters
  * @property string|null $qr_secret
  */
 final class GymModel extends Model
@@ -30,9 +32,19 @@ final class GymModel extends Model
 
     protected $table = 'gyms';
 
-    protected $fillable = ['company_id', 'name', 'address', 'timezone', 'qr_secret'];
+    protected $fillable = [
+        'company_id',
+        'name',
+        'address',
+        'timezone',
+        'geo_check_enabled',
+        'geo_check_radius_meters',
+        'qr_secret',
+    ];
 
     protected $casts = [
+        'geo_check_enabled' => 'boolean',
+        'geo_check_radius_meters' => 'integer',
         'qr_secret' => 'encrypted',
     ];
 

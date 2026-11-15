@@ -25,6 +25,12 @@ final class CheckInContext
         public readonly ?int $timeFromMinute,
         public readonly ?int $timeToMinute,
         public readonly string $gymTimezone = 'UTC',
+        public readonly bool $geoCheckEnabled = false,
+        public readonly int $geoCheckRadiusMeters = 200,
+        public readonly ?float $gymLatitude = null,
+        public readonly ?float $gymLongitude = null,
+        public readonly ?float $clientLatitude = null,
+        public readonly ?float $clientLongitude = null,
     ) {}
 
     public function localNow(): DateTimeImmutable

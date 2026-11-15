@@ -203,3 +203,17 @@
 - Причина: соответствует Бизнес-ТЗ 9 и требованиям Технического ТЗ 6.1, 11 (UTC через `Clock`, целые граммы для веса, транзакция + `lockForUpdate` при фиксации подходов).
 - Затронутые разделы ТЗ / задачи: Бизнес-ТЗ 9; Тех. ТЗ 3, 6.1, 7.1, 11, 14; T5-06a…T5-07b
 - Статус: принято
+
+
+### D-019 — План и архитектурные границы эпика E6-C (функции приоритета Could)
+- Дата: 2026-11-15
+- Тип: решение
+- Решение: разработчик подтвердил детализированный план эпика `E6-C` (`T6-11a`–`T6-15`):
+  1) Геопроверка при чекине (`T6-11a`, `T6-11b`): поля `geo_check_enabled` (default `false`) и `geo_check_radius_meters` (default `200`, диапазон `50..5000`) в `gyms`, правило `WithinGymGeoFenceRule` (гаверсинус по координатам витрины зала), необязательные `latitude`/`longitude` в `POST /api/v1/client/visits/check-in`.
+  2) Личный динамический QR клиента (`T6-12a`, `T6-12b`): метод посещения `client_qr`, клиентский 60-секундный HMAC-токен (`GET /api/v1/client/visits/qr`) и сканирование сотрудником зала `POST /api/v1/business/gyms/{id}/check-in-qr` с `Idempotency-Key`.
+  3) Отзывы и рейтинг залов (`T6-13a`, `T6-13b`): хранение в таблице `companies_gym_reviews` (модуль `Companies`, уникальность `(gym_id, user_id)`), проверка завершённого посещения через узкий контракт `Visits/Contracts/ClientGymVisitCheckInterface`, эндпоинты `PUT /api/v1/client/gyms/{publicId}/review` и `GET /api/v1/public/gyms/{publicId}/reviews` в модуле `Catalog`, поля `rating_avg` и `reviews_count` в витрине каталога.
+  4) Объявления зала (`T6-14`): расширение `ClientLookupInterface::listRecipientsForCompany`, тип уведомлений `gym_announcement`, `POST /api/v1/business/notifications/announcements` с постановкой джобов с явным `company_id`.
+  5) HTTP-адаптеры SMS/Push (`T6-15`): драйверы `SMS_DRIVER`/`PUSH_DRIVER` (`log|http`, по умолчанию `log`) в `config/services.php` и `.env.example`, реализации `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`.
+- Причина: реализация всех функций приоритета `Could` из Бизнес-ТЗ (разделы 5.3, 6.2, 6.3, 7, 11, 15.1) с сохранением строгих границ модулей через `Contracts`.
+- Затронутые разделы ТЗ / задачи: Бизнес-ТЗ 5.3, 6.2, 6.3, 7, 11, 15.1; Тех. ТЗ 3.5, 3.7, 4.4, 8, 9.1, 16.3; T6-11a…T6-15
+- Статус: принято
