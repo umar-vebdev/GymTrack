@@ -89,4 +89,25 @@ final class EloquentClientLookup implements ClientLookupInterface
             ->pluck('id')
             ->all();
     }
+
+    /**
+     * @return list<ClientRecipientDto>
+     */
+    public function listRecipientsForCompany(int $companyId): array
+    {
+        /** @var list<ClientRecipientDto> */
+        return ClientModel::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->orderBy('id')
+            ->get(['id', 'company_id', 'user_id', 'name', 'phone'])
+            ->map(static fn (ClientModel $model): ClientRecipientDto => new ClientRecipientDto(
+                clientId: (int) $model->id,
+                companyId: (int) $model->company_id,
+                userId: $model->user_id !== null ? (int) $model->user_id : null,
+                name: (string) $model->name,
+                phone: (string) $model->phone,
+            ))
+            ->values()
+            ->all();
+    }
 }

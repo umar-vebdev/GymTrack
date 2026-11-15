@@ -214,12 +214,9 @@
 
 - [x] **T6-13b** Сценарии и HTTP-эндпоинты отзывов (`Catalog`): `GymReviewDenied`, `UpsertGymReview`, `ListPublicGymReviews`, `UpsertGymReviewRequest`, `ListPublicGymReviewsRequest`, `PublicGymReviewResource`, контроллеры `PUT /api/v1/client/gyms/{publicId}/review` (`VISIT_REQUIRED_FOR_REVIEW` при отсутствии завершённого визита) и `GET /api/v1/public/gyms/{publicId}/reviews`, `rating_avg`/`reviews_count` в `PublicGymResource`, обновление `SearchGymsTest` и `docs/api/public-catalog.yaml`; `GymReviewsEndpointsTest` + `SearchGymsTest` + `ListPublicGymsTest` + `ShowPublicGymTest` + `PublicCatalogIdsTest` (24 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`)
-  - **ТЗ:** Бизнес-ТЗ 5.3; Тех. ТЗ 9.4, 15.
-  - **Файлы:** `ClientLookupInterface`, `EloquentClientLookup`, `NotificationType`, `SendGymAnnouncement`, `SendGymAnnouncementController`, `SendGymAnnouncementRequest`, `Notifications/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Notifications/SendGymAnnouncementTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=SendGymAnnouncementTest` и полный набор проверок зелёные.
+- [x] **T6-14** Рассылка объявлений зала (`Notifications` + `Clients`): метод `listRecipientsForCompany` в `ClientLookupInterface`/`EloquentClientLookup`, `NotificationType::GymAnnouncement`, сценарий `SendGymAnnouncement`, `SendGymAnnouncementRequest`, `SendGymAnnouncementController` (`POST /api/v1/business/notifications/announcements`, доступ `owner`/`admin`), обновление `docs/api/visits-analytics.yaml`; `SendGymAnnouncementTest` + Notifications-набор (28 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`)
+- [~] **T6-15** HTTP-адаптеры `HttpSmsGateway` и `HttpPushGateway` (`Identity` + `Notifications`)
   - **ТЗ:** Бизнес-ТЗ 15.1; Тех. ТЗ 4.4, 16.3.
   - **Файлы:** `config/services.php`, `.env.example`, `HttpSmsGateway`, `HttpNotificationsSmsGateway`, `HttpPushGateway`, `IdentityServiceProvider`, `NotificationsServiceProvider`, `README.md`, `tests/Unit/Notifications/HttpGatewaysTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=HttpGatewaysTest` и полный набор проверок зелёные.

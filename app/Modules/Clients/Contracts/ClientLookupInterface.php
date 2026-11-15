@@ -35,4 +35,11 @@ interface ClientLookupInterface
      * @return list<int>
      */
     public function findAllClientIdsByUser(int $userId): array;
+
+    /**
+     * Возвращает список всех получателей уведомлений (клиентов) указанной компании.
+     *
+     * @return list<ClientRecipientDto>
+     */
+    public function listRecipientsForCompany(int $companyId): array;
 }
