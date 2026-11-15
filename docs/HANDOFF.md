@@ -6,11 +6,11 @@
 
 ## Что сделано в последней сессии
 
-- Подготовлено мобильное ТЗ `docs/specs/GymTrack_Mobile_TZ.md` (`b71b0e8`) и принято решение **`D-021`**.
+- Подготовлено и разделено мобильное ТЗ (`b71b0e8`, решение **`D-021`**) на два отдельных продукта: [uGym_Mobile_TZ.md](specs/uGym_Mobile_TZ.md) (для посетителей) и [uGym_Business_Mobile_TZ.md](specs/uGym_Business_Mobile_TZ.md) (для владельцев зала, администраторов и тренеров).
 - **`T8-01`** (`ed5280f`): серверный выход `POST /api/v1/auth/logout`, сброс пароля по Email OTP `POST /api/v1/auth/reset-password`, обёртка `data.message` + `message` в `send-otp` и `verify-email`.
 - **`T8-02`** (`4a6fdbe`): поддержка публичных ULID (`public_id`) наряду с числовыми ID в `POST /api/v1/client/membership-requests`, `GET /api/v1/client/gyms/{gym}/schedule` и `POST /api/v1/client/schedule/sessions/{session}/book`.
 - **`T8-03`** (`ac16be4`): добавлена миграция `2026_11_15_000004_add_idempotency_key_to_workouts_tables` и поддержка заголовка `Idempotency-Key` (до 128 символов) в `POST /api/v1/client/workouts/sessions` и `POST /api/v1/client/workouts/sessions/{session}/sets`.
-- **`T8-04`** (готово): актуализированы `docs/api/{identity-auth,business-core,schedule,workouts}.yaml`, `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`; провалидированы все 11 YAML-файлов и пройден полный набор проверок.
+- **`T8-04`** (готово): актуализированы `docs/api/{identity-auth,business-core,schedule,workouts}.yaml`, мобильные ТЗ и `README.md`; провалидированы все 11 YAML-файлов и пройден полный набор проверок.
 
 ## Актуальное состояние проверок
 
@@ -27,4 +27,4 @@
 
 ## Точный следующий шаг
 
-- Бэкенд Этапов 0–8 полностью завершён и проверен; следующий шаг — старт мобильной разработки по [GymTrack_Mobile_TZ.md](specs/GymTrack_Mobile_TZ.md) (выбор стека перед `M0` в `docs/DECISIONS.md`) или выполнение `php artisan migrate` на целевом окружении для применения `2026_11_15_000004_add_idempotency_key_to_workouts_tables`.
+- Бэкенд Этапов 0–8 полностью завершён и проверен; следующий шаг — старт мобильной разработки по [uGym_Mobile_TZ.md](specs/uGym_Mobile_TZ.md) (клиентское приложение, этапы `M0–M4`) и [uGym_Business_Mobile_TZ.md](specs/uGym_Business_Mobile_TZ.md) (бизнес-приложение, этапы `B0–B4`) после выбора стека в `docs/DECISIONS.md`, либо выполнение `php artisan migrate` на целевом окружении для применения `2026_11_15_000004_add_idempotency_key_to_workouts_tables`.

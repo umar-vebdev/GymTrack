@@ -21,7 +21,7 @@
 - [x] **Этап 5 (Дневник тренировок):** Модуль `Workouts` — системные и личные упражнения, библиотека готовых планов платформы, собственные планы клиента и копирование из библиотеки, тренировочные сессии с фиксацией подходов и история прогресса по упражнениям.
 - [x] **Этап 6 (`E6-A`, `E6-B`, `E6-C` — мультифилиальность, релизная подготовка и функции `Could`):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`), Docker-сервисы `worker` и `scheduler`, опциональная геопроверка чекина, личный динамический QR клиента, отзывы и рейтинг залов, массовые объявления залов (`push`/`sms`) и HTTP-шлюзы уведомлений.
 - [x] **Этап 7 (`E7-A`, решение `D-020` — переход OTP и связывания на Email):** подтверждение учётной записи и регистрация клиента по Email OTP (`MailEmailOtpGateway`, `/api/v1/auth/verify-email`), вход по `email` или `phone`, nullable-поле `clients.email` и автопривязка CRM-карточек по событию `EmailVerified`, добавление сотрудников по подтверждённому `email`.
-- [x] **Этап 8 (Подготовка API к мобильному приложению, решение `D-021`):** серверный выход `POST /api/v1/auth/logout`, сброс пароля по Email OTP `POST /api/v1/auth/reset-password`, обёртка `data.message` в `send-otp` / `verify-email` / `reset-password`, поддержка публичных ULID (`public_id`) наряду с числовыми ID в `/client/membership-requests`, `/client/gyms/{gym}/schedule` и `/client/schedule/sessions/{session}/book`, заголовок `Idempotency-Key` для тренировочных сессий и подходов `Workouts`, синхронизация OpenAPI и [ТЗ мобильного приложения](docs/specs/GymTrack_Mobile_TZ.md).
+- [x] **Этап 8 (Подготовка API к мобильному приложению, решение `D-021`):** серверный выход `POST /api/v1/auth/logout`, сброс пароля по Email OTP `POST /api/v1/auth/reset-password`, обёртка `data.message` в `send-otp` / `verify-email` / `reset-password`, поддержка публичных ULID (`public_id`) наряду с числовыми ID в `/client/membership-requests`, `/client/gyms/{gym}/schedule` и `/client/schedule/sessions/{session}/book`, заголовок `Idempotency-Key` для тренировочных сессий и подходов `Workouts`, синхронизация OpenAPI и мобильных ТЗ ([uGym](docs/specs/uGym_Mobile_TZ.md) и [uGym Business](docs/specs/uGym_Business_Mobile_TZ.md)).
 
 Покрытие и качество: **571 тест (3973 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
 
@@ -215,7 +215,8 @@ docker compose exec -T app composer test -- --compact --colors=never
 
 - [Бизнес-требования (ТЗ v2)](docs/specs/GymTrack_TZ_v2.md)
 - [Техническое задание](docs/specs/GymTrack_Technical_TZ.md)
-- [ТЗ мобильного приложения (iOS / Android)](docs/specs/GymTrack_Mobile_TZ.md)
+- [ТЗ мобильного приложения uGym — для посетителей (iOS / Android)](docs/specs/uGym_Mobile_TZ.md)
+- [ТЗ мобильного приложения uGym Business — для владельцев, админов и тренеров (iOS / Android)](docs/specs/uGym_Business_Mobile_TZ.md)
 - [Чек-лист задач](docs/TASKS.md)
 - [Журнал архитектурных решений](docs/DECISIONS.md)
 - [Текущее состояние (Handoff)](docs/HANDOFF.md)
