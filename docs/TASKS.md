@@ -206,12 +206,9 @@
 
 - [x] **T6-11b** Координаты в `POST /api/v1/client/visits/check-in` и настройках зала (`Visits` + `Companies`): поддержка `geo_check_enabled`/`geo_check_radius_meters` в `CreateGym`/`UpdateGym`/`GymsController`/`StoreGymRequest`/`UpdateGymRequest`/`GymResource`, передача `latitude`/`longitude` в `CheckInByQrRequest`/`CheckInByQrCommand`/`CheckInByQr`, маппинг `GEO_LOCATION_REQUIRED`/`OUTSIDE_GYM_GEOFENCE` в `CheckInByQrController`, обновление `docs/api/companies.yaml` и `docs/api/visits-analytics.yaml`; `CheckInByQrGeoEndpointTest` + `ManageGymsEndpointTest` + `CheckInByQrEndpointTest` зелёные, `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`)
-  - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 8, 9.1.
-  - **Файлы:** `VisitMethod`, `ClientQrPayload`, `QrTokenServiceInterface`, `HmacQrTokenService`, `GenerateClientQr`, `CheckInByClientQrCommand`, `CheckInByClientQr`, `VisitsServiceProvider`, `tests/Feature/Visits/ClientQrUseCasesTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrUseCasesTest` и полный набор проверок зелёные.
+- [x] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`): добавлен `VisitMethod::ClientQr = 'client_qr'`, Value Object `ClientQrPayload`, методы `generateForClient`/`verifyClientToken` в `QrTokenServiceInterface`/`HmacQrTokenService`, сценарии `GenerateClientQr`, `CheckInByClientQrCommand`, `CheckInByClientQr` и тег `$rules` в `VisitsServiceProvider`; `ClientQrUseCasesTest` + `HmacQrTokenServiceTest` (3 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`)
+- [~] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`)
   - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 7.1, 7.3, 15.
   - **Файлы:** `GetClientQrController`, `CheckInByClientQrController`, `CheckInByClientQrRequest`, `Visits/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Visits/ClientQrEndpointsTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrEndpointsTest` и полный набор проверок зелёные.

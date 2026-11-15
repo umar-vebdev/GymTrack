@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Visits;
 
+use App\Modules\Visits\Application\CheckInByClientQr;
 use App\Modules\Visits\Application\CheckInByQr;
 use App\Modules\Visits\Application\CheckInManually;
 use App\Modules\Visits\Contracts\VisitsAnalyticsQueryInterface;
@@ -24,6 +25,11 @@ final class VisitsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(HmacQrTokenService::class, function (): HmacQrTokenService {
+            $appKey = config('app.key');
+
+            return new HmacQrTokenService(is_string($appKey) ? $appKey : null);
+        });
         $this->app->bind(
             QrTokenServiceInterface::class,
             HmacQrTokenService::class,
@@ -45,7 +51,7 @@ final class VisitsServiceProvider extends ServiceProvider
             WithinGymGeoFenceRule::class,
         ], CheckInRuleInterface::class);
 
-        $this->app->when([CheckInByQr::class, CheckInManually::class])
+        $this->app->when([CheckInByQr::class, CheckInByClientQr::class, CheckInManually::class])
             ->needs('$rules')
             ->giveTagged(CheckInRuleInterface::class);
     }

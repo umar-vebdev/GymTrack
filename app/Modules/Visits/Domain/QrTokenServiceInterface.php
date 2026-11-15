@@ -14,9 +14,18 @@ interface QrTokenServiceInterface
     public function generate(int $gymId, string $secret, DateTimeImmutable $at): QrPayload;
 
     /**
-     * Проверяет подпись и временной интервал токена (текущий или предыдущий слот) и возвращает ID зала.
+     * Проверяет подпись и временной интервал токена зала (текущий или предыдущий слот).
      *
      * @throws InvalidQrToken
      */
     public function verifyForGym(string $token, int $gymId, string $secret, DateTimeImmutable $at): void;
+
+    public function generateForClient(int $userId, DateTimeImmutable $at): ClientQrPayload;
+
+    /**
+     * Проверяет подпись и временной интервал личного QR-токена клиента (текущий или предыдущий слот) и возвращает ID пользователя.
+     *
+     * @throws InvalidQrToken
+     */
+    public function verifyClientToken(string $token, DateTimeImmutable $at): int;
 }

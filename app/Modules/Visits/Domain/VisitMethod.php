@@ -7,5 +7,6 @@ namespace App\Modules\Visits\Domain;
 enum VisitMethod: string
 {
     case Qr = 'qr';
+    case ClientQr = 'client_qr';
     case Manual = 'manual';
 }
