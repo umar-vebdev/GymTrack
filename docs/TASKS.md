@@ -208,12 +208,9 @@
 
 - [x] **T6-12a** Генерация и проверка личного QR клиента + сценарии (`Visits`): добавлен `VisitMethod::ClientQr = 'client_qr'`, Value Object `ClientQrPayload`, методы `generateForClient`/`verifyClientToken` в `QrTokenServiceInterface`/`HmacQrTokenService`, сценарии `GenerateClientQr`, `CheckInByClientQrCommand`, `CheckInByClientQr` и тег `$rules` в `VisitsServiceProvider`; `ClientQrUseCasesTest` + `HmacQrTokenServiceTest` (3 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`)
-  - **ТЗ:** Бизнес-ТЗ 6.3, 11; Тех. ТЗ 7.1, 7.3, 15.
-  - **Файлы:** `GetClientQrController`, `CheckInByClientQrController`, `CheckInByClientQrRequest`, `Visits/Presentation/routes.php`, `docs/api/visits-analytics.yaml`, `tests/Feature/Visits/ClientQrEndpointsTest.php`.
-  - **Готовность:** `docker compose exec -T app php artisan test --filter=ClientQrEndpointsTest` и полный набор проверок зелёные.
+- [x] **T6-12b** HTTP-эндпоинты личного QR клиента (`Visits`): `GetClientQrController` (`GET /api/v1/client/visits/qr`), `CheckInByClientQrController` (`POST /api/v1/business/gyms/{id}/check-in-qr`, доступ `owner`/`admin`, `Idempotency-Key`), `CheckInByClientQrRequest`, маршруты в `Visits/Presentation/routes.php`, обновление `docs/api/visits-analytics.yaml`; `ClientQrEndpointsTest` (2 passed), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`)
+- [~] **T6-13a** Контракт проверки посещения и хранение отзывов (`Visits` + `Companies`)
   - **ТЗ:** Бизнес-ТЗ 7, 11; Тех. ТЗ 3.5, 3.7, 6.1.
   - **Файлы:** `ClientGymVisitCheckInterface`, `EloquentClientGymVisitCheck`, `VisitsServiceProvider`, миграция `2026_11_15_000002_create_companies_gym_reviews_table`, `GymReview`, `GymReviewModel`, `PublicGymReviewDto`, `GymReviewCatalogContractInterface`, `EloquentGymReviewCatalog`, `PublicGymProfile`, `EloquentPublicGymQuery`, `CompaniesServiceProvider`, `tests/Unit/Companies/GymReviewRepositoryTest.php`.
   - **Готовность:** `docker compose exec -T app php artisan test --filter=GymReviewRepositoryTest` и полный набор проверок зелёные.

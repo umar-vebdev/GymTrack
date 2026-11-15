@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Modules\Visits\Presentation\CancelVisitController;
+use App\Modules\Visits\Presentation\CheckInByClientQrController;
 use App\Modules\Visits\Presentation\CheckInByQrController;
+use App\Modules\Visits\Presentation\GetClientQrController;
 use App\Modules\Visits\Presentation\GetGymQrController;
 use App\Modules\Visits\Presentation\ListClientVisitsController;
 use App\Modules\Visits\Presentation\ListCompanyVisitsController;
@@ -15,6 +17,7 @@ Route::prefix('api/v1/business')
     ->middleware('auth:sanctum')
     ->group(function () {
         Route::get('/gyms/{id}/qr', GetGymQrController::class);
+        Route::post('/gyms/{id}/check-in-qr', CheckInByClientQrController::class);
         Route::get('/visits', ListCompanyVisitsController::class);
         Route::get('/clients/{id}/visits', ListClientVisitsController::class);
         Route::post('/clients/{id}/visits', ManualCheckInController::class);
@@ -24,6 +27,7 @@ Route::prefix('api/v1/business')
 Route::prefix('api/v1/client')
     ->middleware(['auth:sanctum', 'throttle:30,1'])
     ->group(function () {
+        Route::get('/visits/qr', GetClientQrController::class);
         Route::post('/visits/check-in', CheckInByQrController::class);
         Route::get('/visits', ListMyVisitsController::class);
     });
