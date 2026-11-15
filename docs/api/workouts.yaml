@@ -538,9 +538,17 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      summary: Старт новой тренировочной сессии клиента (по плану или свободной)
+      summary: Старт новой тренировочной сессии клиента (по плану или свободной, `Idempotency-Key`)
+      description: При передаче `Idempotency-Key` (до 128 символов) повторный запрос от того же пользователя возвращает ранее созданную сессию без дубля.
       security:
         - bearerAuth: []
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            maxLength: 128
       requestBody:
         required: true
         content:
@@ -588,7 +596,8 @@ paths:
 
   /api/v1/client/workouts/sessions/{session}/sets:
     post:
-      summary: Фиксация подхода с весом и повторениями в активной сессии
+      summary: Фиксация подхода с весом и повторениями в активной сессии (`Idempotency-Key`)
+      description: При передаче `Idempotency-Key` (до 128 символов) повторный запрос в рамках той же сессии возвращает актуальную сессию без дублирования подхода.
       security:
         - bearerAuth: []
       parameters:
@@ -597,6 +606,12 @@ paths:
           required: true
           schema:
             type: integer
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            maxLength: 128
       requestBody:
         required: true
         content:

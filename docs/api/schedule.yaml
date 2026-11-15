@@ -271,15 +271,21 @@ paths:
   /api/v1/client/gyms/{gym}/schedule:
     get:
       summary: Просмотр расписания зала клиентом за период дат
+      description: Принимает как числовой ID зала, так и публичный ULID (`public_id`).
       security:
         - bearerAuth: []
       parameters:
         - in: path
           name: gym
           required: true
+          description: Числовой ID или публичный ULID (`public_id`) зала.
           schema:
-            type: integer
-            minimum: 1
+            oneOf:
+              - type: integer
+                minimum: 1
+              - type: string
+                minLength: 26
+                maxLength: 26
         - in: query
           name: from_date
           required: true
@@ -327,9 +333,14 @@ paths:
         - in: path
           name: session
           required: true
+          description: Числовой ID или публичный ULID (`public_id`) занятия.
           schema:
-            type: integer
-            minimum: 1
+            oneOf:
+              - type: integer
+                minimum: 1
+              - type: string
+                minLength: 26
+                maxLength: 26
         - in: header
           name: Idempotency-Key
           required: false

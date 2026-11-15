@@ -826,6 +826,7 @@ paths:
                       $ref: '#/components/schemas/MembershipRequest'
     post:
       summary: Создание клиентом заявки на покупку абонемента (срок действия 24 часа, `Idempotency-Key`)
+      description: Принимает как числовые внутренние ID, так и публичные ULID (`public_id`) зала и тарифа абонемента из витрины каталога.
       security:
         - bearerAuth: []
       parameters:
@@ -839,9 +840,21 @@ paths:
               required: [gym_id, membership_type_id]
               properties:
                 gym_id:
-                  type: integer
+                  description: Числовой ID зала или публичный ULID (`public_id`).
+                  oneOf:
+                    - type: integer
+                      minimum: 1
+                    - type: string
+                      minLength: 26
+                      maxLength: 26
                 membership_type_id:
-                  type: integer
+                  description: Числовой ID типа абонемента или публичный ULID (`public_id`).
+                  oneOf:
+                    - type: integer
+                      minimum: 1
+                    - type: string
+                      minLength: 26
+                      maxLength: 26
       responses:
         '201':
           description: Заявка создана

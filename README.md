@@ -21,8 +21,9 @@
 - [x] **Этап 5 (Дневник тренировок):** Модуль `Workouts` — системные и личные упражнения, библиотека готовых планов платформы, собственные планы клиента и копирование из библиотеки, тренировочные сессии с фиксацией подходов и история прогресса по упражнениям.
 - [x] **Этап 6 (`E6-A`, `E6-B`, `E6-C` — мультифилиальность, релизная подготовка и функции `Could`):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`), Docker-сервисы `worker` и `scheduler`, опциональная геопроверка чекина, личный динамический QR клиента, отзывы и рейтинг залов, массовые объявления залов (`push`/`sms`) и HTTP-шлюзы уведомлений.
 - [x] **Этап 7 (`E7-A`, решение `D-020` — переход OTP и связывания на Email):** подтверждение учётной записи и регистрация клиента по Email OTP (`MailEmailOtpGateway`, `/api/v1/auth/verify-email`), вход по `email` или `phone`, nullable-поле `clients.email` и автопривязка CRM-карточек по событию `EmailVerified`, добавление сотрудников по подтверждённому `email`.
+- [x] **Этап 8 (Подготовка API к мобильному приложению, решение `D-021`):** серверный выход `POST /api/v1/auth/logout`, сброс пароля по Email OTP `POST /api/v1/auth/reset-password`, обёртка `data.message` в `send-otp` / `verify-email` / `reset-password`, поддержка публичных ULID (`public_id`) наряду с числовыми ID в `/client/membership-requests`, `/client/gyms/{gym}/schedule` и `/client/schedule/sessions/{session}/book`, заголовок `Idempotency-Key` для тренировочных сессий и подходов `Workouts`, синхронизация OpenAPI и [ТЗ мобильного приложения](docs/specs/GymTrack_Mobile_TZ.md).
 
-Покрытие и качество: **564 тестов (3903 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
+Покрытие и качество: **571 тест (3973 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
 
 ---
 
@@ -67,7 +68,7 @@ app/
 2. **Чистый Domain:** доменный слой не зависит от Laravel, БД и сторонних пакетов (подтверждается архитектурными тестами Pest).
 3. **Мультиарендность (Multi-tenancy):** данные залов изолированы по `company_id` с помощью `CompanyScope`, составных индексов БД и проверок принадлежности в `Policy`.
 4. **Финансы, вес и время:** деньги хранятся целыми числами в минимальных единицах (`Money`), вес в тренировках — целыми граммами, время в БД — исключительно в UTC.
-5. **Надёжность и идемпотентность:** критичные операции (чекин, продажа, заявка, запись на занятие) поддерживают заголовок `Idempotency-Key`, выполняются в транзакциях БД с блокировкой строк (`lockForUpdate`).
+5. **Надёжность и идемпотентность:** критичные операции (чекин, продажа, заявка, запись на занятие, старт тренировочной сессии и фиксация подходов в тренировках) поддерживают заголовок `Idempotency-Key`, выполняются в транзакциях БД с блокировкой строк (`lockForUpdate`).
 6. **Динамический QR:** HMAC-SHA256 токен с 60-секундным интервалом (принимается текущий и предыдущий слот) и зашифрованным секретом зала.
 
 ---
@@ -78,7 +79,7 @@ app/
 
 ### Общие маршруты (`/api/v1`)
 - `GET /health` — проверка состояния приложения, PostgreSQL и Redis.
-- `POST /auth/register`, `POST /auth/login`, `POST /auth/send-otp`, `POST /auth/verify-email` — регистрация, вход (`email` или `phone`) и подтверждение email по OTP.
+- `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/send-otp`, `POST /auth/verify-email`, `POST /auth/reset-password` — регистрация, вход (`email` или `phone`), выход (отзыв текущего токена), подтверждение email и сброс пароля по OTP.
 - `GET /user` — текущий авторизованный пользователь.
 
 ### Кабинет зала (`/api/v1/business/...`, Sanctum)
@@ -93,12 +94,12 @@ app/
 
 ### Приложение клиента (`/api/v1/client/...`, Sanctum)
 - **Профиль и уведомления:** `POST /auth/register`, `GET/DELETE /profile`, `POST/DELETE /device-tokens`.
-- **Абонементы, покупки, посещения и отзывы:** `GET /visits/qr`, `POST /visits/check-in`, `GET /visits`, `GET/POST /membership-requests`, `GET /memberships`, `GET /purchases`, `PUT /gyms/{publicId}/review`.
-- **Расписание и запись:** `GET /gyms/{gym}/schedule`, `POST /schedule/sessions/{session}/book`, `POST /schedule/bookings/{booking}/cancel`, `GET /schedule/bookings`.
+- **Абонементы, покупки, посещения и отзывы:** `GET /visits/qr`, `POST /visits/check-in`, `GET /visits`, `GET/POST /membership-requests` (ID и `public_id`), `GET /memberships`, `GET /purchases`, `PUT /gyms/{publicId}/review`.
+- **Расписание и запись:** `GET /gyms/{gym}/schedule` (ID и `public_id`), `POST /schedule/sessions/{session}/book` (ID и `public_id`), `POST /schedule/bookings/{booking}/cancel`, `GET /schedule/bookings`.
 - **Дневник тренировок (`/workouts`):**
   - упражнения: `GET/POST /exercises`, `PATCH /exercises/{exercise}`, `GET /exercises/{exercise}/progress`;
   - библиотека и планы: `GET /library`, `GET /library/{plan}`, `POST /library/{plan}/copy`, `GET/POST /plans`, `GET/PATCH/DELETE /plans/{plan}`;
-  - сессии: `GET/POST /sessions`, `GET /sessions/{session}`, `POST /sessions/{session}/sets`, `POST /sessions/{session}/complete`.
+  - сессии: `GET/POST /sessions` (`Idempotency-Key`), `GET /sessions/{session}`, `POST /sessions/{session}/sets` (`Idempotency-Key`), `POST /sessions/{session}/complete`.
 
 ### Публичный каталог (`/api/v1/public/...`, без авторизации)
 - `GET /gyms` — поиск и фильтрация опубликованных залов (`q`, `district`, `amenities[]`, `price_min`/`price_max` + `currency`, геофильтры `lat`/`lng`/`radius_km` и `sw_lat`/`sw_lng`/`ne_lat`/`ne_lng`).

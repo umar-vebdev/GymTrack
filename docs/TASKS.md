@@ -246,9 +246,4 @@
 
 - [x] **T8-03** Поддержка `Idempotency-Key` в создании тренировочной сессии и логировании подходов (`Workouts`): миграция `2026_11_15_000004_add_idempotency_key_to_workouts_tables` (колонка `idempotency_key` и уникальные индексы `(user_id, idempotency_key)` / `(session_id, idempotency_key)`), `WorkoutSession::cleanIdempotencyKey()` (макс. 128 символов, ошибка `400 BAD_REQUEST`), идемпотентный lookup в `EloquentWorkoutSessionRepository::start()`/`addSet()`, проброс заголовка в `ClientWorkoutSessionsController`, unit- и feature-тесты (`25 passed, 350 assertions`, `lint`/`analyse`/`deps` зелёные).
 
-- [~] **T8-04** Актуализация OpenAPI (`docs/api/*.yaml`), `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`
-  - **Цель:** синхронизировать документацию API, мобильное ТЗ и список маршрутов с изменениями `T8-01`–`T8-03`.
-  - **Ссылки на ТЗ:** Mobile TZ 3.1, 3.2, 3.5, 3.6, 5.1, 5.3, 5.5, 5.6; D-021.
-  - **Файлы:** `docs/api/{identity-auth,business-core,schedule,workouts}.yaml`, `docs/specs/GymTrack_Mobile_TZ.md`, `README.md`.
-  - **Шаги:** (1) обновить 4 OpenAPI YAML-файла; (2) актуализировать `GymTrack_Mobile_TZ.md` и `README.md`; (3) проверить все 11 YAML-файлов и прогнать полный стек проверок.
-  - **Критерий готовности:** валидны все 11 YAML-файлов, `composer lint`, `composer analyse`, `composer deps` и `docker compose exec -T app composer test` зелёные.
+- [x] **T8-04** Актуализация OpenAPI (`docs/api/*.yaml`), `docs/specs/GymTrack_Mobile_TZ.md` и `README.md`: обновлены `identity-auth.yaml`, `business-core.yaml`, `schedule.yaml`, `workouts.yaml`, `GymTrack_Mobile_TZ.md` (п. 1.3, 3.1–3.6, 5.1, 5.3, 5.5, 5.6, 6.2, 7.1) и `README.md`; провалидированы все 11 YAML-файлов через `Yaml::parseFile`, пройдены `composer lint`, `composer analyse`, `composer deps` и полный прогон `docker compose exec -T app composer test` (`571 passed, 3973 assertions`).

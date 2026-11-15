@@ -108,11 +108,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [message]
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageEnvelopeResponse'
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
@@ -136,11 +132,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [message]
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/MessageEnvelopeResponse'
         '400':
           description: Неверный или просроченный OTP-код
           content:
@@ -151,6 +143,62 @@ paths:
           $ref: '#/components/responses/ValidationFailed'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/reset-password:
+    post:
+      summary: Сброс пароля по одноразовому 6-значному OTP-коду с email
+      description: Проверяет Email OTP (`otp:email:{email}`), обновляет пароль, подтверждает email при необходимости и отзывает все Sanctum-токены пользователя. Ограничение частоты — `auth-otp-verify` (5/мин по email и IP, 15/мин с IP).
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordPayload'
+      responses:
+        '200':
+          description: Пароль успешно изменён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageEnvelopeResponse'
+        '400':
+          description: Неверный или просроченный OTP-код
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/auth/logout:
+    post:
+      summary: Выход из текущей сессии (отзыв текущего Sanctum Bearer-токена)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Текущий токен отозван
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    required: [logged_out]
+                    properties:
+                      logged_out:
+                        type: boolean
+                        enum: [true]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/user:
     get:
@@ -382,6 +430,34 @@ components:
           type: string
           minLength: 6
           maxLength: 6
+    ResetPasswordPayload:
+      type: object
+      required: [email, code, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+        password:
+          type: string
+          minLength: 8
+    MessageEnvelopeResponse:
+      type: object
+      required: [data, message]
+      properties:
+        data:
+          type: object
+          required: [message]
+          properties:
+            message:
+              type: string
+        message:
+          type: string
+          description: Дублирующий ключ верхнего уровня для обратной совместимости.
     RegisterClientPayload:
       type: object
       required: [email, name, password, birth_date, consent]

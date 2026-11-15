@@ -3,7 +3,7 @@
 **Версия:** 1.0  
 **Дата:** 2026-11-15  
 **Статус:** Утверждено как базовое ТЗ мобильной разработки  
-**Источники истины бэкенда:** [GymTrack_TZ_v2.md](GymTrack_TZ_v2.md), [GymTrack_Technical_TZ.md](GymTrack_Technical_TZ.md), [DECISIONS.md](../DECISIONS.md) (`D-020`), OpenAPI-спецификации в `docs/api/*.yaml`
+**Источники истины бэкенда:** [GymTrack_TZ_v2.md](GymTrack_TZ_v2.md), [GymTrack_Technical_TZ.md](GymTrack_Technical_TZ.md), [DECISIONS.md](../DECISIONS.md) (`D-020`, `D-021`), OpenAPI-спецификации в `docs/api/*.yaml`
 
 ---
 
@@ -12,7 +12,7 @@
 ### 0.1. Назначение документа
 Настоящее ТЗ описывает архитектуру, UX/навигацию, интеграцию с готовым REST API (`/api/v1`), офлайн-логику, требования безопасности и дорожную карту разработки мобильного приложения **GymTrack** для платформ **iOS** и **Android**.
 
-Бэкенд платформы (модульный монолит на Laravel 12, Этапы 0–7) полностью реализован и покрывает оба клиента (iOS и Android) через единое API.
+Бэкенд платформы (модульный монолит на Laravel 12, Этапы 0–8) полностью реализован и покрывает оба клиента (iOS и Android) через единое API.
 
 ### 0.2. Границы продукта и неизменяемые инварианты
 Мобильное приложение **обязано** соблюдать следующие архитектурные и бизнес-инварианты бэкенда:
@@ -24,7 +24,7 @@
    - *Режим А (основной):* клиент сканирует QR-код, отображаемый на стойке/экране зала.
    - *Режим Б (резервный / для турникетов-сканеров):* клиент показывает на экране смартфона свой динамический QR-код (`GET /api/v1/client/visits/qr`), а сотрудник сканирует его.
    - Клиентское приложение **не генерирует и не проверяет HMAC-подпись** локально — токен `token` передаётся и отображается как непрозрачная строка.
-5. **Идемпотентность критических операций.** Запросы отметки посещения, создания заявки на абонемент и записи на групповое занятие обязаны отправляться с заголовком `Idempotency-Key` (строка до 128 символов, UUID v4), чтобы повторная отправка при обрыве связи не приводила к двойному списанию визита или дублю записи.
+5. **Идемпотентность критических операций.** Запросы отметки посещения, создания заявки на абонемент, записи на групповое занятие, старта тренировочной сессии и логирования подходов в тренировках обязаны отправляться с заголовком `Idempotency-Key` (строка до 128 символов, UUID v4), чтобы повторная отправка при обрыве связи или фоновой синхронизации не приводила к двойному списанию визита, дублю записи или дублированию подходов.
 6. **Единицы измерения и время:**
    - Деньги: целые числа в минимальных единицах (`price_minor`, `total_minor` — дирамы/копейки) + 3-буквенный ISO-код валюты (`currency`, по умолчанию `TJS`).
    - Вес в дневнике тренировок: целые числа в граммах (`weight_grams`, `volume_grams`, `target_weight_grams`). В интерфейсе пользователь вводит и видит килограммы (`кг`), приложение конвертирует `кг * 1000 -> weight_grams`.
@@ -134,7 +134,7 @@ lib/
 | `Authorization` | Request | Защищённые API | `Bearer <sanctum_token>` |
 | `Accept-Language` | Request | Всегда | `ru` или `tg` (соответствует выбранному языку в приложении; сервер возвращает `Content-Language`) |
 | `X-Request-Id` | Req / Resp | Всегда | Генерируется клиентом (UUID v4, допустимый формат `[A-Za-z0-9._-]{1,64}`). Сервер возвращает его же в ответе — логировать в отчётах об ошибках |
-| `Idempotency-Key` | Request | Критичные POST | UUID v4 (макс. 128 символов). Обязательно передавать для: `/client/visits/check-in`, `/client/membership-requests`, `/client/schedule/sessions/{session}/book`, `/business/gyms/{id}/check-in-qr` |
+| `Idempotency-Key` | Request | Критичные POST | UUID v4 (макс. 128 символов). Обязательно передавать для: `/client/visits/check-in`, `/client/membership-requests`, `/client/schedule/sessions/{session}/book`, `/client/workouts/sessions`, `/client/workouts/sessions/{session}/sets`, `/business/gyms/{id}/check-in-qr` |
 
 ### 3.2. Формат ответов JSON
 1. **Стандартный успешный ответ:**
@@ -155,9 +155,9 @@ lib/
      "meta": { "from_date": "2026-11-15", "to_date": "2026-11-21" }
    }
    ```
-2. **Исключения формата, которые должен учитывать API-парсер клиента (верифицировано в контроллерах):**
-   - `POST /api/v1/auth/send-otp` и `POST /api/v1/auth/verify-email` возвращают `{"message": "..."}` без ключа `data`.
-   - `GET /api/v1/user` возвращает объект модели `User` напрямую в корне JSON (без обёртки `data`), тогда как `GET /api/v1/client/profile` возвращает `{"data": {...}}`.
+2. **Формат ответов auth и совместимость парсера (`D-021`):**
+   - `POST /api/v1/auth/send-otp`, `POST /api/v1/auth/verify-email` и `POST /api/v1/auth/reset-password` возвращают унифицированную обёртку `{"data": {"message": "..."}, "message": "..."}` (верхнеуровневый ключ `message` сохранён для обратной совместимости), а `POST /api/v1/auth/logout` возвращает `{"data": {"logged_out": true}}`.
+   - `GET /api/v1/user` возвращает объект модели `User` напрямую в корне JSON (без обёртки `data`), поэтому мобильному приложению следует использовать `GET /api/v1/client/profile`, который всегда возвращает `{"data": {...}}`.
    - `GET /api/v1/health` возвращает `{"app": "ok", "database": "ok|error", "redis": "ok|error"}` со статусом `200` или `503`.
 3. **Стандартный формат ошибки:**
    ```json
@@ -177,7 +177,7 @@ lib/
 
 | HTTP | `error.code` | Источник | Реакция мобильного приложения |
 | :--- | :--- | :--- | :--- |
-| `400` | `BAD_REQUEST` | Auth (`VerifyEmail`), Workouts | Показать `error.message` (например, неверный/истёкший OTP-код или недопустимое состояние тренировочной сессии) |
+| `400` | `BAD_REQUEST` | Auth (`VerifyEmail`, `ResetPassword`), Workouts | Показать `error.message` (например, неверный/истёкший OTP-код, превышение длины `Idempotency-Key` > 128 символов или недопустимое состояние тренировочной сессии) |
 | `401` | `UNAUTHORIZED` | Auth middleware, `LoginUser`, Reviews | На экране входа — показать ошибку неверных учётных данных. На любом защищённом API — сбросить токен из SecureStorage и перенаправить на экран входа (с сохранением локальных несинхронизированных черновиков) |
 | `403` | `FORBIDDEN` | Права ролей | Сообщить об отсутствии прав (в т.ч. скрыть Staff Mode) |
 | `403` | `VISIT_REQUIRED_FOR_REVIEW` | Catalog Reviews | Пояснить клиенту: оставить отзыв можно только после минимум одного завершённого посещения этого зала |
@@ -197,7 +197,7 @@ lib/
 - `POST /api/v1/auth/login` (`auth-login`): **5/мин** по комбинации `email/phone + IP` и **20/мин** по `IP`.
 - `POST /api/v1/client/auth/register` и `/auth/register` (`auth-register`): **10/мин** по `IP`.
 - `POST /api/v1/auth/send-otp` (`auth-otp-send`): **3/мин** на `email` и **10/мин** по `IP`. Клиент должен блокировать кнопку «Отправить повторно» минимум на **60 секунд**.
-- `POST /api/v1/auth/verify-email` (`auth-otp-verify`): **5/мин** по `email + IP` и **15/мин** по `IP`.
+- `POST /api/v1/auth/verify-email` и `POST /api/v1/auth/reset-password` (`auth-otp-verify`): **5/мин** по `email + IP` и **15/мин** по `IP`.
 - Все эндпоинты `/api/v1/client/visits/*` (`throttle:30,1`): **30 запросов/мин** на пользователя. Экран личного QR не должен поллить `/visits/qr` чаще 1 раза в 15–55 секунд (обновлять по `expires_at`).
 
 ### 3.5. Политика ретраев (Retry Policy)
@@ -205,20 +205,21 @@ lib/
   - идемпотентных `GET`-запросов;
   - `POST`-запросов с `Idempotency-Key` (строго с тем же самым ключом!).
 - **Запрещено** автоматически ретраить `400`, `401`, `403`, `404`, `409`, `422`, `429`.
-- Для `Workouts` (`POST /sessions/{id}/sets`, где на бэкенде нет `Idempotency-Key`) при сетевом таймауте клиент обязан перед повторной отправкой подхода загрузить `GET /api/v1/client/workouts/sessions/{session}` и убедиться, что подход ещё не попал на сервер.
+- Для `Workouts` (`POST /api/v1/client/workouts/sessions` и `POST /api/v1/client/workouts/sessions/{session}/sets`) на бэкенде поддерживается заголовок `Idempotency-Key` (до 128 символов), поэтому повторный POST-запрос или фоновая отправка из офлайн-очереди с тем же ключом гарантированно не создаёт дубль сессии или подхода. Перед повторной отправкой завершения тренировки (`POST /sessions/{session}/complete`) клиент предварительно проверяет статус через `GET /api/v1/client/workouts/sessions/{session}`.
 
-### 3.6. Интеграционные заметки по текущим контрактам API (Backend Integration Notes)
-При реализации мобильного клиента необходимо учитывать 4 фактические особенности текущей версии API v1:
+### 3.6. Интеграционные заметки по контрактам API (Backend Integration Notes, Этап 8 / `D-021`)
+После доработки бэкенда на Этапе 8 (`D-021`) сняты ключевые ограничения совместимости для мобильного клиента:
 
-1. **Идентификаторы публичного каталога (ULID) vs клиентские действия (integer ID).**  
-   Эндпоинты `GET /api/v1/public/gyms`, `GET /api/v1/public/gyms/{publicId}` и `/public/gyms/{publicId}/schedule` возвращают строковые ULID в полях `id` (`PublicGym.id`, `PublicMembershipType.id`, `PublicClassSession.id`), тогда как в текущих формах запроса:
-   - `POST /api/v1/client/membership-requests` требует целочисленные `gym_id` (`exists:gyms,id`) и `membership_type_id` (`exists:membership_types,id`);
-   - `GET /api/v1/client/gyms/{gym}/schedule` и `POST /api/v1/client/schedule/sessions/{session}/book` требуют целочисленные `{gym}` и `{session}`.  
-   Для залов, где у клиента уже есть абонемент/посещение/запись, числовой `gym_id` присутствует в `/client/memberships` (`company_id`/`type_id`), `/client/visits` (`gym_id`), `/client/schedule/bookings` (`gym_id`, `session_id`). **Но для оформления первой заявки из публичного каталога и записи из витрины** к началу мобильного этапа `M2` на бэкенде следует добавить либо отдачу числовых ID авторизованным клиентам/в публичных карточках, либо поддержку ULID в `/client/membership-requests` и `/client/schedule/*`.
-2. **Выход из аккаунта и восстановление пароля.**  
-   В текущей маршрутизации `routes/api.php` реализованы `register`, `login`, `send-otp`, `verify-email`, `client/profile` (`GET`/`DELETE`), но отсутствуют отдельные эндпоинты серверного отзыва токена (`POST /api/v1/auth/logout`), смены/восстановления пароля и `PATCH /api/v1/client/profile`. На текущем API выход выполняется локальным удалением токена из SecureStorage + вызовом `DELETE /api/v1/client/device-tokens`. Восстановление пароля и серверный logout рекомендуется добавить в бэкенд перед публичным релизом.
-3. **Разбор ответов без `data`.**  
-   Как указано в п. 3.2, `send-otp`, `verify-email` и `/api/v1/user` имеют отличающуюся от `{"data": ...}` корневую структуру.
+1. **Единые публичные ULID (`public_id`) из витрины каталога (решено в `T8-02`).**  
+   Эндпоинты `GET /api/v1/public/gyms`, `GET /api/v1/public/gyms/{publicId}` и `/public/gyms/{publicId}/schedule` отдают строковые ULID в полях `id`, а клиентские эндпоинты:
+   - `POST /api/v1/client/membership-requests` (поля `gym_id` и `membership_type_id`),
+   - `GET /api/v1/client/gyms/{gym}/schedule` (`{gym}`),
+   - `POST /api/v1/client/schedule/sessions/{session}/book` (`{session}`)  
+   теперь принимают **как публичные ULID (`public_id`), так и числовые ID** напрямую. При этом публичный каталог по-прежнему не раскрывает внутренние автоинкрементные ID.
+2. **Серверный выход и сброс пароля по Email OTP (решено в `T8-01`).**  
+   Добавлены `POST /api/v1/auth/logout` (требует `Authorization: Bearer ...`, отзывает только текущий Sanctum-токен) и `POST /api/v1/auth/reset-password` (сброс пароля по 6-значному Email OTP, при необходимости подтверждает email и отзывает все токены пользователя). На клиенте при выходе выполняются `DELETE /api/v1/client/device-tokens`, `POST /api/v1/auth/logout` и локальная очистка SecureStorage/SQLite. Отдельный эндпоинт `PATCH /api/v1/client/profile` в v1 не предусмотрен.
+3. **Унификация обёртки `{"data": ...}` (решено в `T8-01`).**  
+   `send-otp`, `verify-email` и `reset-password` возвращают `{"data": {"message": "..."}, "message": "..."}`, а `logout` — `{"data": {"logged_out": true}}`. Единственным исключением без обёртки остаётся общий веб-маршрут `GET /api/v1/user` (мобильное приложение использует `GET /api/v1/client/profile`).
 4. **Расчёт 1RM (формула Эпли) выполняется на клиенте.**  
    Эндпоинт `GET /api/v1/client/workouts/exercises/{exercise}/progress` отдаёт `best_weight_grams`, `total_volume_grams` и массив подходов `entries[].sets[]` (`weight_grams`, `reps`). Вычисление расчётного одноповторного максимума (`1RM`) выполняется мобильным приложением локально по этим данным.
 
@@ -309,8 +310,17 @@ flowchart TD
 - **Успех (`200`):** обновить `GET /api/v1/client/profile` (убедиться `is_email_verified = true`), обновить список абонементов (`GET /api/v1/client/memberships`, так как подтверждение email могло привязать существующие CRM-абонементы!) и показать toast «Email подтверждён».
 - **Ошибки:** `400 BAD_REQUEST` (неверный/истёкший код — очистить ячейки и сфокусироваться на первой), `429 TOO_MANY_REQUESTS`.
 
-#### Профиль и удаление аккаунта (`ProfileScreen`)
+#### Экран восстановления пароля (`ForgotPasswordScreen`)
+- **Эндпоинты:** `POST /api/v1/auth/send-otp`, `POST /api/v1/auth/reset-password`
+- **Поток:**
+  1. Клиент вводит `email` -> вызывается `POST /api/v1/auth/send-otp` (таймер повторной отправки 60 сек).
+  2. На следующем шаге клиент вводит 6-значный `code` из письма и новый пароль `password` (мин. 8 символов) + подтверждение.
+  3. Приложение отправляет `POST /api/v1/auth/reset-password` (`{"email": "...", "code": "123456", "password": "..."}`) -> при `200` (`data.message`) очищает устаревшие токены (сервер отзывает все токены пользователя) и переводит на экран входа.
+- **Ошибки:** `400 BAD_REQUEST` (неверный/истёкший OTP), `422 VALIDATION_FAILED`, `429 TOO_MANY_REQUESTS`.
+
+#### Профиль, выход и удаление аккаунта (`ProfileScreen`)
 - **Чтение профиля:** `GET /api/v1/client/profile` -> поля `id`, `email`, `phone`, `name`, `birth_date`, `is_email_verified`, `personal_data_consented_at`.
+- **Выход из аккаунта (`Logout`):** `DELETE /api/v1/client/device-tokens` -> `POST /api/v1/auth/logout` (серверный отзыв только текущего токена; `{"data": {"logged_out": true}}`) -> полная очистка Keychain/Keystore и локальной SQLite-базы. Если сети нет — продолжить локальный выход без блокировки пользователя.
 - **Удаление аккаунта (`DELETE /api/v1/client/profile`):**
   - Располагается в нижней части Профиля / Настроек безопасности (обязательное требование App Store / Google Play).
   - **2-ступенчатое подтверждение:**
@@ -378,7 +388,7 @@ flowchart TD
   - `is_usable`: визуальный маркер готовности к проходу в зал прямо сейчас.
 
 #### Заявка на покупку абонемента (`CreateMembershipRequestFlow`)
-- **Эндпоинт создания:** `POST /api/v1/client/membership-requests` (`Idempotency-Key`, body: `{"gym_id": int, "membership_type_id": int}`).
+- **Эндпоинт создания:** `POST /api/v1/client/membership-requests` (`Idempotency-Key`, body: `{"gym_id": int|ulid, "membership_type_id": int|ulid}` — принимает как числовые ID, так и публичные ULID `public_id` из витрины каталога).
 - **Список заявок:** `GET /api/v1/client/membership-requests` (`MembershipRequest`: `id, company_id, gym_id, membership_type_id, status [pending|paid|cancelled|expired], expires_at, created_at`).
 - **UX-поток:**
   1. На карточке тарифа кнопка **«Оформить заявку»** (принципиально НЕ «Оплатить онлайн» — см. п. 6.4).
@@ -429,9 +439,9 @@ flowchart TD
 
 - **Просмотр расписания зала клиентом:**
   - Для гостя/витрины: `GET /api/v1/public/gyms/{publicId}/schedule?from_date=YYYY-MM-DD&to_date=YYYY-MM-DD`.
-  - Для авторизованного клиента (для записи): `GET /api/v1/client/gyms/{gym}/schedule?from_date=...&to_date=...` -> `ClassSession[]` (`id`, `public_id`, `gym_id`, `trainer_id`, `title`, `capacity`, `booked_count`, `available_seats`, `starts_at`, `ends_at`, `status [scheduled|cancelled]`).
+  - Для авторизованного клиента (в т.ч. по `publicId` из каталога): `GET /api/v1/client/gyms/{gym}/schedule?from_date=...&to_date=...` -> `ClassSession[]` (`id`, `public_id`, `gym_id`, `trainer_id`, `title`, `capacity`, `booked_count`, `available_seats`, `starts_at`, `ends_at`, `status [scheduled|cancelled]`).
   - UI: горизонтальный календарь на 7–14 дней вперёд, группировка занятий по времени начала, отображение свободных мест (`available_seats из capacity`) и статуса `cancelled`.
-- **Запись на занятие:** `POST /api/v1/client/schedule/sessions/{session}/book` (с `Idempotency-Key`) -> `201 ClassBooking`.
+- **Запись на занятие:** `POST /api/v1/client/schedule/sessions/{session}/book` (принимает числовой ID или `public_id` занятия, заголовок `Idempotency-Key`) -> `201 ClassBooking`.
   - Ошибки `422`: `CLASS_SESSION_UNAVAILABLE`, `CLASS_BOOKING_REJECTED` (включая повторную запись), `NO_ACTIVE_MEMBERSHIP`, `MEMBERSHIP_FROZEN`, `OUTSIDE_ALLOWED_TIME`.
 - **Мои записи и отмена:**
   - Список: `GET /api/v1/client/schedule/bookings` (`page`, `per_page`, `company_id`, `status: booked|cancelled`).
@@ -459,8 +469,8 @@ flowchart TD
      - `target_weight_grams` `>= 0` (в UI ввод в `кг`, например `62.5 кг` -> `62500`);
      - `rest_seconds` от `0` до `600` сек (подсказка и запуск таймера отдыха).
 4. **Экран активной тренировки (`ActiveWorkoutSessionScreen`):**
-   - Старт: `POST /api/v1/client/workouts/sessions` (`plan_id?`, `title?` max 100) -> `WorkoutSession` (`status: in_progress`). Если открыта свободная тренировка (`plan_id = null`), клиент добавляет упражнения на ходу из каталога.
-   - Учёт подходов (`POST /api/v1/client/workouts/sessions/{session}/sets`):
+   - Старт: `POST /api/v1/client/workouts/sessions` (заголовок `Idempotency-Key` до 128 символов; `plan_id?`, `title?` max 100) -> `WorkoutSession` (`status: in_progress`). Если открыта свободная тренировка (`plan_id = null`), клиент добавляет упражнения на ходу из каталога.
+   - Учёт подходов (`POST /api/v1/client/workouts/sessions/{session}/sets`, заголовок `Idempotency-Key` до 128 символов):
      - Быстрые поля ввода веса в `кг` (шаг кнопок `-2.5 / +2.5` или `-1 / +1`, предзаполнение весом прошлого подхода или `target_weight_grams`), количества повторений (`reps` 1..500). Для упражнений с собственным весом допускается `weight_grams = 0`.
      - В таблице подходов отображается рассчитанный сервером тоннаж `volume_grams` (`weight_grams * reps`) и номер подхода `set_number`.
    - **Таймер отдыха:** сразу после записи подхода автоматически запускается таймер на `rest_seconds` (или дефолтные 90 сек для свободной тренировки) с локальным уведомлением / звуковым сигналом при завершении, если экран свёрнут.
@@ -510,7 +520,7 @@ flowchart TD
 ### 6.2. Офлайн-режим и работа при слабом интернете (подвалы залов)
 1. **Кеш на чтение (Stale-While-Revalidate):** экран «Главная», «Мои абонементы», «Мои записи на занятия», справочник упражнений и «Мои планы тренировок» открываются мгновенно из SQLite-кеша, а затем в фоне обновляются по API.
 2. **Очередь записи в тренировках (`Workouts`):** при отсутствии интернета в зале клиент может начать тренировку из кешированного плана, фиксировать подходы (`weight`, `reps`) и завершить тренировку локально.
-   - Операции складываются в таблицу `pending_sync_operations` в хронологическом порядке (`start_session` -> `log_set` -> `complete_session`).
+   - Операции складываются в таблицу `pending_sync_operations` вместе со сгенерированным на устройстве `idempotency_key` в хронологическом порядке (`start_session` -> `log_set` -> `complete_session`), чтобы повторная синхронизация `start_session` и `log_set` никогда не создавала дублей.
    - Как только появляется сеть, фоновый синхронизатор отправляет очередь в API, подставляя реальный серверный `session_id` вместо временного локального ID.
    - На экране тренировок при наличии неотправленных данных отображается ненавязчивый индикатор «Ожидает синхронизации (N подходов)» и кнопка ручной синхронизации.
 3. **Чекин в офлайне:** сам QR-чекин требует подтверждения сервера (нельзя списывать визит вслепую), однако при сетевом сбое в момент отправки уже считанного QR клиент сохраняет `token + Idempotency-Key` и предлагает кнопку «Повторить отправку» в пределах окна его жизни (до истечения ~60–120 сек) без повторного наведения камеры.
@@ -542,8 +552,8 @@ flowchart TD
 | Этап | Название | Состав работ | Критерий готовности этапа |
 | :--- | :--- | :--- | :--- |
 | **M0** | Фундамент проекта | Выбор стека в `DECISIONS.md`; инициализация репозитория; flavors (`dev`/`staging`/`prod`); Dio/HTTP с интерцепторами (`Auth`, `Locale`, `X-Request-Id`, `Idempotency-Key`); SecureStorage; UI-тема и навигационный каркас; словари `RU`/`TG`; проверка `GET /api/v1/health` | Приложение собирается под iOS и Android, проходит health-check, переключает язык на лету |
-| **M1** | Ядро: Auth + QR + Абонементы + Push | Экраны Welcome, Login (email/phone), Register (18+, PDPA), Email OTP Verify; Profile и Delete Account; Главная; Мои абонементы (`active`/`past`); сканер QR зала + 2-шаговый GeoFence; личный динамический 60с QR; история визитов; регистрация `device-tokens` | Клиент может зарегистрироваться, подтвердить email по OTP, пройти QR-чекин с/без геозоны и увидеть визит и остаток посещений |
-| **M2** | Каталог + Заявки + Расписание | Публичный каталог (список + карта, поиск, фильтры цены/удобств/радиуса); карточка зала и тарифов; отзывы (`PUT review` + `403`); оформление заявок и список покупок/чеков; расписание зала, запись, отмена и локальные напоминания *(после закрытия ID-маппинга из п. 3.6)* | Гость ищет зал на карте; клиент оставляет заявку на абонемент, видит чек после подтверждения в зале, записывается на занятие и оставляет отзыв |
+| **M1** | Ядро: Auth + QR + Абонементы + Push | Экраны Welcome, Login (email/phone), Register (18+, PDPA), Email OTP Verify, Reset Password (`/auth/reset-password`), Logout (`/auth/logout`); Profile и Delete Account; Главная; Мои абонементы (`active`/`past`); сканер QR зала + 2-шаговый GeoFence; личный динамический 60с QR; история визитов; регистрация `device-tokens` | Клиент может зарегистрироваться, подтвердить email по OTP, сбросить пароль, выйти с отзывом токена, пройти QR-чекин с/без геозоны и увидеть визит и остаток посещений |
+| **M2** | Каталог + Заявки + Расписание | Публичный каталог (список + карта, поиск, фильтры цены/удобств/радиуса); карточка зала и тарифов; отзывы (`PUT review` + `403`); оформление заявок (по `public_id` / ID) и список покупок/чеков; расписание зала, запись (по `public_id` / ID), отмена и локальные напоминания | Гость ищет зал на карте; клиент оставляет заявку на абонемент, видит чек после подтверждения в зале, записывается на занятие и оставляет отзыв |
 | **M3** | Дневник тренировок (`Workouts`) | Справочник и личные упражнения; библиотека планов и копирование; конструктор планов (до 50 упражнений, вес в граммах); живая сессия + таймер отдыха; SQLite офлайн-очередь синхронизации; графики прогресса (вес, объём, клиентский 1RM Эпли) | Тренировка проходит полностью в авиарежиме и синхронизируется с сервером сразу после появления сети |
 | **M4** | Staff Mode, QA и релиз в сторы | Опциональный режим сотрудника (QR зала, сканер клиентов, список группы); e2e / widget-тесты критических потоков; оптимизация старта и памяти; Privacy Manifest & Data Safety; выкладка в TestFlight и Google Play Internal -> Production | Чек-лист приёмки (п. 7.2) пройден на 100% на реальных iOS и Android устройствах |
 
@@ -573,3 +583,4 @@ flowchart TD
    - *Дано:* авторизованный клиент в разделе «Профиль».
    - *Когда:* проходит 2-шаговое подтверждение удаления аккаунта.
    - *Тогда:* устройство отвязывается от push-уведомлений (`DELETE /client/device-tokens`), вызывается `DELETE /api/v1/client/profile`, Keychain/Keystore и локальная SQLite очищаются, а пользователь возвращается на стартовый экран.
+
