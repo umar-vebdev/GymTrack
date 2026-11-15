@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 
 /**
- * Добавление сотрудника в компанию по подтверждённому номеру телефона (Бизнес-ТЗ 2, 4.1; Тех. ТЗ 8).
+ * Добавление сотрудника в компанию по подтверждённому email (Бизнес-ТЗ 2, 4.1; Тех. ТЗ 8; D-020).
  */
 final class AddStaffMember
 {
@@ -23,15 +23,15 @@ final class AddStaffMember
         private readonly UserQueryInterface $users,
     ) {}
 
-    public function execute(int $companyId, int $actorUserId, string $phone, Role $role): StaffMemberView
+    public function execute(int $companyId, int $actorUserId, string $email, Role $role): StaffMemberView
     {
         if ($role === Role::OWNER) {
             throw new InvalidArgumentException('Нельзя назначить роль владельца при добавлении сотрудника.');
         }
 
-        $targetUserId = $this->users->findVerifiedUserIdByPhone($phone);
+        $targetUserId = $this->users->findVerifiedUserIdByEmail($email);
         if ($targetUserId === null) {
-            throw new DomainException('Пользователь с таким подтверждённым номером телефона не найден.');
+            throw new DomainException('Пользователь с таким подтверждённым email не найден.');
         }
 
         $staffId = DB::transaction(function () use ($companyId, $targetUserId, $role): int {

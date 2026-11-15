@@ -159,13 +159,20 @@ final class ClassBookingUseCasesTest extends TestCase
     {
         $this->bindFixedClock('2026-11-12 08:00:00+00:00');
         $setup = $this->createSessionSetup(capacity: 1);
-        $clientUser = User::factory()->create(['name' => 'Алишер', 'phone' => '+992900123456']);
+        $clientUser = User::factory()->create([
+            'name' => 'Алишер',
+            'email' => 'alisher@example.test',
+            'email_verified_at' => now(),
+            'phone' => '+992900123456',
+        ]);
 
         // Оффлайн-карточка клиента с купленным абонементом на 1 занятие (ещё не связана с user_id)
         $offlineClientId = $this->app->make(ClientRepositoryInterface::class)->create(
             $setup['companyId'],
             'Алишер',
             '+992900123456',
+            null,
+            'alisher@example.test',
         );
         $membershipId = $this->issueMembershipForClient(
             $setup['companyId'],

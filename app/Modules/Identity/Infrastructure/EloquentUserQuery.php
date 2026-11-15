@@ -15,13 +15,6 @@ final class EloquentUserQuery implements UserQueryInterface
         private readonly UserRepositoryInterface $users
     ) {}
 
-    public function findVerifiedUserIdByPhone(string $phone): ?int
-    {
-        $user = $this->users->findByPhone($phone);
-
-        return $user !== null && $user->isPhoneVerified() ? $user->id() : null;
-    }
-
     public function findVerifiedUserIdByEmail(string $email): ?int
     {
         $user = $this->users->findByEmail($email);

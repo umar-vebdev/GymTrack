@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     Публичные и защищённые эндпоинты регистрации, входа по Sanctum-токену,
-    подтверждения телефона по OTP, профиля клиента и проверки состояния сервиса.
+    подтверждения email по OTP, профиля клиента и проверки состояния сервиса.
     Для локализации сообщений об ошибках передавайте заголовок `Accept-Language: ru | tg`.
 paths:
   /api/v1/health:
@@ -59,8 +59,8 @@ paths:
 
   /api/v1/auth/login:
     post:
-      summary: Вход по телефону и паролю (выдача Sanctum Bearer-токена)
-      description: Ограничение частоты — `auth-login` (5/мин по телефону и IP, 20/мин с IP).
+      summary: Вход по email или телефону и паролю (выдача Sanctum Bearer-токена)
+      description: Ограничение частоты — `auth-login` (5/мин по email/телефону и IP, 20/мин с IP).
       parameters:
         - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
@@ -92,8 +92,8 @@ paths:
 
   /api/v1/auth/send-otp:
     post:
-      summary: Отправка одноразового SMS-кода для подтверждения телефона
-      description: Ограничение частоты — `auth-otp-send` (3/мин на номер телефона, 10/мин с IP).
+      summary: Отправка одноразового 6-значного OTP-кода на email
+      description: Ограничение частоты — `auth-otp-send` (3/мин на email, 10/мин с IP).
       parameters:
         - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
@@ -118,10 +118,10 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /api/v1/auth/verify-phone:
+  /api/v1/auth/verify-email:
     post:
-      summary: Подтверждение номера телефона одноразовым 6-значным кодом
-      description: Ограничение частоты — `auth-otp-verify` (5/мин по телефону и IP, 15/мин с IP).
+      summary: Подтверждение email одноразовым 6-значным OTP-кодом
+      description: Ограничение частоты — `auth-otp-verify` (5/мин по email и IP, 15/мин с IP).
       parameters:
         - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
@@ -129,10 +129,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VerifyPhonePayload'
+              $ref: '#/components/schemas/VerifyEmailPayload'
       responses:
         '200':
-          description: Телефон подтверждён
+          description: Email подтверждён
           content:
             application/json:
               schema:
@@ -175,6 +175,10 @@ paths:
                   email:
                     type: string
                     nullable: true
+                  email_verified_at:
+                    type: string
+                    format: date-time
+                    nullable: true
                   phone:
                     type: string
                     nullable: true
@@ -208,7 +212,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/RegisteredClient'
         '409':
-          description: Телефон уже зарегистрирован (`PHONE_ALREADY_REGISTERED`)
+          description: Email (`EMAIL_ALREADY_REGISTERED`) или телефон (`PHONE_ALREADY_REGISTERED`) уже зарегистрирован
           content:
             application/json:
               schema:
@@ -338,11 +342,19 @@ components:
           minLength: 8
     LoginUserPayload:
       type: object
-      required: [phone, password]
+      required: [password]
       properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+          description: Обязателен, если не передан `phone`.
         phone:
           type: string
           maxLength: 20
+          nullable: true
+          description: Обязателен, если не передан `email`.
         password:
           type: string
         device:
@@ -352,29 +364,36 @@ components:
           default: mobile
     SendOtpPayload:
       type: object
-      required: [phone]
+      required: [email]
       properties:
-        phone:
+        email:
           type: string
-          maxLength: 20
-    VerifyPhonePayload:
+          format: email
+          maxLength: 255
+    VerifyEmailPayload:
       type: object
-      required: [phone, code]
+      required: [email, code]
       properties:
-        phone:
+        email:
           type: string
-          maxLength: 20
+          format: email
+          maxLength: 255
         code:
           type: string
           minLength: 6
           maxLength: 6
     RegisterClientPayload:
       type: object
-      required: [phone, name, password, birth_date, consent]
+      required: [email, name, password, birth_date, consent]
       properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
         phone:
           type: string
-          maxLength: 255
+          maxLength: 20
+          nullable: true
         name:
           type: string
           maxLength: 255
@@ -389,25 +408,33 @@ components:
           type: boolean
     RegisteredClient:
       type: object
-      required: [id, phone, name, birth_date, is_phone_verified]
+      required: [id, email, name, birth_date, is_email_verified]
       properties:
         id:
           type: integer
+        email:
+          type: string
+          format: email
         phone:
           type: string
+          nullable: true
         name:
           type: string
         birth_date:
           type: string
           format: date
-        is_phone_verified:
+        is_email_verified:
           type: boolean
     ClientProfile:
       type: object
-      required: [id, is_phone_verified]
+      required: [id, is_email_verified]
       properties:
         id:
           type: integer
+        email:
+          type: string
+          format: email
+          nullable: true
         phone:
           type: string
           nullable: true
@@ -418,7 +445,7 @@ components:
           type: string
           format: date
           nullable: true
-        is_phone_verified:
+        is_email_verified:
           type: boolean
         personal_data_consented_at:
           type: string

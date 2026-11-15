@@ -25,9 +25,24 @@ final class StaffUseCasesTest extends TestCase
 
     public function test_it_adds_lists_updates_role_and_removes_staff_with_audit(): void
     {
-        $owner = User::factory()->create(['name' => 'Owner', 'phone' => '+992900000001', 'is_phone_verified' => true]);
-        $candidate = User::factory()->create(['name' => 'Admin Candidate', 'phone' => '+992900000002', 'is_phone_verified' => true]);
-        $unverified = User::factory()->create(['name' => 'Unverified', 'phone' => '+992900000003', 'is_phone_verified' => false]);
+        $owner = User::factory()->create([
+            'name' => 'Owner',
+            'email' => 'owner@example.test',
+            'email_verified_at' => now(),
+        ]);
+        $candidate = User::factory()->create([
+            'name' => 'Admin Candidate',
+            'email' => 'candidate@example.test',
+            'email_verified_at' => now(),
+            'phone' => '+992900000002',
+        ]);
+        $unverified = User::factory()->create([
+            'name' => 'Unverified',
+            'email' => 'unverified@example.test',
+            'email_verified_at' => null,
+            'phone' => '+992900000003',
+            'is_phone_verified' => true,
+        ]);
 
         /** @var RegisterCompany $register */
         $register = $this->app->make(RegisterCompany::class);
@@ -42,18 +57,19 @@ final class StaffUseCasesTest extends TestCase
         /** @var RemoveStaffMember $remove */
         $remove = $this->app->make(RemoveStaffMember::class);
 
-        // Добавление подтверждённого пользователя как admin
-        $added = $add->execute($companyId, $owner->id, '+992900000002', Role::ADMIN);
+        // Добавление подтверждённого пользователя как admin (без учёта регистра email)
+        $added = $add->execute($companyId, $owner->id, 'Candidate@Example.TEST', Role::ADMIN);
         expect($added->role)->toBe(Role::ADMIN)
             ->and($added->name)->toBe('Admin Candidate')
+            ->and($added->email)->toBe('candidate@example.test')
             ->and($added->phone)->toBe('+992900000002');
 
-        // Запрет неподтверждённого и дубликата и роли owner
-        expect(fn () => $add->execute($companyId, $owner->id, $unverified->phone ?? '', Role::ADMIN))
+        // Запрет неподтверждённого по email (даже с телефоном), дубликата и роли owner
+        expect(fn () => $add->execute($companyId, $owner->id, $unverified->email ?? '', Role::ADMIN))
             ->toThrow(DomainException::class);
-        expect(fn () => $add->execute($companyId, $owner->id, '+992900000002', Role::TRAINER))
+        expect(fn () => $add->execute($companyId, $owner->id, 'candidate@example.test', Role::TRAINER))
             ->toThrow(DomainException::class);
-        expect(fn () => $add->execute($companyId, $owner->id, '+992900000002', Role::OWNER))
+        expect(fn () => $add->execute($companyId, $owner->id, 'candidate@example.test', Role::OWNER))
             ->toThrow(InvalidArgumentException::class);
 
         // Список сотрудников
@@ -91,9 +107,9 @@ final class StaffUseCasesTest extends TestCase
 
     public function test_it_isolates_staff_across_companies(): void
     {
-        $ownerA = User::factory()->create(['phone' => '+992900111001', 'is_phone_verified' => true]);
-        $ownerB = User::factory()->create(['phone' => '+992900111002', 'is_phone_verified' => true]);
-        $staffUserB = User::factory()->create(['phone' => '+992900111003', 'is_phone_verified' => true]);
+        $ownerA = User::factory()->create(['email' => 'ownera@example.test', 'email_verified_at' => now()]);
+        $ownerB = User::factory()->create(['email' => 'ownerb@example.test', 'email_verified_at' => now()]);
+        $staffUserB = User::factory()->create(['email' => 'staffb@example.test', 'email_verified_at' => now()]);
 
         /** @var RegisterCompany $register */
         $register = $this->app->make(RegisterCompany::class);
@@ -102,7 +118,7 @@ final class StaffUseCasesTest extends TestCase
 
         /** @var AddStaffMember $add */
         $add = $this->app->make(AddStaffMember::class);
-        $staffB = $add->execute($companyB, $ownerB->id, '+992900111003', Role::ADMIN);
+        $staffB = $add->execute($companyB, $ownerB->id, $staffUserB->email ?? '', Role::ADMIN);
 
         /** @var UpdateStaffMemberRole $updateRole */
         $updateRole = $this->app->make(UpdateStaffMemberRole::class);

@@ -19,9 +19,10 @@
 - [x] **Этап 3 (Каталог и модерация):** Витрины и фото залов (`Companies`), модерация платформой, явная публикация, ULID (`public_id`), публичный каталог (`Catalog`) с поиском, фильтрами и геопоиском.
 - [x] **Этап 4 (Расписание и тренеры):** Роль тренера и профили тренеров (`Trainers`), шаблоны и сессии групповых занятий (`Schedule`), запись/отмена с `Idempotency-Key` и списанием/возвратом посещений абонемента (`Memberships`), публичное расписание в каталоге (`Catalog`).
 - [x] **Этап 5 (Дневник тренировок):** Модуль `Workouts` — системные и личные упражнения, библиотека готовых планов платформы, собственные планы клиента и копирование из библиотеки, тренировочные сессии с фиксацией подходов и история прогресса по упражнениям.
-- [x] **Этап 6 (`E6-A`, `E6-B`, `E6-C` — мультифилиальность, релизная подготовка и функции `Could`):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`), Docker-сервисы `worker` и `scheduler`, опциональная геопроверка чекина, личный динамический QR клиента, отзывы и рейтинг залов, массовые объявления залов (`push`/`sms`) и HTTP-шлюзы `HttpSmsGateway`/`HttpPushGateway`.
+- [x] **Этап 6 (`E6-A`, `E6-B`, `E6-C` — мультифилиальность, релизная подготовка и функции `Could`):** управление филиалами и сотрудниками с аудитом (`Companies`, `Audit`), идемпотентные сидеры (`PlatformPlanSeeder`, `WorkoutsSeeder`), локализация API `ru`/`tg` (`Accept-Language`), rate limiting auth/OTP, полный комплект OpenAPI-спецификаций, JSON-логирование с контекстом (`X-Request-Id`, `user_id`, `company_id`), Docker-сервисы `worker` и `scheduler`, опциональная геопроверка чекина, личный динамический QR клиента, отзывы и рейтинг залов, массовые объявления залов (`push`/`sms`) и HTTP-шлюзы уведомлений.
+- [x] **Этап 7 (`E7-A`, решение `D-020` — переход OTP и связывания на Email):** подтверждение учётной записи и регистрация клиента по Email OTP (`MailEmailOtpGateway`, `/api/v1/auth/verify-email`), вход по `email` или `phone`, nullable-поле `clients.email` и автопривязка CRM-карточек по событию `EmailVerified`, добавление сотрудников по подтверждённому `email`.
 
-Покрытие и качество: **560 тестов (3864 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
+Покрытие и качество: **564 тестов (3903 проверки)**, статический анализ (**Larastan**, уровень 8+), контроль границ модулей (**Deptrac**, 0 нарушений), стиль кода (**Laravel Pint**).
 
 ---
 
@@ -36,9 +37,9 @@ app/
 │   ├── Audit/                # Неизменяемый журнал аудита доменных событий
 │   ├── Billing/              # Тарифы платформы, пробный период (14 дней), подписки компаний
 │   ├── Catalog/              # Публичный каталог залов, геопоиск, публичное расписание
-│   ├── Clients/              # CRM клиентов, связывание по PhoneVerified, слияние дубликатов
+│   ├── Clients/              # CRM клиентов, связывание по EmailVerified, слияние дубликатов
 │   ├── Companies/            # Компании, залы, валюты, сотрудники (RBAC), витрины, фото, модерация
-│   ├── Identity/             # Аутентификация, SMS OTP, Sanctum токены, профиль и удаление ПДн
+│   ├── Identity/             # Аутентификация, Email OTP, Sanctum токены, профиль и удаление ПДн
 │   ├── Memberships/          # Типы абонементов, правила и стратегии списания, заморозка, отмена
 │   ├── Notifications/        # Журнал уведомлений, Push/SMS шлюзы, очереди, напоминания
 │   ├── Sales/                # Товары, касса (PaymentMark), возвраты, заявки на абонементы
@@ -77,7 +78,7 @@ app/
 
 ### Общие маршруты (`/api/v1`)
 - `GET /health` — проверка состояния приложения, PostgreSQL и Redis.
-- `POST /auth/register`, `POST /auth/login`, `POST /auth/send-otp`, `POST /auth/verify-phone` — регистрация, вход и подтверждение телефона.
+- `POST /auth/register`, `POST /auth/login`, `POST /auth/send-otp`, `POST /auth/verify-email` — регистрация, вход (`email` или `phone`) и подтверждение email по OTP.
 - `GET /user` — текущий авторизованный пользователь.
 
 ### Кабинет зала (`/api/v1/business/...`, Sanctum)
@@ -201,9 +202,10 @@ docker compose exec -T app composer test -- --compact --colors=never
 - Каждый HTTP-запрос получает заголовок и контекст трассировки `X-Request-Id` (через `RequestContextMiddleware`), а также `user_id` и `company_id` в контексте `Log::withContext()`.
 - По умолчанию (`.env.example`: `LOG_CHANNEL=stack`, `LOG_STACK=json`) логи пишутся в формате JSON (`Monolog\Formatter\JsonFormatter`); для контейнерного вывода доступен канал `json_stderr`.
 
-### Шлюзы SMS и Push
+### Email OTP и шлюзы SMS/Push
 
-- Выбор реализации задаётся переменными `SMS_DRIVER` и `PUSH_DRIVER` (`log` по умолчанию для локальной разработки и тестов; `http` — отправка JSON POST-запросов через `HttpSmsGateway`, `HttpNotificationsSmsGateway` и `HttpPushGateway`).
+- Одноразовые коды подтверждения учётной записи (`EmailOtpGateway`) отправляются через `MailEmailOtpGateway` (настройки `MAIL_MAILER`, по умолчанию `log` для локальной разработки и SMTP в продакшене).
+- Для уведомлений и объявлений залов выбор драйвера задаётся переменными `SMS_DRIVER` и `PUSH_DRIVER` (`log` по умолчанию для локальной разработки и тестов; `http` — отправка JSON POST-запросов через `HttpNotificationsSmsGateway` и `HttpPushGateway`).
 - Параметры подключения (`SMS_GATEWAY_URL`, `SMS_GATEWAY_TOKEN`, `SMS_GATEWAY_SENDER`, `SMS_GATEWAY_TIMEOUT`, `PUSH_GATEWAY_URL`, `PUSH_GATEWAY_TOKEN`, `PUSH_GATEWAY_TIMEOUT`) описаны в `.env.example` и `config/services.php`.
 
 ---

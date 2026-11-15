@@ -17,8 +17,21 @@ final class ManageStaffEndpointTest extends TestCase
 
     public function test_owner_can_manage_staff_and_audit_log_records_changes(): void
     {
-        $owner = User::factory()->create(['name' => 'Owner', 'phone' => '+992900200001', 'is_phone_verified' => true]);
-        $worker = User::factory()->create(['name' => 'Worker', 'phone' => '+992900200002', 'is_phone_verified' => true]);
+        $owner = User::factory()->create([
+            'name' => 'Owner',
+            'email' => 'owner@example.test',
+            'email_verified_at' => now(),
+        ]);
+        $worker = User::factory()->create([
+            'name' => 'Worker',
+            'email' => 'worker@example.test',
+            'email_verified_at' => now(),
+        ]);
+        User::factory()->create([
+            'name' => 'Unverified',
+            'email' => 'unverified@example.test',
+            'email_verified_at' => null,
+        ]);
 
         Sanctum::actingAs($owner);
         $reg = $this->postJson('/api/v1/business/companies', [
@@ -27,14 +40,22 @@ final class ManageStaffEndpointTest extends TestCase
         ])->assertCreated();
         $companyId = (int) $reg->json('data.company_id');
 
+        // Неподтверждённый по email кандидат -> 400
+        $this->postJson('/api/v1/business/staff', [
+            'email' => 'unverified@example.test',
+            'role' => 'admin',
+        ])->assertStatus(400)
+            ->assertJsonPath('error.code', 'BAD_REQUEST');
+
         // Добавление сотрудника
         $created = $this->postJson('/api/v1/business/staff', [
-            'phone' => '+992900200002',
+            'email' => 'Worker@Example.TEST',
             'role' => 'admin',
         ])->assertCreated()
             ->assertJsonPath('data.user_id', $worker->id)
             ->assertJsonPath('data.role', 'admin')
-            ->assertJsonPath('data.name', 'Worker');
+            ->assertJsonPath('data.name', 'Worker')
+            ->assertJsonPath('data.email', 'worker@example.test');
 
         $staffId = (int) $created->json('data.id');
 
@@ -51,7 +72,7 @@ final class ManageStaffEndpointTest extends TestCase
 
         // Попытка назначить owner -> 422
         $this->postJson('/api/v1/business/staff', [
-            'phone' => '+992900200002',
+            'email' => 'worker@example.test',
             'role' => 'owner',
         ])->assertUnprocessable()
             ->assertJsonPath('error.code', 'VALIDATION_FAILED');
@@ -80,25 +101,25 @@ final class ManageStaffEndpointTest extends TestCase
 
     public function test_non_owners_get_403_and_cross_tenant_staff_gets_404(): void
     {
-        $ownerA = User::factory()->create(['phone' => '+992900300001', 'is_phone_verified' => true]);
-        $ownerB = User::factory()->create(['phone' => '+992900300002', 'is_phone_verified' => true]);
-        $adminA = User::factory()->create(['phone' => '+992900300003', 'is_phone_verified' => true]);
-        $trainerA = User::factory()->create(['phone' => '+992900300004', 'is_phone_verified' => true]);
-        $adminB = User::factory()->create(['phone' => '+992900300005', 'is_phone_verified' => true]);
+        $ownerA = User::factory()->create(['email' => 'ownera@example.test', 'email_verified_at' => now()]);
+        $ownerB = User::factory()->create(['email' => 'ownerb@example.test', 'email_verified_at' => now()]);
+        $adminA = User::factory()->create(['email' => 'admina@example.test', 'email_verified_at' => now()]);
+        $trainerA = User::factory()->create(['email' => 'trainera@example.test', 'email_verified_at' => now()]);
+        $adminB = User::factory()->create(['email' => 'adminb@example.test', 'email_verified_at' => now()]);
 
         Sanctum::actingAs($ownerA);
-        $companyA = (int) $this->postJson('/api/v1/business/companies', [
+        $this->postJson('/api/v1/business/companies', [
             'company_name' => 'A',
             'gym_name' => 'Gym A',
-        ])->assertCreated()->json('data.company_id');
+        ])->assertCreated();
 
         $this->postJson('/api/v1/business/staff', [
-            'phone' => '+992900300003',
+            'email' => 'admina@example.test',
             'role' => 'admin',
         ])->assertCreated();
 
         $this->postJson('/api/v1/business/staff', [
-            'phone' => '+992900300004',
+            'email' => 'trainera@example.test',
             'role' => 'trainer',
         ])->assertCreated();
 
@@ -109,14 +130,14 @@ final class ManageStaffEndpointTest extends TestCase
         ])->assertCreated();
 
         $staffBId = (int) $this->postJson('/api/v1/business/staff', [
-            'phone' => '+992900300005',
+            'email' => 'adminb@example.test',
             'role' => 'admin',
         ])->assertCreated()->json('data.id');
 
         // Администратор и тренер не имеют доступа к управлению сотрудниками
         Sanctum::actingAs($adminA);
         $this->getJson('/api/v1/business/staff')->assertForbidden()->assertJsonPath('error.code', 'FORBIDDEN');
-        $this->postJson('/api/v1/business/staff', ['phone' => '+992900300005', 'role' => 'trainer'])->assertForbidden();
+        $this->postJson('/api/v1/business/staff', ['email' => 'adminb@example.test', 'role' => 'trainer'])->assertForbidden();
 
         Sanctum::actingAs($trainerA);
         $this->getJson('/api/v1/business/staff')->assertForbidden();

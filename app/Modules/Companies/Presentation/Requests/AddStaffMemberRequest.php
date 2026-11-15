@@ -19,7 +19,7 @@ final class AddStaffMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'max:32'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'role' => ['required', 'string', 'in:admin,trainer'],
         ];
     }

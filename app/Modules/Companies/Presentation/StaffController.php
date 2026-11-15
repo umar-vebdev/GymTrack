@@ -58,14 +58,14 @@ final class StaffController extends Controller
             return $this->forbiddenResponse();
         }
 
-        /** @var array{phone: string, role: string} $data */
+        /** @var array{email: string, role: string} $data */
         $data = $request->validated();
 
         try {
             $member = $this->addStaff->execute(
                 companyId: $companyId,
                 actorUserId: $user->id,
-                phone: $data['phone'],
+                email: $data['email'],
                 role: Role::from($data['role']),
             );
         } catch (DomainException $e) {

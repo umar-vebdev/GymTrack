@@ -10,11 +10,6 @@ namespace App\Modules\Identity\Contracts;
 interface UserQueryInterface
 {
     /**
-     * ID пользователя с таким ПОДТВЕРЖДЁННЫМ телефоном или null.
-     */
-    public function findVerifiedUserIdByPhone(string $phone): ?int;
-
-    /**
      * ID пользователя с таким ПОДТВЕРЖДЁННЫМ email или null.
      */
     public function findVerifiedUserIdByEmail(string $email): ?int;

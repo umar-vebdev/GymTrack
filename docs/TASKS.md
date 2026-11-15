@@ -220,7 +220,7 @@
 
 ---
 
-## Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`)
+## Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`, завершён)
 
 **ТЗ / решения:** Бизнес-ТЗ 2, 4.1, 5.1, 12.9, 15.1; Тех. ТЗ 3.7, 4.4, 8, 9.3; `D-020`.
 
@@ -232,7 +232,4 @@
 
 - [x] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`): миграция `2026_11_15_000003_add_email_to_clients_table` (`email` nullable + индекс `(company_id, email)`), обновление `ClientModel`/`Client`/`ClientRepositoryInterface`/`EloquentClientRepository` (`linkUserByEmail` с case-insensitive сравнением, поиск по `email`), `CreateClientRequest`/`CreateClient`/`CreateClientController`/`SearchClientsController`, `LinkUserToClients` и `ClientsServiceProvider` на событие `EmailVerified`, обновление `EloquentClientLookup::findOrCreateForUser`, удаление `PhoneVerified.php`, обновление `ClientUserLinkingTest`/`RegisterClientAndLinkingTest`/`MergeClientsTest`/`CreateClientTest`/`SearchClientsTest` (32 passed, 163 assertions), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs)
-  - **ТЗ:** Бизнес-ТЗ 2, 4.1; Тех. ТЗ 14, 15; `D-020`.
-  - **Файлы:** `AddStaffMemberRequest`, `AddStaffMember`, `StaffController`, `UserQueryInterface`, `EloquentUserQuery`, `StaffUseCasesTest`, `ManageStaffEndpointTest`, `docs/api/{identity-auth,business-core,companies}.yaml`, `README.md`.
-  - **Готовность:** полный `composer test` и `lint`/`analyse`/`deps` + проверка YAML зелёные.
+- [x] **T7-04** Добавление сотрудников по подтверждённому `email` и документация (`Companies` + Docs): перевод `AddStaffMemberRequest`/`AddStaffMember`/`StaffController` на поиск по подтверждённому `email` (`findVerifiedUserIdByEmail`), удаление `findVerifiedUserIdByPhone` из `UserQueryInterface`/`EloquentUserQuery`, обновление `StaffUseCasesTest`/`ManageStaffEndpointTest` и фикстуры `ClassBookingUseCasesTest`, обновление `docs/api/{identity-auth,business-core,companies}.yaml` (в т.ч. удаление дублирующих путей/схем в `companies.yaml`) и `README.md`; проверка 11 OpenAPI YAML-файлов через `Symfony\Component\Yaml\Yaml::parseFile`, полный прогон `composer test` (**564 passed, 3903 assertions**), `lint`/`analyse`/`deps` зелёные.

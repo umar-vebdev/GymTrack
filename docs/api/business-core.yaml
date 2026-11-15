@@ -146,7 +146,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
     post:
-      summary: Создание карточки клиента зала
+      summary: Создание карточки клиента зала (с опциональным email для автосвязывания)
       security:
         - bearerAuth: []
       requestBody:
@@ -163,6 +163,11 @@ paths:
                 phone:
                   type: string
                   pattern: '^\+?[0-9]{9,15}$'
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  nullable: true
       responses:
         '201':
           description: Клиент создан
@@ -944,7 +949,7 @@ components:
           nullable: true
     ClientSummary:
       type: object
-      required: [id, name, phone, linked]
+      required: [id, name, phone, email, linked]
       properties:
         id:
           type: integer
@@ -952,6 +957,10 @@ components:
           type: string
         phone:
           type: string
+        email:
+          type: string
+          format: email
+          nullable: true
         linked:
           type: boolean
     PaginationMeta:
