@@ -40,8 +40,8 @@ final class CreateMembershipRequest
      */
     public function execute(
         int $userId,
-        int $gymId,
-        int $membershipTypeId,
+        int|string $gymId,
+        int|string $membershipTypeId,
         ?string $idempotencyKey = null
     ): array {
         if ($idempotencyKey !== null) {
@@ -51,13 +51,18 @@ final class CreateMembershipRequest
             }
         }
 
-        $gym = $this->gyms->findById($gymId);
+        $gym = $this->gyms->findByIdOrPublicId($gymId);
         if ($gym === null) {
             throw new DomainException('Зал не найден.');
         }
 
+        $resolvedTypeId = $this->membershipIssuer->resolveTypeId($gym->companyId, $membershipTypeId);
+        if ($resolvedTypeId === null) {
+            throw new DomainException('Тип абонемента не найден.');
+        }
+
         // Проверяем принадлежность типа абонемента залу и его активность
-        $this->membershipIssuer->quoteType($gym->companyId, $membershipTypeId);
+        $this->membershipIssuer->quoteType($gym->companyId, $resolvedTypeId);
 
         $clientId = $this->clients->findOrCreateForUser($userId, $gym->companyId);
 
@@ -66,10 +71,10 @@ final class CreateMembershipRequest
 
         $request = $this->requests->create(
             companyId: $gym->companyId,
-            gymId: $gymId,
+            gymId: $gym->id,
             userId: $userId,
             clientId: $clientId,
-            membershipTypeId: $membershipTypeId,
+            membershipTypeId: $resolvedTypeId,
             expiresAt: $expiresAt,
             idempotencyKey: $idempotencyKey
         );
@@ -77,10 +82,10 @@ final class CreateMembershipRequest
         Event::dispatch(new MembershipRequestCreated(
             requestId: $request->id(),
             companyId: $gym->companyId,
-            gymId: $gymId,
+            gymId: $gym->id,
             userId: $userId,
             clientId: $clientId,
-            membershipTypeId: $membershipTypeId,
+            membershipTypeId: $resolvedTypeId,
             expiresAt: $expiresAt
         ));
 

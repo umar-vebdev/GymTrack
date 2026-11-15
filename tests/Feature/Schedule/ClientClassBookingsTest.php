@@ -549,4 +549,24 @@ final class ClientClassBookingsTest extends TestCase
         $this->assertSame(1, $afterSessionCancel->remainingVisits());
         $this->assertSame(MembershipStatus::Active, $afterSessionCancel->status());
     }
+
+    public function test_client_books_session_by_public_ulid_and_gets_404_for_unknown_ulid(): void
+    {
+        $this->bindFixedClock('2026-11-16 08:00:00+00:00');
+
+        $setup = $this->createSessionSetup('U', 5, '2026-11-16 09:00:00+00:00', '2026-11-16 10:00:00+00:00');
+        $client = User::factory()->create();
+        $membershipId = $this->issueMembershipForUser($client, $setup['companyId'], visitsCount: 2);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson("/api/v1/client/schedule/sessions/{$setup['session']->publicId()}/book")
+            ->assertCreated()
+            ->assertJsonPath('data.session_id', $setup['session']->id())
+            ->assertJsonPath('data.membership_id', $membershipId);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/client/schedule/sessions/01jcxyz0000000000000000000/book')
+            ->assertStatus(404)
+            ->assertJsonPath('error.code', 'NOT_FOUND');
+    }
 }

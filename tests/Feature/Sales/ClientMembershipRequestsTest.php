@@ -7,11 +7,13 @@ namespace Tests\Feature\Sales;
 use App\Models\User;
 use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
+use App\Modules\Companies\Infrastructure\Persistence\GymModel;
 use App\Modules\Memberships\Application\Commands\CreateMembershipTypeCommand;
 use App\Modules\Memberships\Application\CreateMembershipType;
 use App\Modules\Memberships\Application\SetMembershipTypeActive;
 use App\Modules\Memberships\Domain\MembershipKind;
 use App\Modules\Memberships\Domain\StartMode;
+use App\Modules\Memberships\Infrastructure\Persistence\MembershipTypeModel;
 use App\Modules\Sales\Domain\Events\MembershipRequestCreated;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -199,5 +201,55 @@ final class ClientMembershipRequestsTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data');
+    }
+
+    public function test_client_creates_membership_request_using_public_ulids(): void
+    {
+        [, $gymId, $typeId] = $this->setupGymAndMembershipType();
+
+        $gymPublicId = GymModel::query()
+            ->withoutGlobalScopes()
+            ->findOrFail($gymId)
+            ->public_id;
+
+        $typePublicId = MembershipTypeModel::query()
+            ->withoutGlobalScopes()
+            ->findOrFail($typeId)
+            ->public_id;
+
+        $client = User::factory()->create();
+        $key = 'req-ulid-key-1';
+
+        $first = $this->actingAs($client, 'sanctum')
+            ->withHeaders(['Idempotency-Key' => $key])
+            ->postJson('/api/v1/client/membership-requests', [
+                'gym_id' => $gymPublicId,
+                'membership_type_id' => $typePublicId,
+            ]);
+
+        $first->assertStatus(201)
+            ->assertJsonPath('data.gym_id', $gymId)
+            ->assertJsonPath('data.membership_type_id', $typeId);
+
+        $requestId = $first->json('data.id');
+
+        $second = $this->actingAs($client, 'sanctum')
+            ->withHeaders(['Idempotency-Key' => $key])
+            ->postJson('/api/v1/client/membership-requests', [
+                'gym_id' => $gymPublicId,
+                'membership_type_id' => $typePublicId,
+            ]);
+
+        $second->assertStatus(201)
+            ->assertJsonPath('data.id', $requestId);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/client/membership-requests', [
+                'gym_id' => '01jcxyz0000000000000000000',
+                'membership_type_id' => '01jcxyz0000000000000000000',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'VALIDATION_FAILED')
+            ->assertJsonStructure(['error' => ['details' => ['gym_id', 'membership_type_id']]]);
     }
 }

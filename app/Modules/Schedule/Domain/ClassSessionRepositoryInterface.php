@@ -24,6 +24,11 @@ interface ClassSessionRepositoryInterface
     public function save(ClassSession $session): void;
 
     /**
+     * Резолвит внутренний числовой ID занятия по id или публичному ULID (public_id).
+     */
+    public function resolveId(int|string $idOrPublicId): ?int;
+
+    /**
      * Возвращает ID компании-владельца занятия или null, если занятие не найдено.
      */
     public function findCompanyId(int $id): ?int;

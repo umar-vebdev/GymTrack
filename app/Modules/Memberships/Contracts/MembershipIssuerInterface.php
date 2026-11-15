@@ -12,6 +12,11 @@ use DateTimeImmutable;
 interface MembershipIssuerInterface
 {
     /**
+     * Резолвит внутренний числовой ID типа абонемента по id или публичному ULID в рамках компании.
+     */
+    public function resolveTypeId(int $companyId, int|string $idOrPublicId): ?int;
+
+    /**
      * Возвращает название и цену активного типа абонемента компании для включения в чек продажи.
      */
     public function quoteType(int $companyId, int $typeId): MembershipTypeQuote;

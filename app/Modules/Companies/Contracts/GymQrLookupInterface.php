@@ -10,4 +10,6 @@ namespace App\Modules\Companies\Contracts;
 interface GymQrLookupInterface
 {
     public function findById(int $gymId): ?GymQrSummary;
+
+    public function findByIdOrPublicId(int|string $idOrPublicId): ?GymQrSummary;
 }

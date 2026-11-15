@@ -25,11 +25,16 @@ final class CreateMembershipRequestController extends Controller
         /** @var string|null $idempotencyKey */
         $idempotencyKey = $request->header('Idempotency-Key');
 
+        /** @var int|string $gymId */
+        $gymId = $request->validated('gym_id');
+        /** @var int|string $membershipTypeId */
+        $membershipTypeId = $request->validated('membership_type_id');
+
         try {
             $result = $this->createRequest->execute(
                 userId: $user->id,
-                gymId: (int) $request->validated('gym_id'),
-                membershipTypeId: (int) $request->validated('membership_type_id'),
+                gymId: $gymId,
+                membershipTypeId: $membershipTypeId,
                 idempotencyKey: $idempotencyKey
             );
         } catch (DomainException $e) {

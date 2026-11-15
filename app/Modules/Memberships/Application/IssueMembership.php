@@ -25,6 +25,31 @@ final class IssueMembership implements MembershipIssuerInterface
         private readonly ClientLookupInterface $clients
     ) {}
 
+    public function resolveTypeId(int $companyId, int|string $idOrPublicId): ?int
+    {
+        if (is_int($idOrPublicId)) {
+            $type = $idOrPublicId > 0 ? $this->types->findById($idOrPublicId) : null;
+
+            return $type !== null && $type->companyId() === $companyId ? $type->id() : null;
+        }
+
+        $trimmed = trim($idOrPublicId);
+        if ($trimmed === '' || strlen($trimmed) > 26) {
+            return null;
+        }
+
+        if (ctype_digit($trimmed) && strlen($trimmed) < 19) {
+            $numericId = (int) $trimmed;
+            $type = $numericId > 0 ? $this->types->findById($numericId) : null;
+
+            return $type !== null && $type->companyId() === $companyId ? $type->id() : null;
+        }
+
+        $type = $this->types->findByPublicId($companyId, $trimmed);
+
+        return $type?->id();
+    }
+
     /**
      * @throws MembershipTypeNotFound
      * @throws MembershipTypeInactive

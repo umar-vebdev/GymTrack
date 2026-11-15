@@ -10,6 +10,8 @@ interface MembershipTypeRepositoryInterface
 {
     public function findById(int $id): ?MembershipType;
 
+    public function findByPublicId(int $companyId, string $publicId): ?MembershipType;
+
     /**
      * Создаёт активный тип абонемента и возвращает его ID.
      */

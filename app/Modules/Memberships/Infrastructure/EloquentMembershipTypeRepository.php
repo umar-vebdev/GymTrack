@@ -21,6 +21,22 @@ final class EloquentMembershipTypeRepository implements MembershipTypeRepository
         return $model ? $this->toEntity($model) : null;
     }
 
+    public function findByPublicId(int $companyId, string $publicId): ?MembershipType
+    {
+        $trimmed = trim($publicId);
+        if ($trimmed === '' || strlen($trimmed) > 26) {
+            return null;
+        }
+
+        $model = MembershipTypeModel::query()
+            ->withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('public_id', $trimmed)
+            ->first();
+
+        return $model !== null ? $this->toEntity($model) : null;
+    }
+
     public function create(int $companyId, string $name, Money $price, MembershipRules $rules): int
     {
         $model = MembershipTypeModel::create([

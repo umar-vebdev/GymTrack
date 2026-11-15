@@ -43,4 +43,29 @@ final class EloquentGymQrLookup implements GymQrLookupInterface
             longitude: $profile?->longitude !== null ? (float) $profile->longitude : null,
         );
     }
+
+    public function findByIdOrPublicId(int|string $idOrPublicId): ?GymQrSummary
+    {
+        if (is_int($idOrPublicId)) {
+            return $idOrPublicId > 0 ? $this->findById($idOrPublicId) : null;
+        }
+
+        $trimmed = trim($idOrPublicId);
+        if ($trimmed === '' || strlen($trimmed) > 26) {
+            return null;
+        }
+
+        if (ctype_digit($trimmed) && strlen($trimmed) < 19) {
+            $numericId = (int) $trimmed;
+
+            return $numericId > 0 ? $this->findById($numericId) : null;
+        }
+
+        $id = GymModel::query()
+            ->withoutGlobalScopes()
+            ->where('public_id', $trimmed)
+            ->value('id');
+
+        return is_numeric($id) ? $this->findById((int) $id) : null;
+    }
 }

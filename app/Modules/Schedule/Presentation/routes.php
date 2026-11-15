@@ -31,8 +31,8 @@ Route::prefix('api/v1/business/schedule')
 Route::prefix('api/v1/client')
     ->middleware('auth:sanctum')
     ->group(function (): void {
-        Route::get('/gyms/{gym}/schedule', ListClientGymScheduleController::class)->whereNumber('gym');
-        Route::post('/schedule/sessions/{session}/book', BookClassSessionController::class)->whereNumber('session');
+        Route::get('/gyms/{gym}/schedule', ListClientGymScheduleController::class)->where('gym', '[0-9A-Za-z]+');
+        Route::post('/schedule/sessions/{session}/book', BookClassSessionController::class)->where('session', '[0-9A-Za-z]+');
         Route::post('/schedule/bookings/{booking}/cancel', CancelClassBookingController::class)->whereNumber('booking');
         Route::get('/schedule/bookings', ListClientBookingsController::class);
     });

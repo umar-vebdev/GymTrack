@@ -9,6 +9,7 @@ use App\Modules\Companies\Domain\CompanyRepositoryInterface;
 use App\Modules\Companies\Domain\GymRepositoryInterface;
 use App\Modules\Companies\Domain\Role;
 use App\Modules\Companies\Domain\StaffMemberRepositoryInterface;
+use App\Modules\Companies\Infrastructure\Persistence\GymModel;
 use App\Modules\Schedule\Domain\ClassSessionRepositoryInterface;
 use App\Modules\Schedule\Domain\ClassTemplateRepositoryInterface;
 use App\Modules\Trainers\Domain\TrainerRepositoryInterface;
@@ -240,8 +241,26 @@ final class ManageClassSessionsTest extends TestCase
             ->assertJsonPath('data.0.title', 'Пилатес')
             ->assertJsonPath('data.0.available_seats', 12);
 
+        $gymPublicId = GymModel::query()
+            ->withoutGlobalScopes()
+            ->findOrFail($setup['gymId'])
+            ->public_id;
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/client/gyms/'.$gymPublicId.'/schedule?from_date=2026-11-09&to_date=2026-11-15')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $session->id())
+            ->assertJsonPath('data.0.title', 'Пилатес')
+            ->assertJsonPath('data.0.available_seats', 12);
+
         $this->actingAs($client, 'sanctum')
             ->getJson('/api/v1/client/gyms/999999/schedule?from_date=2026-11-09&to_date=2026-11-15')
+            ->assertStatus(404)
+            ->assertJsonPath('error.code', 'NOT_FOUND');
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/client/gyms/01jcxyz0000000000000000000/schedule?from_date=2026-11-09&to_date=2026-11-15')
             ->assertStatus(404)
             ->assertJsonPath('error.code', 'NOT_FOUND');
 

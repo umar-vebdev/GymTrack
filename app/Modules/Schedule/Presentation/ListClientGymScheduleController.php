@@ -22,15 +22,20 @@ final class ListClientGymScheduleController extends Controller
         private readonly ListClassSessions $listClassSessions,
     ) {}
 
-    public function __invoke(ListClientGymScheduleRequest $request, int $gym): JsonResponse
+    public function __invoke(ListClientGymScheduleRequest $request, string $gym): JsonResponse
     {
-        $companyId = $this->gyms->findCompanyId($gym);
+        $gymId = $this->gyms->resolveId($gym);
+        $companyId = $gymId !== null ? $this->gyms->findCompanyId($gymId) : null;
 
-        if ($companyId === null) {
+        if ($gymId === null || $companyId === null) {
+            $message = ctype_digit($gym) && strlen($gym) < 19
+                ? ScheduleResourceNotFound::gym((int) $gym)->getMessage()
+                : 'Зал не найден.';
+
             return response()->json([
                 'error' => [
                     'code' => 'NOT_FOUND',
-                    'message' => ScheduleResourceNotFound::gym($gym)->getMessage(),
+                    'message' => $message,
                 ],
             ], 404);
         }
@@ -41,7 +46,7 @@ final class ListClientGymScheduleController extends Controller
         $from = new DateTimeImmutable($data['from_date'].' 00:00:00', $utc);
         $to = new DateTimeImmutable($data['to_date'].' 23:59:59', $utc);
 
-        $sessions = $this->listClassSessions->execute($companyId, $gym, $from, $to);
+        $sessions = $this->listClassSessions->execute($companyId, $gymId, $from, $to);
 
         return response()->json([
             'data' => array_map(

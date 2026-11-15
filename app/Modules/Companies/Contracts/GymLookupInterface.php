@@ -23,4 +23,9 @@ interface GymLookupInterface
      * Возвращает IANA часовой пояс зала или null, если зал не существует.
      */
     public function findTimezone(int $gymId): ?string;
+
+    /**
+     * Резолвит внутренний числовой ID зала по числовому id или публичному ULID (public_id).
+     */
+    public function resolveId(int|string $idOrPublicId): ?int;
 }

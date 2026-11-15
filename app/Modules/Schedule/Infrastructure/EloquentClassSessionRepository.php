@@ -66,6 +66,35 @@ final class EloquentClassSessionRepository implements ClassSessionRepositoryInte
             ]);
     }
 
+    public function resolveId(int|string $idOrPublicId): ?int
+    {
+        if (is_int($idOrPublicId)) {
+            $id = $idOrPublicId > 0
+                ? ClassSessionModel::query()->withoutGlobalScopes()->whereKey($idOrPublicId)->value('id')
+                : null;
+
+            return is_numeric($id) ? (int) $id : null;
+        }
+
+        $trimmed = trim($idOrPublicId);
+        if ($trimmed === '' || strlen($trimmed) > 26) {
+            return null;
+        }
+
+        if (ctype_digit($trimmed) && strlen($trimmed) < 19) {
+            $numericId = (int) $trimmed;
+            $id = $numericId > 0
+                ? ClassSessionModel::query()->withoutGlobalScopes()->whereKey($numericId)->value('id')
+                : null;
+
+            return is_numeric($id) ? (int) $id : null;
+        }
+
+        $id = ClassSessionModel::query()->withoutGlobalScopes()->where('public_id', $trimmed)->value('id');
+
+        return is_numeric($id) ? (int) $id : null;
+    }
+
     public function findCompanyId(int $id): ?int
     {
         $companyId = ClassSessionModel::query()
