@@ -16,12 +16,23 @@ final class IssueToken
         private readonly TokenGenerator $tokenGenerator
     ) {}
 
-    public function execute(string $phone, string $password, string $device = 'mobile'): string
-    {
-        $user = $this->userRepository->findByPhone($phone);
+    public function execute(
+        string $password,
+        ?string $email = null,
+        ?string $phone = null,
+        string $device = 'mobile',
+    ): string {
+        $normalizedEmail = $email !== null && trim($email) !== '' ? mb_strtolower(trim($email)) : null;
+        $normalizedPhone = $phone !== null && trim($phone) !== '' ? trim($phone) : null;
+
+        $user = match (true) {
+            $normalizedEmail !== null => $this->userRepository->findByEmail($normalizedEmail),
+            $normalizedPhone !== null => $this->userRepository->findByPhone($normalizedPhone),
+            default => null,
+        };
 
         if (!$user || !Hash::check($password, $user->passwordHash())) {
-            throw new InvalidArgumentException('Неверный телефон или пароль.');
+            throw new InvalidArgumentException('Неверный логин или пароль.');
         }
 
         return $this->tokenGenerator->generateForUser($user->id(), $device);

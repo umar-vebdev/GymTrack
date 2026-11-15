@@ -19,7 +19,9 @@ final class RegisterClientController extends Controller
 
     public function __invoke(RegisterClientRequest $request): JsonResponse
     {
-        $phone = $request->string('phone')->trim()->toString();
+        $email = mb_strtolower($request->string('email')->trim()->toString());
+        $rawPhone = $request->string('phone')->trim()->toString();
+        $phone = $rawPhone !== '' ? $rawPhone : null;
         $name = $request->string('name')->trim()->toString();
         $password = $request->string('password')->toString();
         $birthDate = new DateTimeImmutable($request->string('birth_date')->toString());
@@ -27,14 +29,15 @@ final class RegisterClientController extends Controller
 
         try {
             $userId = $this->registerClient->execute(
-                phone: $phone,
+                email: $email,
                 name: $name,
                 password: $password,
                 birthDate: $birthDate,
                 consented: $consented,
+                phone: $phone,
             );
         } catch (ClientRegistrationDenied $e) {
-            $status = $e->errorCode === 'PHONE_ALREADY_REGISTERED' ? 409 : 422;
+            $status = in_array($e->errorCode, ['EMAIL_ALREADY_REGISTERED', 'PHONE_ALREADY_REGISTERED'], true) ? 409 : 422;
 
             return response()->json([
                 'error' => [
@@ -47,10 +50,11 @@ final class RegisterClientController extends Controller
         return response()->json([
             'data' => [
                 'id' => $userId,
+                'email' => $email,
                 'phone' => $phone,
                 'name' => $name,
                 'birth_date' => $birthDate->format('Y-m-d'),
-                'is_phone_verified' => false,
+                'is_email_verified' => false,
             ],
         ], 201);
     }

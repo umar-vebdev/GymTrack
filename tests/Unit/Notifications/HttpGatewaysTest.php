@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Notifications;
 
-use App\Modules\Identity\Contracts\SmsGateway;
-use App\Modules\Identity\Infrastructure\HttpSmsGateway;
-use App\Modules\Identity\Infrastructure\LogSmsGateway;
 use App\Modules\Notifications\Domain\PushGatewayInterface;
 use App\Modules\Notifications\Domain\SmsGatewayInterface;
 use App\Modules\Notifications\Infrastructure\HttpNotificationsSmsGateway;
@@ -26,7 +23,6 @@ final class HttpGatewaysTest extends TestCase
         config()->set('services.sms.driver', 'log');
         config()->set('services.push.driver', 'log');
 
-        $this->assertInstanceOf(LogSmsGateway::class, $this->app->make(SmsGateway::class));
         $this->assertInstanceOf(LogNotificationsSmsGateway::class, $this->app->make(SmsGatewayInterface::class));
         $this->assertInstanceOf(LogPushGateway::class, $this->app->make(PushGatewayInterface::class));
 
@@ -44,7 +40,6 @@ final class HttpGatewaysTest extends TestCase
             'timeout' => 6,
         ]);
 
-        $this->assertInstanceOf(HttpSmsGateway::class, $this->app->make(SmsGateway::class));
         $this->assertInstanceOf(HttpNotificationsSmsGateway::class, $this->app->make(SmsGatewayInterface::class));
         $this->assertInstanceOf(HttpPushGateway::class, $this->app->make(PushGatewayInterface::class));
     }
@@ -70,10 +65,6 @@ final class HttpGatewaysTest extends TestCase
             'timeout' => 5,
         ]);
 
-        /** @var SmsGateway $identitySms */
-        $identitySms = $this->app->make(SmsGateway::class);
-        $identitySms->send('+992900111222', 'Код: 123456');
-
         /** @var SmsGatewayInterface $notificationsSms */
         $notificationsSms = $this->app->make(SmsGatewayInterface::class);
         $notificationsSms->send('+992900333444', 'Напоминание');
@@ -82,13 +73,7 @@ final class HttpGatewaysTest extends TestCase
         $push = $this->app->make(PushGatewayInterface::class);
         $push->send('device-token-1', 'Заголовок', 'Текст сообщения', ['visit_id' => 42]);
 
-        Http::assertSentCount(3);
-
-        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://sms.example.test/send'
-            && $request->hasHeader('Authorization', 'Bearer sms-token')
-            && $request['phone'] === '+992900111222'
-            && $request['message'] === 'Код: 123456'
-            && $request['sender'] === 'GymTrack');
+        Http::assertSentCount(2);
 
         Http::assertSent(fn (Request $request): bool => $request->url() === 'https://sms.example.test/send'
             && $request->hasHeader('Authorization', 'Bearer sms-token')
@@ -112,7 +97,7 @@ final class HttpGatewaysTest extends TestCase
         ]);
 
         try {
-            (new HttpSmsGateway(url: ''))->send('+992900111222', 'test');
+            (new HttpNotificationsSmsGateway(url: ''))->send('+992900111222', 'test');
             $this->fail('Ожидалось исключение при пустом SMS URL.');
         } catch (RuntimeException) {
             $this->addToAssertionCount(1);

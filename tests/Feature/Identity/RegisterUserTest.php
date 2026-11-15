@@ -33,6 +33,22 @@ final class RegisterUserTest extends TestCase
         $this->assertTrue(Hash::check('secret123', $user->password));
     }
 
+    public function test_it_registers_user_with_email(): void
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'email' => 'owner@example.test',
+            'password' => 'secret123',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure(['data' => ['id', 'message']]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'owner@example.test',
+            'email_verified_at' => null,
+        ]);
+    }
+
     public function test_it_fails_validation_without_phone_or_email(): void
     {
         $response = $this->postJson('/api/v1/auth/register', [

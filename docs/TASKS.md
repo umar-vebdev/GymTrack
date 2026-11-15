@@ -228,12 +228,9 @@
 
 - [x] **T7-01** Домен, шлюз `EmailOtpGateway` и сценарии подтверждения Email (`Identity`): `emailVerifiedAt`/`markEmailAsVerified`/`anonymize` в `User` и `EloquentUserRepository` (case-insensitive `findByEmail`), событие `EmailVerified`, шлюз `EmailOtpGateway` (`MailEmailOtpGateway`), `findVerifiedUserIdByEmail` в `UserQueryInterface`/`EloquentUserQuery`, `SendEmailVerificationOtp`, `VerifyEmail`, обновление `UserRepositoryTest` (6 passed, 39 assertions; также `lint:fix` поправил стиль хвостов из прошлых коммитов), `lint`/`analyse`/`deps` зелёные.
 
-- [~] **T7-02** Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`)
-  - **ТЗ:** Бизнес-ТЗ 5.1, 10; Тех. ТЗ 7.2, 8; `D-020`.
-  - **Файлы:** `ClientRegistrationDenied`, `RegisterClient`, `RegisterClientRequest`, `RegisterClientController`, `LoginUserRequest`, `IssueToken`, `LoginUserController`, `SendOtpRequest`, `SendOtpController`, `VerifyEmailRequest`, `VerifyEmailController`, `GetClientProfileController`, `routes/api.php`, `AppServiceProvider`, удаление устаревшего SMS OTP в `Identity`, `tests/Feature/Identity/*`, `tests/Unit/Notifications/HttpGatewaysTest.php`.
-  - **Готовность:** `PhoneVerificationTest|ClientProfileAndDeletionTest|AuthRateLimitingTest|RegisterUserTest|HttpGatewaysTest` и `lint`/`analyse`/`deps` зелёные.
+- [x] **T7-02** Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`): `emailAlreadyRegistered` в `ClientRegistrationDenied`, `RegisterClient` (обязательный `email`, опциональный `phone`, отправка OTP через `SendEmailVerificationOtp`), `RegisterClientRequest`/`Controller` (`is_email_verified: false`), вход в `IssueToken`/`LoginUser*` по `email` или `phone`, `SendOtp*`/`VerifyEmail*`/`POST /api/v1/auth/verify-email`, `GetClientProfileController`, rate limiters по email/phone в `AppServiceProvider`, удаление устаревшего SMS OTP из `Identity` (`PhoneVerified.php` сохраняется до `T7-03`), обновление тестов (`PhoneVerificationTest|ClientProfileAndDeletionTest|AuthRateLimitingTest|RegisterUserTest|LoginUserTest|HttpGatewaysTest`: 19 passed, 109 assertions), `lint`/`analyse`/`deps` зелёные.
 
-- [ ] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`)
+- [~] **T7-03** Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`)
   - **ТЗ:** Бизнес-ТЗ 12.9; Тех. ТЗ 3.7, 9.3; `D-020`.
   - **Файлы:** миграция `2026_11_15_000003_add_email_to_clients_table`, `ClientModel`, `Client`, `ClientRepositoryInterface`, `EloquentClientRepository`, `CreateClientRequest`, `CreateClient`, `CreateClientController`, `LinkUserToClients`, `ClientsServiceProvider`, `EloquentClientLookup`, `tests/Feature/Clients/ClientUserLinkingTest.php`, `tests/Feature/Identity/RegisterClientAndLinkingTest.php`.
   - **Готовность:** `ClientUserLinkingTest|RegisterClientAndLinkingTest|Clients` и `lint`/`analyse`/`deps` зелёные.

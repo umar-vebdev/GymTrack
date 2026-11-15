@@ -13,23 +13,24 @@ final class AuthRateLimitingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_is_rate_limited_per_phone_and_returns_unified_429(): void
+    public function test_login_is_rate_limited_per_email_and_phone_and_returns_unified_429(): void
     {
         User::factory()->create([
+            'email' => 'rate1@example.test',
             'phone' => '+992900000111',
             'password' => Hash::make('secret123'),
         ]);
 
         for ($i = 0; $i < 5; $i++) {
             $this->postJson('/api/v1/auth/login', [
-                'phone' => '+992900000111',
+                'email' => 'rate1@example.test',
                 'password' => 'wrong-password',
             ])->assertStatus(401);
         }
 
-        // 6-я попытка на тот же телефон блокируется с 429
+        // 6-я попытка на тот же email (даже в другом регистре) блокируется с 429
         $throttled = $this->postJson('/api/v1/auth/login', [
-            'phone' => '+992 900 000 111',
+            'email' => 'Rate1@Example.TEST',
             'password' => 'secret123',
         ], [
             'Accept-Language' => 'tg',
@@ -45,7 +46,13 @@ final class AuthRateLimitingTest extends TestCase
                 ],
             ]);
 
-        // Другой номер с того же IP не заблокирован лимитом конкретного телефона
+        // Вход по телефону с того же IP не заблокирован лимитом email
+        $this->postJson('/api/v1/auth/login', [
+            'phone' => '+992900000111',
+            'password' => 'secret123',
+        ])->assertOk();
+
+        // Другой номер с того же IP также не заблокирован
         User::factory()->create([
             'phone' => '+992900000222',
             'password' => Hash::make('secret123'),
@@ -56,30 +63,30 @@ final class AuthRateLimitingTest extends TestCase
         ])->assertOk();
     }
 
-    public function test_send_otp_and_verify_phone_are_rate_limited(): void
+    public function test_send_otp_and_verify_email_are_rate_limited(): void
     {
         for ($i = 0; $i < 3; $i++) {
             $this->postJson('/api/v1/auth/send-otp', [
-                'phone' => '+992900000333',
+                'email' => 'otp-limit@example.test',
             ])->assertOk();
         }
 
         $this->postJson('/api/v1/auth/send-otp', [
-            'phone' => '+992900000333',
+            'email' => 'OTP-Limit@example.test',
         ])->assertStatus(429)
             ->assertHeader('Retry-After')
             ->assertJsonPath('error.code', 'TOO_MANY_REQUESTS')
             ->assertJsonPath('error.message', 'Слишком много запросов. Попробуйте позже.');
 
         for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/api/v1/auth/verify-phone', [
-                'phone' => '+992900000333',
+            $this->postJson('/api/v1/auth/verify-email', [
+                'email' => 'otp-limit@example.test',
                 'code' => '000000',
             ])->assertStatus(400);
         }
 
-        $this->postJson('/api/v1/auth/verify-phone', [
-            'phone' => '+992900000333',
+        $this->postJson('/api/v1/auth/verify-email', [
+            'email' => 'otp-limit@example.test',
             'code' => '000000',
         ])->assertStatus(429)
             ->assertJsonPath('error.code', 'TOO_MANY_REQUESTS');
@@ -88,9 +95,9 @@ final class AuthRateLimitingTest extends TestCase
     public function test_register_endpoints_share_ip_rate_limit(): void
     {
         for ($i = 1; $i <= 10; $i++) {
-            $phone = sprintf('+992900100%03d', $i);
             $this->postJson('/api/v1/client/auth/register', [
-                'phone' => $phone,
+                'email' => sprintf('client%03d@example.test', $i),
+                'phone' => sprintf('+992900100%03d', $i),
                 'name' => 'Client '.$i,
                 'password' => 'secret1234',
                 'birth_date' => '1995-05-01',
@@ -99,7 +106,7 @@ final class AuthRateLimitingTest extends TestCase
         }
 
         $this->postJson('/api/v1/auth/register', [
-            'phone' => '+992900100999',
+            'email' => 'client999@example.test',
             'password' => 'secret1234',
         ])->assertStatus(429)
             ->assertHeader('Retry-After')

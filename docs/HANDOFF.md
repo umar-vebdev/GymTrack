@@ -2,21 +2,21 @@
 
 **Обновлено:** 2026-11-15
 **Текущий этап:** Этап 7 — Переход OTP и связывания аккаунтов на Email (решение `D-020`)
-**Текущая задача:** `T7-02` — Регистрация клиента, вход и HTTP-эндпоинты OTP по Email (`Identity`)
+**Текущая задача:** `T7-03` — Поле `email` в CRM и автосвязывание карточек клиента по `EmailVerified` (`Clients`)
 
 ## Что сделано в последней сессии
 
-- Принято архитектурное решение **`D-020`**: полный перевод OTP-подтверждения, регистрации клиента, автосвязывания CRM-карточек и добавления сотрудников на `email` (без платного SMS OTP; уведомления залов в `Notifications` сохранены).
-- **`T7-01`** (готово): в `Identity` добавлены `emailVerifiedAt` и `markEmailAsVerified()` в доменную сущность `User` и `EloquentUserRepository`, нормализация/case-insensitive поиск по `email`, событие `EmailVerified`, контракт `EmailOtpGateway` и реализация `MailEmailOtpGateway` (на Laravel `Mail::raw`), `findVerifiedUserIdByEmail` в `UserQueryInterface`/`EloquentUserQuery`, use case'ы `SendEmailVerificationOtp` и `VerifyEmail`, тесты в `UserRepositoryTest`.
+- **`T7-01`** (`cea8d16`): в `Identity` добавлены `emailVerifiedAt`/`markEmailAsVerified`, событие `EmailVerified`, `EmailOtpGateway`/`MailEmailOtpGateway`, `findVerifiedUserIdByEmail`, `SendEmailVerificationOtp`, `VerifyEmail`, тесты `UserRepositoryTest`.
+- **`T7-02`** (готово): `POST /api/v1/client/auth/register` переведён на обязательный уникальный `email` (опциональный `phone`) и отправку OTP по Email; `POST /api/v1/auth/login` принимает `email` или `phone`; `POST /api/v1/auth/send-otp` и `POST /api/v1/auth/verify-email` работают по Email; обновлены `GetClientProfileController` (`is_email_verified`) и rate limiters в `AppServiceProvider`; удалены устаревшие SMS OTP классы из `Identity` (кроме `PhoneVerified.php` до `T7-03`); тесты `19 passed (109 assertions)`.
 
 ## Актуальное состояние проверок
 
 - `composer lint` (`pint --test`) — ✓
 - `composer analyse` (`phpstan`, level 8) — ✓ (0 errors)
 - `composer deps` (`deptrac`) — ✓ (0 violations)
-- `docker compose exec -T app php artisan test --filter=UserRepositoryTest` — ✓ (`6 passed, 39 assertions`)
+- `docker compose exec -T app php artisan test --filter="PhoneVerificationTest|ClientProfileAndDeletionTest|AuthRateLimitingTest|RegisterUserTest|LoginUserTest|HttpGatewaysTest"` — ✓ (`19 passed, 109 assertions`)
 
 ## Точный следующий шаг
 
-1. Выполнить **`T7-02`**: перевести `RegisterClient*`, `LoginUser*`/`IssueToken`, `SendOtp*`, `VerifyEmail*`, `GetClientProfileController`, rate limiters в `AppServiceProvider` и маршруты `/api/v1/auth/verify-email` на Email; удалить устаревшие SMS OTP классы из `Identity` (кроме `PhoneVerified.php` до завершения `T7-03`) и обновить тесты.
-2. После этого выполнить `T7-03` (`Clients`) и `T7-04` (`Companies` + OpenAPI/README).
+1. Выполнить **`T7-03`**: миграция `clients.email` + обновление `ClientModel`/`Client`/`ClientRepositoryInterface`/`EloquentClientRepository`, `CreateClient*`, `LinkUserToClients`, `ClientsServiceProvider`, `EloquentClientLookup`, удаление `PhoneVerified.php`, обновление `ClientUserLinkingTest` и `RegisterClientAndLinkingTest`.
+2. Выполнить `T7-04` (`Companies` + OpenAPI/README + полный прогон `composer test`).

@@ -41,39 +41,39 @@ class AppServiceProvider extends ServiceProvider
     private function configureRateLimiting(): void
     {
         RateLimiter::for('auth-login', function (Request $request): array {
-            $phone = $this->normalizedPhone($request);
+            $identifier = $this->normalizedLoginIdentifier($request);
             $ip = (string) $request->ip();
 
             $limits = [Limit::perMinute(20)->by('login-ip:'.$ip)];
 
-            if ($phone !== '') {
-                $limits[] = Limit::perMinute(5)->by('login:'.$phone.'|'.$ip);
+            if ($identifier !== '') {
+                $limits[] = Limit::perMinute(5)->by('login:'.$identifier.'|'.$ip);
             }
 
             return $limits;
         });
 
         RateLimiter::for('auth-otp-send', function (Request $request): array {
-            $phone = $this->normalizedPhone($request);
+            $email = $this->normalizedEmail($request);
             $ip = (string) $request->ip();
 
             $limits = [Limit::perMinute(10)->by('otp-send-ip:'.$ip)];
 
-            if ($phone !== '') {
-                $limits[] = Limit::perMinute(3)->by('otp-send-phone:'.$phone);
+            if ($email !== '') {
+                $limits[] = Limit::perMinute(3)->by('otp-send-email:'.$email);
             }
 
             return $limits;
         });
 
         RateLimiter::for('auth-otp-verify', function (Request $request): array {
-            $phone = $this->normalizedPhone($request);
+            $email = $this->normalizedEmail($request);
             $ip = (string) $request->ip();
 
             $limits = [Limit::perMinute(15)->by('otp-verify-ip:'.$ip)];
 
-            if ($phone !== '') {
-                $limits[] = Limit::perMinute(5)->by('otp-verify:'.$phone.'|'.$ip);
+            if ($email !== '') {
+                $limits[] = Limit::perMinute(5)->by('otp-verify:'.$email.'|'.$ip);
             }
 
             return $limits;
@@ -82,6 +82,26 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('auth-register', static function (Request $request): Limit {
             return Limit::perMinute(10)->by('register-ip:'.(string) $request->ip());
         });
+    }
+
+    private function normalizedEmail(Request $request): string
+    {
+        return mb_strtolower(trim((string) $request->input('email', '')));
+    }
+
+    private function normalizedLoginIdentifier(Request $request): string
+    {
+        $email = $this->normalizedEmail($request);
+        if ($email !== '') {
+            return 'email:'.$email;
+        }
+
+        $phone = $this->normalizedPhone($request);
+        if ($phone !== '') {
+            return 'phone:'.$phone;
+        }
+
+        return '';
     }
 
     private function normalizedPhone(Request $request): string

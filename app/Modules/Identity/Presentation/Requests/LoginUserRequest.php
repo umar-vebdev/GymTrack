@@ -19,7 +19,8 @@ final class LoginUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['required_without:phone', 'nullable', 'string', 'email', 'max:255'],
+            'phone' => ['required_without:email', 'nullable', 'string', 'max:20'],
             'password' => ['required', 'string'],
             'device' => ['nullable', 'string', 'max:255'],
         ];

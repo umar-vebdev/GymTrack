@@ -23,24 +23,28 @@ final class ClientProfileAndDeletionTest extends TestCase
 
         /** @var ClientRepositoryInterface $clients */
         $clients = $this->app->make(ClientRepositoryInterface::class);
+        $email = 'farrukh@example.test';
         $phone = '+992900555666';
         $gymClientId = $clients->create($company->id, 'Фаррух', $phone);
 
-        // Регистрация клиента и подтверждение телефона
+        // Регистрация клиента и подтверждение email
         $regRes = $this->postJson('/api/v1/client/auth/register', [
+            'email' => $email,
             'phone' => $phone,
             'name' => 'Фаррух',
             'password' => 'secret1234',
             'birth_date' => '1996-08-20',
             'consent' => true,
-        ])->assertCreated();
+        ])->assertCreated()
+            ->assertJsonPath('data.email', $email)
+            ->assertJsonPath('data.is_email_verified', false);
 
         $userId = (int) $regRes->json('data.id');
         /** @var string $otp */
-        $otp = Cache::get("otp:{$phone}");
+        $otp = Cache::get("otp:email:{$email}");
 
-        $this->postJson('/api/v1/auth/verify-phone', [
-            'phone' => $phone,
+        $this->postJson('/api/v1/auth/verify-email', [
+            'email' => $email,
             'code' => $otp,
         ])->assertOk();
 
@@ -53,10 +57,11 @@ final class ClientProfileAndDeletionTest extends TestCase
             ->getJson('/api/v1/client/profile')
             ->assertOk()
             ->assertJsonPath('data.id', $userId)
+            ->assertJsonPath('data.email', $email)
             ->assertJsonPath('data.phone', $phone)
             ->assertJsonPath('data.name', 'Фаррух')
             ->assertJsonPath('data.birth_date', '1996-08-20')
-            ->assertJsonPath('data.is_phone_verified', true);
+            ->assertJsonPath('data.is_email_verified', true);
 
         // Удаление/обезличивание аккаунта по запросу (Бизнес-ТЗ 10, Тех. ТЗ 8)
         $this->withHeader('Authorization', 'Bearer '.$token)
@@ -68,8 +73,10 @@ final class ClientProfileAndDeletionTest extends TestCase
         $this->assertDatabaseHas('users', [
             'id' => $userId,
             'name' => 'Deleted User',
+            'email' => null,
             'phone' => null,
             'birth_date' => null,
+            'email_verified_at' => null,
             'is_phone_verified' => false,
         ]);
         $this->assertDatabaseCount('personal_access_tokens', 0);

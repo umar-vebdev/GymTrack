@@ -26,10 +26,11 @@ final class GetClientProfileController extends Controller
         return response()->json([
             'data' => [
                 'id' => $authUser->id,
+                'email' => $user?->email(),
                 'phone' => $user?->phone(),
                 'name' => $user?->name(),
                 'birth_date' => $user?->birthDate()?->format('Y-m-d'),
-                'is_phone_verified' => $user?->isPhoneVerified() ?? false,
+                'is_email_verified' => $user?->isEmailVerified() ?? false,
                 'personal_data_consented_at' => $user?->personalDataConsentedAt()?->format(DATE_ATOM),
             ],
         ]);

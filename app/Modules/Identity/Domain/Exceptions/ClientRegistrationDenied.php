@@ -38,4 +38,12 @@ final class ClientRegistrationDenied extends DomainException
             'Пользователь с таким номером телефона уже зарегистрирован.',
         );
     }
+
+    public static function emailAlreadyRegistered(): self
+    {
+        return new self(
+            'EMAIL_ALREADY_REGISTERED',
+            'Пользователь с таким email уже зарегистрирован.',
+        );
+    }
 }

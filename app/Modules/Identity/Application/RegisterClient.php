@@ -15,7 +15,7 @@ final class RegisterClient
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly SendPhoneVerificationOtp $sendOtp,
+        private readonly SendEmailVerificationOtp $sendOtp,
         private readonly Clock $clock,
     ) {}
 
@@ -23,31 +23,39 @@ final class RegisterClient
      * @throws ClientRegistrationDenied
      */
     public function execute(
-        string $phone,
+        string $email,
         string $name,
         string $password,
         DateTimeImmutable $birthDate,
         bool $consented,
+        ?string $phone = null,
     ): int {
         $now = $this->clock->now();
+        $normalizedEmail = mb_strtolower(trim($email));
+        $normalizedPhone = $phone !== null && trim($phone) !== '' ? trim($phone) : null;
 
         ClientRegistrationPolicy::assertEligible($birthDate, $consented, $now);
 
-        if ($this->userRepository->findByPhone($phone) !== null) {
+        if ($this->userRepository->findByEmail($normalizedEmail) !== null) {
+            throw ClientRegistrationDenied::emailAlreadyRegistered();
+        }
+
+        if ($normalizedPhone !== null && $this->userRepository->findByPhone($normalizedPhone) !== null) {
             throw ClientRegistrationDenied::phoneAlreadyRegistered();
         }
 
         $userId = $this->userRepository->create(
-            phone: $phone,
-            email: null,
+            phone: $normalizedPhone,
+            email: $normalizedEmail,
             passwordHash: Hash::make($password),
             isPhoneVerified: false,
             name: $name,
             birthDate: $birthDate,
             personalDataConsentedAt: $now,
+            emailVerifiedAt: null,
         );
 
-        $this->sendOtp->execute($phone);
+        $this->sendOtp->execute($normalizedEmail);
 
         return $userId;
     }

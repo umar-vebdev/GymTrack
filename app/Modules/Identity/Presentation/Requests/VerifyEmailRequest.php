@@ -6,7 +6,7 @@ namespace App\Modules\Identity\Presentation\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class VerifyPhoneRequest extends FormRequest
+final class VerifyEmailRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,7 @@ final class VerifyPhoneRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'code' => ['required', 'string', 'size:6'],
         ];
     }

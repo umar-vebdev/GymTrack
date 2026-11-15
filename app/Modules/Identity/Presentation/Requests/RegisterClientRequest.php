@@ -19,7 +19,8 @@ final class RegisterClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'name' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
             'birth_date' => ['required', 'date_format:Y-m-d'],

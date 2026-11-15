@@ -18,10 +18,14 @@ final class LoginUserController extends Controller
     public function __invoke(LoginUserRequest $request): JsonResponse
     {
         try {
+            /** @var array{email?: string|null, phone?: string|null, password: string, device?: string|null} $validated */
+            $validated = $request->validated();
+
             $token = $this->issueToken->execute(
-                phone: $request->validated('phone'),
-                password: $request->validated('password'),
-                device: $request->validated('device', 'mobile')
+                password: $validated['password'],
+                email: $validated['email'] ?? null,
+                phone: $validated['phone'] ?? null,
+                device: $validated['device'] ?? 'mobile',
             );
 
             return response()->json([
